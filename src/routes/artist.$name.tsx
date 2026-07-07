@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
-import { searchTracks } from "@/lib/gdmusic";
+import { searchTracks, SOURCES } from "@/lib/gdmusic";
 import { TrackRow } from "@/components/music/TrackRow";
 import { Artwork } from "@/components/music/Artwork";
 import { trackKey } from "@/lib/types";
@@ -20,16 +20,29 @@ function ArtistPage() {
   const playQueue = usePlayer((s) => s.playQueue);
   const toggleShuffle = usePlayer((s) => s.toggleShuffle);
 
-  const q = useQuery({
-    queryKey: ["artist", decoded],
-    queryFn: () => searchTracks(decoded, { count: 50 }),
-    staleTime: 5 * 60_000,
+  const queries = useQueries({
+    queries: SOURCES.map((s) => ({
+      queryKey: ["artist", decoded, s.id],
+      queryFn: () => searchTracks(decoded, { source: s.id, count: 50 }),
+      staleTime: 5 * 60_000,
+    })),
   });
-
-  const tracks = (q.data ?? []).filter((t) =>
-    t.artist.some((a) => a.toLowerCase() === decoded.toLowerCase()),
+  const isLoading = queries.some((q) => q.isLoading);
+  const all = queries.flatMap((q) => q.data ?? []);
+  const needle = decoded.toLowerCase();
+  const matched = all.filter((t) =>
+    t.artist.some((a) => a.toLowerCase().includes(needle)),
   );
-  const list = tracks.length ? tracks : (q.data ?? []);
+  // Dedupe by source:id
+  const seen = new Set<string>();
+  const dedupe = (arr: typeof all) =>
+    arr.filter((t) => {
+      const k = `${t.source}:${t.id}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  const list = dedupe(matched.length ? matched : all);
   const hero = list[0];
   const isFav = favoriteArtists.includes(decoded);
 
@@ -70,7 +83,7 @@ function ArtistPage() {
         </div>
 
         <div className="space-y-1">
-          {q.isLoading &&
+          {isLoading && list.length === 0 &&
             Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 p-2">
                 <div className="skeleton size-12 rounded-lg" />
