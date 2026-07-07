@@ -93,12 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "muis — Music, reimagined" },
-      { name: "description", content: "muis is a premium mobile-first music player with iOS-style glass UI, synced lyrics, offline downloads, and a smart queue — powered by gdmusic." },
-      { property: "og:description", content: "muis is a premium mobile-first music player with iOS-style glass UI, synced lyrics, offline downloads, and a smart queue — powered by gdmusic." },
-      { name: "twitter:description", content: "muis is a premium mobile-first music player with iOS-style glass UI, synced lyrics, offline downloads, and a smart queue — powered by gdmusic." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a0ab421-debf-46e5-8b36-46d6027a9fa4/id-preview-5b1c5198--4e0a3d1d-61ec-443a-9bf8-7ebe0dc14dcf.lovable.app-1783433010171.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a0ab421-debf-46e5-8b36-46d6027a9fa4/id-preview-5b1c5198--4e0a3d1d-61ec-443a-9bf8-7ebe0dc14dcf.lovable.app-1783433010171.png" },
     ],
     links: [
       {

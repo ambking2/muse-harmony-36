@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { Quality, Track } from "@/lib/types";
-import { primeAudio } from "@/lib/audio-el";
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -74,7 +73,6 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   playTrack: (t, list) => {
     const arr = list && list.length ? list : [t];
     const idx = Math.max(0, arr.findIndex((x) => x.id === t.id && x.source === t.source));
-    primeAudio();
     set({
       queue: arr,
       originalQueue: arr,
@@ -84,16 +82,13 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     });
   },
   playQueue: (list, startIndex = 0) =>
-  {
-    primeAudio();
     set({
       queue: list,
       originalQueue: list,
       index: Math.min(Math.max(0, startIndex), Math.max(0, list.length - 1)),
       isPlaying: true,
       currentTime: 0,
-    });
-  },
+    }),
   addToQueue: (t) =>
     set((s) => ({ queue: [...s.queue, t], originalQueue: [...s.originalQueue, t] })),
   playNext: (t) =>
@@ -139,10 +134,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     set({ index: index - 1, currentTime: 0, isPlaying: true });
   },
   setPlaying: (p) => set({ isPlaying: p }),
-  togglePlay: () => {
-    primeAudio();
-    set((s) => ({ isPlaying: !s.isPlaying }));
-  },
+  togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),
   setTime: (t) => set({ currentTime: t }),
   setDuration: (d) => set({ duration: d }),
   seek: (t) => set((s) => ({ currentTime: t, _seekRequest: s._seekRequest + 1 })),
