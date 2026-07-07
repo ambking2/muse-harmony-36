@@ -193,9 +193,9 @@ function Explore() {
 
 function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
   const picks = ["The Weeknd", "Taylor Swift", "Drake", "Billie Eilish", "Coldplay", "Ed Sheeran", "Adele", "BTS"];
-  const previews = useQuery({
+  const previews = useQuery<Track[]>({
     queryKey: ["quick-picks"],
-    queryFn: () => searchTracks("chill", { count: 8 }),
+    queryFn: () => searchTracksAll("chill", { count: 8 }),
     staleTime: 30 * 60_000,
   });
   return (
@@ -212,8 +212,8 @@ function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
       </section>
       {previews.data && previews.data.length > 0 && (
         <section className="space-y-1">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Fresh from gdmusic</h3>
-          {previews.data.map((t, i) => (
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Fresh picks</h3>
+          {previews.data.map((t: Track, i: number) => (
             <TrackRow key={trackKey(t)} track={t} list={previews.data!} index={i} />
           ))}
         </section>
