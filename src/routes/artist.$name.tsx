@@ -9,6 +9,7 @@ import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import { Heart, Play, Shuffle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { expandQueryVariants, isLikelyPersianTrack, isPersianScript } from "@/lib/persian";
 
 export const Route = createFileRoute("/artist/$name")({ component: ArtistPage });
 
@@ -20,18 +21,20 @@ function ArtistPage() {
   const playQueue = usePlayer((s) => s.playQueue);
   const toggleShuffle = usePlayer((s) => s.toggleShuffle);
 
+  const variants = expandQueryVariants(decoded);
+  const combos = SOURCES.flatMap((s) => variants.map((v) => ({ src: s.id, v })));
   const queries = useQueries({
-    queries: SOURCES.map((s) => ({
-      queryKey: ["artist", decoded, s.id],
-      queryFn: () => searchTracks(decoded, { source: s.id, count: 50 }),
+    queries: combos.map(({ src, v }) => ({
+      queryKey: ["artist", v, src],
+      queryFn: () => searchTracks(v, { source: src, count: 40 }),
       staleTime: 5 * 60_000,
     })),
   });
   const isLoading = queries.some((q) => q.isLoading);
   const all = queries.flatMap((q) => q.data ?? []);
-  const needle = decoded.toLowerCase();
+  const needles = variants.map((v) => v.toLowerCase());
   const matched = all.filter((t) =>
-    t.artist.some((a) => a.toLowerCase().includes(needle)),
+    t.artist.some((a) => needles.some((n) => a.toLowerCase().includes(n))),
   );
   // Dedupe by source:id
   const seen = new Set<string>();
@@ -42,7 +45,13 @@ function ArtistPage() {
       seen.add(k);
       return true;
     });
-  const list = dedupe(matched.length ? matched : all);
+  // Prefer Persian-script tracks first if the artist query implies Persian.
+  const persianFirst =
+    isPersianScript(decoded) || variants.some((v) => isPersianScript(v));
+  const ranked = persianFirst
+    ? [...matched].sort((a, b) => Number(isLikelyPersianTrack(b)) - Number(isLikelyPersianTrack(a)))
+    : matched;
+  const list = dedupe(ranked.length ? ranked : all);
   const hero = list[0];
   const isFav = favoriteArtists.includes(decoded);
 

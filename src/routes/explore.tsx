@@ -10,6 +10,7 @@ import { TrackRow } from "@/components/music/TrackRow";
 import { useLibrary } from "@/stores/library";
 import { Search, X, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { expandQueryVariants, isLikelyPersianTrack, isPersianScript } from "@/lib/persian";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -47,8 +48,35 @@ function Explore() {
     queryKey: ["explore", debounced, source],
     enabled: !!debounced.trim(),
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => searchTracks(debounced, { source, count: 20, page: pageParam }),
-    getNextPageParam: (last, all) => (last.length === 20 ? all.length + 1 : undefined),
+    queryFn: async ({ pageParam }) => {
+      const variants = expandQueryVariants(debounced);
+      const results = await Promise.all(
+        variants.map((v) =>
+          searchTracks(v, { source, count: 20, page: pageParam }).catch(() => []),
+        ),
+      );
+      // Merge + dedupe
+      const seen = new Set<string>();
+      const merged: Track[] = [];
+      for (const arr of results) {
+        for (const t of arr) {
+          const k = `${t.source}:${t.id}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          merged.push(t);
+        }
+      }
+      // Prefer Persian tracks first when query is Persian or has an alias.
+      const persianFirst =
+        isPersianScript(debounced) || variants.length > 1;
+      if (persianFirst) {
+        merged.sort(
+          (a, b) => Number(isLikelyPersianTrack(b)) - Number(isLikelyPersianTrack(a)),
+        );
+      }
+      return merged;
+    },
+    getNextPageParam: (last, all) => (last.length >= 20 ? all.length + 1 : undefined),
     staleTime: 5 * 60_000,
   });
 
@@ -210,16 +238,16 @@ function Explore() {
 }
 
 function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
-  const picks = ["The Weeknd", "Taylor Swift", "Drake", "Billie Eilish", "Coldplay", "Ed Sheeran", "Adele", "BTS"];
+  const picks = ["معین", "ابی", "داریوش", "گوگوش", "شادمهر عقیلی", "محسن یگانه", "همایون شجریان", "The Weeknd", "Taylor Swift", "Coldplay"];
   const previews = useQuery({
     queryKey: ["quick-picks"],
-    queryFn: () => searchTracks("chill", { count: 8 }),
+    queryFn: () => searchTracks("معین", { count: 8 }),
     staleTime: 30 * 60_000,
   });
   return (
     <div className="space-y-6">
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Suggestions</h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">پیشنهادها · Suggestions</h3>
         <div className="flex flex-wrap gap-2">
           {picks.map((p) => (
             <button key={p} onClick={() => onPick(p)} className="glass rounded-full px-3 py-1.5 text-sm">
@@ -230,7 +258,7 @@ function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
       </section>
       {previews.data && previews.data.length > 0 && (
         <section className="space-y-1">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Fresh from gdmusic</h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">آهنگ‌های فارسی · Persian picks</h3>
           {previews.data.map((t, i) => (
             <TrackRow key={trackKey(t)} track={t} list={previews.data!} index={i} />
           ))}
