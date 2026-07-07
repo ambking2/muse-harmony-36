@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
-import { searchTracks } from "@/lib/gdmusic";
+import { searchTracksAll } from "@/lib/gdmusic";
 import { TrackRow } from "@/components/music/TrackRow";
 import { Artwork } from "@/components/music/Artwork";
 import { useLibrary } from "@/stores/library";
@@ -24,7 +24,7 @@ function Home() {
 
   const trending = useQuery({
     queryKey: ["home-trending"],
-    queryFn: () => searchTracks("top hits 2025", { count: 12 }),
+    queryFn: () => searchTracksAll("top hits 2026", { count: 12 }),
     staleTime: 10 * 60_000,
   });
 
