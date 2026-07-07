@@ -3,17 +3,15 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { AppShell } from "@/components/layout/AppShell";
-import { SOURCES, searchTracks } from "@/lib/gdmusic";
-import type { MusicSource, Track } from "@/lib/types";
+import { searchTracksAll } from "@/lib/gdmusic";
+import type { Track } from "@/lib/types";
 import { trackKey } from "@/lib/types";
 import { TrackRow } from "@/components/music/TrackRow";
 import { useLibrary } from "@/stores/library";
 import { Search, X, Clock, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   q: z.string().optional(),
-  src: z.enum(["netease", "kuwo", "joox"]).optional(),
 });
 
 export const Route = createFileRoute("/explore")({
@@ -22,10 +20,9 @@ export const Route = createFileRoute("/explore")({
 });
 
 function Explore() {
-  const { q: initialQ, src: initialSrc } = Route.useSearch();
+  const { q: initialQ } = Route.useSearch();
   const navigate = useNavigate({ from: "/explore" });
   const [query, setQuery] = useState(initialQ ?? "");
-  const [source, setSource] = useState<MusicSource>((initialSrc as MusicSource) ?? "netease");
   const [debounced, setDebounced] = useState(query);
 
   const searchHistory = useLibrary((s) => s.searchHistory);
@@ -40,15 +37,15 @@ function Explore() {
   useEffect(() => {
     if (!debounced.trim()) return;
     pushSearch(debounced);
-    navigate({ search: { q: debounced, src: source }, replace: true });
-  }, [debounced, source, navigate, pushSearch]);
+    navigate({ search: { q: debounced }, replace: true });
+  }, [debounced, navigate, pushSearch]);
 
   const infinite = useInfiniteQuery({
-    queryKey: ["explore", debounced, source],
+    queryKey: ["explore", debounced],
     enabled: !!debounced.trim(),
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => searchTracks(debounced, { source, count: 20, page: pageParam }),
-    getNextPageParam: (last, all) => (last.length === 20 ? all.length + 1 : undefined),
+    queryFn: ({ pageParam }) => searchTracksAll(debounced, { count: 20, page: pageParam }),
+    getNextPageParam: (last, all) => (last.length >= 15 ? all.length + 1 : undefined),
     staleTime: 5 * 60_000,
   });
 
@@ -100,21 +97,6 @@ function Explore() {
               <X className="size-4" />
             </button>
           )}
-        </div>
-
-        <div className="flex gap-2">
-          {SOURCES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSource(s.id)}
-              className={cn(
-                "rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium transition",
-                source === s.id ? "bg-primary text-primary-foreground" : "text-muted-foreground",
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
         </div>
 
         {!debounced.trim() ? (
