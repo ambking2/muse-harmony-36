@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AudioEngine } from "@/hooks/use-audio-engine";
 
 function NotFoundComponent() {
   return (
@@ -129,6 +130,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
+      <AudioEngine />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
