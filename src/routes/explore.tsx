@@ -10,6 +10,7 @@ import { TrackRow } from "@/components/music/TrackRow";
 import { useLibrary } from "@/stores/library";
 import { Search, X, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { expandQueryVariants, isLikelyPersianTrack, isPersianScript } from "@/lib/persian";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -47,8 +48,35 @@ function Explore() {
     queryKey: ["explore", debounced, source],
     enabled: !!debounced.trim(),
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => searchTracks(debounced, { source, count: 20, page: pageParam }),
-    getNextPageParam: (last, all) => (last.length === 20 ? all.length + 1 : undefined),
+    queryFn: async ({ pageParam }) => {
+      const variants = expandQueryVariants(debounced);
+      const results = await Promise.all(
+        variants.map((v) =>
+          searchTracks(v, { source, count: 20, page: pageParam }).catch(() => []),
+        ),
+      );
+      // Merge + dedupe
+      const seen = new Set<string>();
+      const merged: Track[] = [];
+      for (const arr of results) {
+        for (const t of arr) {
+          const k = `${t.source}:${t.id}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          merged.push(t);
+        }
+      }
+      // Prefer Persian tracks first when query is Persian or has an alias.
+      const persianFirst =
+        isPersianScript(debounced) || variants.length > 1;
+      if (persianFirst) {
+        merged.sort(
+          (a, b) => Number(isLikelyPersianTrack(b)) - Number(isLikelyPersianTrack(a)),
+        );
+      }
+      return merged;
+    },
+    getNextPageParam: (last, all) => (last.length >= 20 ? all.length + 1 : undefined),
     staleTime: 5 * 60_000,
   });
 
