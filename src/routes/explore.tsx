@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
@@ -151,13 +151,14 @@ function Explore() {
                     <h3 className="text-sm font-semibold text-muted-foreground">Artists</h3>
                     <div className="space-y-1">
                       {groups.artists.map(([name]) => (
-                        <a
+                        <Link
                           key={name}
-                          href={`/artist/${encodeURIComponent(name)}`}
+                          to="/artist/$name"
+                          params={{ name }}
                           className="block rounded-lg px-2 py-2 text-sm hover:bg-white/5"
                         >
                           {name}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </section>
@@ -167,13 +168,14 @@ function Explore() {
                     <h3 className="text-sm font-semibold text-muted-foreground">Albums</h3>
                     <div className="space-y-1">
                       {groups.albums.map(([name]) => (
-                        <a
+                        <Link
                           key={name}
-                          href={`/album/${encodeURIComponent(name)}`}
+                          to="/album/$name"
+                          params={{ name }}
                           className="block rounded-lg px-2 py-2 text-sm hover:bg-white/5"
                         >
                           {name}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </section>
