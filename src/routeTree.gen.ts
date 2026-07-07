@@ -9,18 +9,66 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as DownloadsRouteImport } from './routes/downloads'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
+import { Route as ArtistNameRouteImport } from './routes/artist.$name'
+import { Route as AlbumNameRouteImport } from './routes/album.$name'
 import { Route as ApiGdSplatRouteImport } from './routes/api/gd.$'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistIdRoute = PlaylistIdRouteImport.update({
+  id: '/playlist/$id',
+  path: '/playlist/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistNameRoute = ArtistNameRouteImport.update({
+  id: '/artist/$name',
+  path: '/artist/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlbumNameRoute = AlbumNameRouteImport.update({
+  id: '/album/$name',
+  path: '/album/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGdSplatRoute = ApiGdSplatRouteImport.update({
@@ -31,36 +79,130 @@ const ApiGdSplatRoute = ApiGdSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/album/$name': typeof AlbumNameRoute
+  '/artist/$name': typeof ArtistNameRoute
+  '/playlist/$id': typeof PlaylistIdRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/album/$name': typeof AlbumNameRoute
+  '/artist/$name': typeof ArtistNameRoute
+  '/playlist/$id': typeof PlaylistIdRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/album/$name': typeof AlbumNameRoute
+  '/artist/$name': typeof ArtistNameRoute
+  '/playlist/$id': typeof PlaylistIdRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/explore' | '/api/gd/$'
+  fullPaths:
+    | '/'
+    | '/downloads'
+    | '/explore'
+    | '/favorites'
+    | '/library'
+    | '/profile'
+    | '/settings'
+    | '/album/$name'
+    | '/artist/$name'
+    | '/playlist/$id'
+    | '/api/gd/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/explore' | '/api/gd/$'
-  id: '__root__' | '/' | '/explore' | '/api/gd/$'
+  to:
+    | '/'
+    | '/downloads'
+    | '/explore'
+    | '/favorites'
+    | '/library'
+    | '/profile'
+    | '/settings'
+    | '/album/$name'
+    | '/artist/$name'
+    | '/playlist/$id'
+    | '/api/gd/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/downloads'
+    | '/explore'
+    | '/favorites'
+    | '/library'
+    | '/profile'
+    | '/settings'
+    | '/album/$name'
+    | '/artist/$name'
+    | '/playlist/$id'
+    | '/api/gd/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DownloadsRoute: typeof DownloadsRoute
   ExploreRoute: typeof ExploreRoute
+  FavoritesRoute: typeof FavoritesRoute
+  LibraryRoute: typeof LibraryRoute
+  ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
+  AlbumNameRoute: typeof AlbumNameRoute
+  ArtistNameRoute: typeof ArtistNameRoute
+  PlaylistIdRoute: typeof PlaylistIdRoute
   ApiGdSplatRoute: typeof ApiGdSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore': {
       id: '/explore'
       path: '/explore'
@@ -68,11 +210,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlist/$id': {
+      id: '/playlist/$id'
+      path: '/playlist/$id'
+      fullPath: '/playlist/$id'
+      preLoaderRoute: typeof PlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artist/$name': {
+      id: '/artist/$name'
+      path: '/artist/$name'
+      fullPath: '/artist/$name'
+      preLoaderRoute: typeof ArtistNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/album/$name': {
+      id: '/album/$name'
+      path: '/album/$name'
+      fullPath: '/album/$name'
+      preLoaderRoute: typeof AlbumNameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/gd/$': {
@@ -87,7 +257,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DownloadsRoute: DownloadsRoute,
   ExploreRoute: ExploreRoute,
+  FavoritesRoute: FavoritesRoute,
+  LibraryRoute: LibraryRoute,
+  ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
+  AlbumNameRoute: AlbumNameRoute,
+  ArtistNameRoute: ArtistNameRoute,
+  PlaylistIdRoute: PlaylistIdRoute,
   ApiGdSplatRoute: ApiGdSplatRoute,
 }
 export const routeTree = rootRouteImport
