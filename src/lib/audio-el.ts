@@ -1,12 +1,6 @@
 // Module-level singleton <audio> so it persists across route/AppShell remounts.
 let el: HTMLAudioElement | null = null;
 
-// A 1-second silent MP3 (base64). Playing this inside a user gesture "unlocks"
-// the audio element so that a later async src assignment can start playback
-// without hitting the browser's autoplay policy.
-const SILENT =
-  "data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA//////////////////////////////////////////////////////////////////8AAAA5TEFNRTMuMTAwAc0AAAAAAAAAABSAJAJAQgAAgAAAAnGMHkkIAAAAAAAAAAAAAAAAAAAA//sQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVU=";
-
 export function getAudioEl(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null;
   if (!el) {
@@ -27,9 +21,10 @@ export function primeAudio() {
   const a = getAudioEl();
   if (!a) return;
   try {
-    if (!a.src) a.src = SILENT;
-    const p = a.play();
-    if (p && typeof p.then === "function") p.catch(() => {});
+    // Calling load() inside the user gesture consumes the activation and
+    // marks the element as "user-initiated", so a later programmatic play()
+    // after an await is allowed by the browser autoplay policy.
+    a.load();
   } catch {
     /* noop */
   }
