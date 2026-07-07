@@ -238,16 +238,16 @@ function Explore() {
 }
 
 function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
-  const picks = ["The Weeknd", "Taylor Swift", "Drake", "Billie Eilish", "Coldplay", "Ed Sheeran", "Adele", "BTS"];
+  const picks = ["معین", "ابی", "داریوش", "گوگوش", "شادمهر عقیلی", "محسن یگانه", "همایون شجریان", "The Weeknd", "Taylor Swift", "Coldplay"];
   const previews = useQuery({
     queryKey: ["quick-picks"],
-    queryFn: () => searchTracks("chill", { count: 8 }),
+    queryFn: () => searchTracks("معین", { count: 8 }),
     staleTime: 30 * 60_000,
   });
   return (
     <div className="space-y-6">
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Suggestions</h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">پیشنهادها · Suggestions</h3>
         <div className="flex flex-wrap gap-2">
           {picks.map((p) => (
             <button key={p} onClick={() => onPick(p)} className="glass rounded-full px-3 py-1.5 text-sm">
@@ -258,7 +258,7 @@ function QuickPicks({ onPick }: { onPick: (q: string) => void }) {
       </section>
       {previews.data && previews.data.length > 0 && (
         <section className="space-y-1">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Fresh from gdmusic</h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">آهنگ‌های فارسی · Persian picks</h3>
           {previews.data.map((t, i) => (
             <TrackRow key={trackKey(t)} track={t} list={previews.data!} index={i} />
           ))}
