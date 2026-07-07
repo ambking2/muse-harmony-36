@@ -44,6 +44,41 @@ export async function searchTracks(
   return data;
 }
 
+/**
+ * Search across every available provider in parallel and merge into a single,
+ * de-duplicated, interleaved list. Consumers should never need to know which
+ * upstream a track came from.
+ */
+export async function searchTracksAll(
+  name: string,
+  { count = 20, page = 1 }: { count?: number; page?: number } = {},
+): Promise<Track[]> {
+  if (!name.trim()) return [];
+  const per = Math.max(6, Math.ceil(count / SOURCES.length) + 2);
+  const results = await Promise.all(
+    SOURCES.map((s) =>
+      searchTracks(name, { source: s.id, count: per, page }).catch(() => [] as Track[]),
+    ),
+  );
+  // Interleave provider results so the first page mixes sources fairly.
+  const merged: Track[] = [];
+  const max = Math.max(...results.map((r) => r.length));
+  for (let i = 0; i < max; i++) {
+    for (const r of results) if (r[i]) merged.push(r[i]);
+  }
+  // Dedupe by name+primary artist (case/space insensitive) — favours the first hit.
+  const seen = new Set<string>();
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const out: Track[] = [];
+  for (const t of merged) {
+    const key = `${norm(t.name)}|${norm(t.artist[0] ?? "")}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(t);
+  }
+  return out;
+}
+
 export async function getStreamUrl(
   source: MusicSource,
   id: string,

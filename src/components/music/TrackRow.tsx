@@ -66,9 +66,6 @@ export function TrackRow({
           {track.artist.join(", ")} {track.album ? `• ${track.album}` : ""}
         </div>
       </div>
-      <span className="hidden text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
-        {track.source}
-      </span>
       <TrackMenu track={track}>
         <button
           type="button"

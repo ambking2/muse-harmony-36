@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AudioEngine } from "@/hooks/use-audio-engine";
 
 function NotFoundComponent() {
   return (
@@ -88,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "muis — Music, reimagined" },
       {
         property: "og:description",
-        content: "A premium online music player. Play, download and organise across NetEase, Kuwo and JOOX.",
+        content: "A premium online music player. Play, download and organise your favourite tracks — anywhere.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -129,6 +130,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
+      <AudioEngine />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
