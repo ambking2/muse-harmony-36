@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as NowPlayingRouteImport } from './routes/now-playing'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -29,6 +30,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NowPlayingRoute = NowPlayingRouteImport.update({
+  id: '/now-playing',
+  path: '/now-playing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/library': typeof LibraryRoute
+  '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/library': typeof LibraryRoute
+  '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/library': typeof LibraryRoute
+  '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/library'
+    | '/now-playing'
     | '/profile'
     | '/settings'
     | '/album/$name'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/library'
+    | '/now-playing'
     | '/profile'
     | '/settings'
     | '/album/$name'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/library'
+    | '/now-playing'
     | '/profile'
     | '/settings'
     | '/album/$name'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   LibraryRoute: typeof LibraryRoute
+  NowPlayingRoute: typeof NowPlayingRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   AlbumNameRoute: typeof AlbumNameRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/now-playing': {
+      id: '/now-playing'
+      path: '/now-playing'
+      fullPath: '/now-playing'
+      preLoaderRoute: typeof NowPlayingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   LibraryRoute: LibraryRoute,
+  NowPlayingRoute: NowPlayingRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   AlbumNameRoute: AlbumNameRoute,
