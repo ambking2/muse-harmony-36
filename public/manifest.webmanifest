@@ -1,0 +1,14 @@
+{
+  "name": "muis — Music, reimagined",
+  "short_name": "muis",
+  "description": "Premium mobile-first music player powered by gdmusic.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0810",
+  "theme_color": "#0b0810",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48 32x32 16x16", "type": "image/x-icon" }
+  ]
+}
