@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "muis — Music, reimagined" },
       {
         property: "og:description",
-        content: "A premium online music player. Play, download and organise across NetEase, Kuwo and JOOX.",
+        content: "A premium online music player. Play, download and organise your favourite tracks — anywhere.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
