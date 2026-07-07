@@ -21,10 +21,12 @@ export function primeAudio() {
   const a = getAudioEl();
   if (!a) return;
   try {
-    // Calling load() inside the user gesture consumes the activation and
-    // marks the element as "user-initiated", so a later programmatic play()
-    // after an await is allowed by the browser autoplay policy.
     a.load();
+    // Consume the user activation so a later async play() is allowed.
+    // If src is empty this will reject silently; that's fine — the important
+    // thing is that we called play() from within a real click/tap handler.
+    const p = a.play();
+    if (p && typeof p.then === "function") p.catch(() => {});
   } catch {
     /* noop */
   }
