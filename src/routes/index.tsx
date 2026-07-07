@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { searchTracks } from "@/lib/gdmusic";
 import { TrackRow } from "@/components/music/TrackRow";
@@ -9,6 +9,7 @@ import { usePlayer } from "@/stores/player";
 import { trackKey } from "@/lib/types";
 import type { Track } from "@/lib/types";
 import { Play, Sparkles } from "lucide-react";
+import { PERSIAN_SEEDS, isLikelyPersianTrack } from "@/lib/persian";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -27,6 +28,28 @@ function Home() {
     queryFn: () => searchTracks("top hits 2025", { count: 12 }),
     staleTime: 10 * 60_000,
   });
+
+  const persianQueries = useQueries({
+    queries: PERSIAN_SEEDS.slice(0, 5).map((seed) => ({
+      queryKey: ["home-persian", seed],
+      queryFn: () => searchTracks(seed, { count: 6 }),
+      staleTime: 30 * 60_000,
+    })),
+  });
+  const persianTracks: Track[] = (() => {
+    const seen = new Set<string>();
+    const out: Track[] = [];
+    for (const q of persianQueries) {
+      for (const t of q.data ?? []) {
+        if (!isLikelyPersianTrack(t)) continue;
+        const k = `${t.source}:${t.id}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push(t);
+      }
+    }
+    return out.slice(0, 18);
+  })();
 
   const recentlyPlayed: Track[] = history
     .slice(0, 10)
@@ -136,6 +159,16 @@ function Home() {
             </HScroll>
           )}
         </Section>
+
+        {persianTracks.length > 0 && (
+          <Section title="آهنگ‌های ایرانی · Made in Iran">
+            <HScroll>
+              {persianTracks.map((t) => (
+                <TrackCard key={trackKey(t)} track={t} list={persianTracks} />
+              ))}
+            </HScroll>
+          </Section>
+        )}
 
         {favorites.length > 0 && (
           <Section title="Favorite songs">
