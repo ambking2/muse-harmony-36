@@ -45,7 +45,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass-strong w-56">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onSelect={() => playNext(track)}>
           <ListPlus className="mr-2 size-4" /> Play next
         </DropdownMenuItem>
@@ -60,7 +60,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
           <DropdownMenuSubTrigger>
             <Plus className="mr-2 size-4" /> Add to playlist
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="glass-strong">
+          <DropdownMenuSubContent>
             <DropdownMenuItem
               onSelect={() => {
                 const name = window.prompt("Playlist name?");
@@ -101,7 +101,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
           <DropdownMenuSubTrigger>
             <Download className="mr-2 size-4" /> Download
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="glass-strong">
+          <DropdownMenuSubContent>
             {[128, 320, 999].map((br) => (
               <DropdownMenuItem key={br} onSelect={() => downloadTrack(track, br as 128 | 320 | 999)}>
                 {br === 999 ? "FLAC" : `${br} kbps`}
