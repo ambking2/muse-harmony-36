@@ -30,10 +30,11 @@ describe("existing playback contracts", () => {
   test("previous restarts the current track after three seconds", () => {
     player().playQueue([a, b], 1);
     player().setTime(8);
+    const signal = player()._seekRequest;
     player().prev();
     expect(player().index).toBe(1);
     expect(player().currentTime).toBe(0);
-    expect(player()._seekRequest).toBe(1);
+    expect(player()._seekRequest).toBe(signal + 1);
   });
   test("repeat cycles off, all, one, off", () => {
     for (const mode of ["all", "one", "off"]) {
@@ -123,5 +124,68 @@ describe("queue regression cases", () => {
     player().seek(Number.POSITIVE_INFINITY);
     expect(Number.isFinite(player().volume)).toBe(true);
     expect(Number.isFinite(player().currentTime)).toBe(true);
+  });
+  test("repeat-all on one song signals the engine to restart", () => {
+    player().playQueue([a]);
+    player().setTime(30);
+    player().cycleRepeat();
+    const signal = player()._seekRequest;
+    player().next();
+    expect(player().currentTime).toBe(0);
+    expect(player()._seekRequest).toBe(signal + 1);
+    expect(player().isPlaying).toBe(true);
+  });
+  test("a new queue honors the existing shuffle preference", () => {
+    player().toggleShuffle();
+    player().playQueue([a, b, c], 2);
+    expect(player().shuffle).toBe(true);
+    expect(player().queue[0]).toEqual(c);
+    player().toggleShuffle();
+    expect(player().queue).toEqual([a, b, c]);
+    expect(player().index).toBe(2);
+  });
+  test("playTrack falls back to the requested track if absent from the list", () => {
+    player().playTrack(c, [a, b]);
+    expect(player().queue).toEqual([c]);
+  });
+});
+
+describe("interactive queue", () => {
+  test("selection preserves the queue and restarts the selected entry", () => {
+    player().playQueue([a, b, c]);
+    const queue = player().queue;
+    player().setTime(15);
+    player().selectQueueIndex(2);
+    expect(player().queue).toBe(queue);
+    expect(player().index).toBe(2);
+    expect(player().currentTime).toBe(0);
+  });
+  test("reordering preserves the playing occurrence and position", () => {
+    player().playQueue([a, b, a], 2);
+    const current = player().queue[2];
+    player().setTime(12);
+    player().moveInQueue(2, 0);
+    expect(player().queue[player().index]).toBe(current);
+    expect(player().currentTime).toBe(12);
+    expect(player().originalQueue).toEqual(player().queue);
+  });
+  test("reordering a shuffled queue retains its unshuffled baseline", () => {
+    player().playQueue([a, b, c]);
+    player().toggleShuffle();
+    player().moveInQueue(0, 2);
+    expect(player().queue[player().index]).toEqual(a);
+    player().toggleShuffle();
+    expect(player().queue).toEqual([a, b, c]);
+    expect(player().index).toBe(0);
+  });
+  test("invalid queue indices are no-ops", () => {
+    player().playQueue([a, b]);
+    const queue = player().queue;
+    player().moveInQueue(-1, 0);
+    player().moveInQueue(0, 5);
+    player().selectQueueIndex(Number.NaN);
+    player().removeFromQueue(0.5);
+    expect(player().queue).toBe(queue);
+    expect(player().index).toBe(0);
   });
 });
