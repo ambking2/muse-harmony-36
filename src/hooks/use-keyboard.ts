@@ -1,42 +1,41 @@
 import { useEffect } from "react";
 import { usePlayer } from "@/stores/player";
 
+/** Mounted once by AudioEngine so shortcuts also work on Now Playing. */
 export function useKeyboardShortcuts() {
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
-      const p = usePlayer.getState();
-      switch (e.code) {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, button, a, [role='slider'], [role='dialog'], [role='combobox'], [role='menu']"))) return;
+      const player = usePlayer.getState();
+      if (!player.queue.length) return;
+      switch (event.code) {
         case "Space":
-          e.preventDefault();
-          p.togglePlay();
+          event.preventDefault();
+          player.togglePlay();
           break;
         case "ArrowRight":
-          if (e.shiftKey) p.next();
-          else p.seek(Math.min(p.duration, p.currentTime + 5));
+          event.preventDefault();
+          if (event.shiftKey) player.next();
+          else player.seek(Math.min(player.duration, player.currentTime + 5));
           break;
         case "ArrowLeft":
-          if (e.shiftKey) p.prev();
-          else p.seek(Math.max(0, p.currentTime - 5));
+          event.preventDefault();
+          if (event.shiftKey) player.prev();
+          else player.seek(Math.max(0, player.currentTime - 5));
           break;
         case "ArrowUp":
-          e.preventDefault();
-          p.setVolume(Math.min(1, p.volume + 0.05));
+          event.preventDefault();
+          player.setVolume(player.volume + 0.05);
           break;
         case "ArrowDown":
-          e.preventDefault();
-          p.setVolume(Math.max(0, p.volume - 0.05));
+          event.preventDefault();
+          player.setVolume(player.volume - 0.05);
           break;
-        case "KeyM":
-          p.toggleMute();
-          break;
-        case "KeyS":
-          p.toggleShuffle();
-          break;
-        case "KeyR":
-          p.cycleRepeat();
-          break;
+        case "KeyM": player.toggleMute(); break;
+        case "KeyS": player.toggleShuffle(); break;
+        case "KeyR": player.cycleRepeat(); break;
       }
     };
     window.addEventListener("keydown", onKey);
