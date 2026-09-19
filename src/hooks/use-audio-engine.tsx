@@ -4,10 +4,14 @@ import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
 import { getPicUrl, getStreamUrl } from "@/lib/gdmusic";
 import { trackKey } from "@/lib/types";
+import { useKeyboardShortcuts } from "./use-keyboard";
 
-/** Mount once at app root. Owns the single <audio> element. */
+/** One audio element above the router outlet; navigation never remounts it. */
 export function AudioEngine() {
+  useKeyboardShortcuts();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const loadedKey = useRef<string | null>(null);
+  const generation = useRef(0);
   const track = usePlayer((s) => s.queue[s.index]);
   const isPlaying = usePlayer((s) => s.isPlaying);
   const volume = usePlayer((s) => s.volume);
@@ -15,130 +19,174 @@ export function AudioEngine() {
   const quality = usePlayer((s) => s.quality);
   const rate = usePlayer((s) => s.playbackRate);
   const seekReq = usePlayer((s) => s._seekRequest);
-  const seekTarget = usePlayer((s) => s.currentTime);
   const sleepAt = usePlayer((s) => s.sleepAt);
-
-  const pushHistory = useLibrary((s) => s.pushHistory);
-
   const trackId = track ? trackKey(track) : null;
+  const sourceKey = trackId ? `${trackId}:${quality}` : null;
 
   const streamQ = useQuery({
     queryKey: ["stream", trackId, quality],
     enabled: !!track,
     staleTime: 5 * 60_000,
+    retry: 1,
     queryFn: () => getStreamUrl(track!.source, track!.id, quality),
   });
-
   const picQ = useQuery({
-    queryKey: ["pic", trackId, "500"],
-    enabled: !!track,
+    queryKey: ["pic", track?.source, track?.pic_id, "500"],
+    enabled: !!track?.pic_id,
     staleTime: 30 * 60_000,
     queryFn: () => getPicUrl(track!.source, track!.pic_id, 500),
   });
 
-  // Create audio element once
   useEffect(() => {
-    const a = new Audio();
-    a.preload = "auto";
-    a.crossOrigin = "anonymous";
-    audioRef.current = a;
-    const onTime = () => usePlayer.setState({ currentTime: a.currentTime });
-    const onDur = () => usePlayer.setState({ duration: a.duration || 0 });
-    const onEnd = () => usePlayer.getState().next();
-    const onPlay = () => usePlayer.setState({ isPlaying: true });
-    const onPause = () => usePlayer.setState({ isPlaying: false });
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("durationchange", onDur);
-    a.addEventListener("ended", onEnd);
-    a.addEventListener("play", onPlay);
-    a.addEventListener("pause", onPause);
+    const audio = new Audio();
+    audio.preload = "metadata";
+    // Ordinary media playback does not require anonymous CORS. Requiring it
+    // would reject otherwise playable provider URLs without CORS headers.
+    audioRef.current = audio;
+    const onTime = () => {
+      if (loadedKey.current) usePlayer.getState().setTime(audio.currentTime);
+    };
+    const onDuration = () => usePlayer.getState().setDuration(audio.duration);
+    const onMetadata = () => {
+      onDuration();
+      const target = usePlayer.getState().currentTime;
+      if (Number.isFinite(audio.duration) && audio.duration > 0) audio.currentTime = Math.min(target, audio.duration);
+      audio.playbackRate = usePlayer.getState().playbackRate;
+    };
+    const onEnd = () => {
+      if (loadedKey.current) usePlayer.getState().next();
+    };
+    const onPlaying = () => {
+      if (!loadedKey.current) return;
+      usePlayer.setState({ isPlaying: true, isBuffering: false, error: null });
+      const state = usePlayer.getState();
+      const current = state.queue[state.index];
+      if (current) useLibrary.getState().pushHistory(current);
+    };
+    const onPause = () => {
+      if (loadedKey.current && audio.paused && !audio.ended && audio.readyState >= 2) usePlayer.getState().setPlaying(false);
+    };
+    const onWaiting = () => {
+      if (loadedKey.current && usePlayer.getState().isPlaying) usePlayer.setState({ isBuffering: true });
+    };
+    const onReady = () => usePlayer.setState({ isBuffering: false });
+    const onError = () => {
+      if (!loadedKey.current || !audio.error) return;
+      usePlayer.setState({ isPlaying: false, isBuffering: false, error: "This audio could not be played. Try another quality or track." });
+    };
+    const listeners: [string, () => void][] = [
+      ["timeupdate", onTime], ["durationchange", onDuration], ["loadedmetadata", onMetadata],
+      ["ended", onEnd], ["playing", onPlaying], ["pause", onPause],
+      ["waiting", onWaiting], ["canplay", onReady], ["error", onError],
+    ];
+    listeners.forEach(([name, handler]) => audio.addEventListener(name, handler));
     return () => {
-      a.pause();
-      a.src = "";
-      a.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("durationchange", onDur);
-      a.removeEventListener("ended", onEnd);
-      a.removeEventListener("play", onPlay);
-      a.removeEventListener("pause", onPause);
+      generation.current += 1;
+      loadedKey.current = null;
+      listeners.forEach(([name, handler]) => audio.removeEventListener(name, handler));
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      audioRef.current = null;
     };
   }, []);
 
-  // Load source when stream changes
+  // Stop the old source immediately; never keep playing it while a new URL loads.
+  // currentTime comes from the store: zero for a new track, preserved for quality changes.
   useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
+    generation.current += 1;
+    loadedKey.current = null;
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    usePlayer.setState({ isBuffering: !!sourceKey, error: null });
+  }, [sourceKey]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
     const url = streamQ.data?.url;
-    if (!url) return;
-    if (a.src !== url) {
-      a.src = url;
-      a.load();
-      if (isPlaying) a.play().catch(() => {});
-    }
-    if (track) pushHistory(track);
-  }, [streamQ.data?.url]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Play/pause
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (isPlaying) a.play().catch(() => {});
-    else a.pause();
-  }, [isPlaying]);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (a) a.volume = muted ? 0 : volume;
-  }, [volume, muted]);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (a) a.playbackRate = rate;
-  }, [rate]);
-
-  // External seek
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (Math.abs(a.currentTime - seekTarget) > 0.5) a.currentTime = seekTarget;
-  }, [seekReq]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sleep timer
-  useEffect(() => {
-    if (!sleepAt) return;
-    const remaining = sleepAt - Date.now();
-    if (remaining <= 0) {
-      usePlayer.setState({ isPlaying: false, sleepAt: null });
+    if (!audio || !sourceKey || !url) return;
+    let parsed: URL;
+    try { parsed = new URL(url, window.location.origin); }
+    catch { usePlayer.setState({ error: "The provider returned an invalid audio URL.", isPlaying: false, isBuffering: false }); return; }
+    if (!["https:", "http:"].includes(parsed.protocol)) {
+      usePlayer.setState({ error: "The provider returned an unsupported audio URL.", isPlaying: false, isBuffering: false });
       return;
     }
-    const t = setTimeout(() => {
-      usePlayer.setState({ isPlaying: false, sleepAt: null });
-    }, remaining);
-    return () => clearTimeout(t);
+    loadedKey.current = sourceKey;
+    audio.src = parsed.href;
+    audio.load();
+  }, [sourceKey, streamQ.data?.url]);
+
+  useEffect(() => {
+    if (!sourceKey) return;
+    if (streamQ.isError || (streamQ.isSuccess && !streamQ.data?.url)) {
+      usePlayer.setState({ isPlaying: false, isBuffering: false, error: "No playable audio is available at this quality. Choose another quality or track." });
+    }
+  }, [sourceKey, streamQ.isError, streamQ.isSuccess, streamQ.data?.url]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (!isPlaying) { audio.pause(); return; }
+    if (!sourceKey || loadedKey.current !== sourceKey) return;
+    const token = generation.current;
+    const attempt = audio.play();
+    void attempt.catch((error: unknown) => {
+      if (token !== generation.current || !usePlayer.getState().isPlaying) return;
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      const blocked = error instanceof DOMException && error.name === "NotAllowedError";
+      usePlayer.setState({ isPlaying: false, isBuffering: false, error: blocked ? "Your browser paused playback. Tap Play to continue." : "Playback failed. Try another quality or track." });
+    });
+  }, [isPlaying, sourceKey, streamQ.data?.url, seekReq]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) { audio.muted = muted; audio.volume = volume; }
+  }, [volume, muted]);
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = rate;
+  }, [rate]);
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !loadedKey.current || audio.readyState < 1) return;
+    const target = usePlayer.getState().currentTime;
+    if (Number.isFinite(audio.duration) && audio.duration > 0) audio.currentTime = Math.min(target, audio.duration);
+  }, [seekReq]);
+
+  useEffect(() => {
+    if (!sleepAt) return;
+    const expire = () => {
+      if (Date.now() >= sleepAt) usePlayer.setState({ isPlaying: false, sleepAt: null });
+    };
+    const timer = window.setTimeout(expire, Math.max(0, sleepAt - Date.now()));
+    document.addEventListener("visibilitychange", expire);
+    return () => { window.clearTimeout(timer); document.removeEventListener("visibilitychange", expire); };
   }, [sleepAt]);
 
-  // Media Session
   useEffect(() => {
-    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
-    if (!track) return;
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.name,
-      artist: track.artist.join(", "),
-      album: track.album,
-      artwork: picQ.data
-        ? [
-            { src: picQ.data, sizes: "500x500", type: "image/jpeg" },
-          ]
-        : [],
-    });
-    const ms = navigator.mediaSession;
-    ms.setActionHandler("play", () => usePlayer.setState({ isPlaying: true }));
-    ms.setActionHandler("pause", () => usePlayer.setState({ isPlaying: false }));
-    ms.setActionHandler("previoustrack", () => usePlayer.getState().prev());
-    ms.setActionHandler("nexttrack", () => usePlayer.getState().next());
-    ms.setActionHandler("seekto", (e) => {
-      if (typeof e.seekTime === "number") usePlayer.getState().seek(e.seekTime);
-    });
-  }, [track?.id, picQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+    const session = navigator.mediaSession;
+    session.metadata = track ? new MediaMetadata({ title: track.name, artist: track.artist.join(", "), album: track.album, artwork: picQ.data ? [{ src: picQ.data }] : [] }) : null;
+    const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
+      ["play", () => usePlayer.getState().setPlaying(true)],
+      ["pause", () => usePlayer.getState().setPlaying(false)],
+      ["previoustrack", () => usePlayer.getState().prev()],
+      ["nexttrack", () => usePlayer.getState().next()],
+      ["seekto", (event) => { if (typeof event.seekTime === "number") usePlayer.getState().seek(event.seekTime); }],
+    ];
+    const supported: MediaSessionAction[] = [];
+    for (const [action, handler] of handlers) {
+      try { session.setActionHandler(action, track ? handler : null); supported.push(action); }
+      catch { /* Browsers support different subsets of Media Session actions. */ }
+    }
+    return () => { for (const action of supported) session.setActionHandler(action, null); };
+  }, [track, picQ.data]);
+  useEffect(() => {
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = !trackId ? "none" : isPlaying ? "playing" : "paused";
+  }, [trackId, isPlaying]);
 
   return null;
 }
