@@ -3,11 +3,11 @@ import { Home, Search, Library, Heart, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/explore", label: "Explore", icon: Search },
-  { to: "/library", label: "Library", icon: Library },
-  { to: "/favorites", label: "Favorites", icon: Heart },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/", label: "خانه", icon: Home },
+  { to: "/explore", label: "جستجو", icon: Search },
+  { to: "/library", label: "کتابخانه", icon: Library },
+  { to: "/favorites", label: "علاقه‌مندی", icon: Heart },
+  { to: "/profile", label: "پروفایل", icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -22,11 +22,10 @@ export function BottomNav() {
             <Link
               key={it.to}
               to={it.to}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-2 text-xs transition-all",
-                active
-                  ? "bg-white/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                active ? "bg-white/10 text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Icon className="size-5" strokeWidth={active ? 2.4 : 1.8} />

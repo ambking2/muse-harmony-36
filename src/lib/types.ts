@@ -1,5 +1,5 @@
 export type MusicSource = "netease" | "kuwo" | "joox";
-export type Quality = 128 | 192 | 320 | 740 | 999;
+export type Quality = 128 | 320 | 999;
 
 export interface Track {
   id: string;
@@ -10,6 +10,10 @@ export interface Track {
   url_id: string;
   lyric_id: string;
   source: MusicSource;
+  /** Local object URL for an offline copy. When set, playback skips the network. */
+  srcUrl?: string;
+  /** Cached artwork URL, so offline tracks still render their cover. */
+  picUrl?: string;
 }
 
 export interface StreamUrl {
@@ -30,6 +34,10 @@ export interface DownloadItem {
   size: number;
   progress: number; // 0..1
   status: "queued" | "downloading" | "paused" | "done" | "error";
+  /**
+   * Object URL for the downloaded bytes. Lives in memory only — it is rebuilt
+   * on load from IndexedDB by `hydrateDownloads`, so it is never persisted.
+   */
   blobUrl?: string;
   createdAt: number;
 }
@@ -43,7 +51,7 @@ export interface Playlist {
   trackKeys: string[]; // trackKey = `${source}:${id}`
 }
 
-export function trackKey(t: Track) {
+export function trackKey(t: Pick<Track, "source" | "id">) {
   return `${t.source}:${t.id}`;
 }
 

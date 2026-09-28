@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "@fontsource-variable/vazirmatn";
 @import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
@@ -31,7 +32,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "Segoe UI", sans-serif;
+  --font-sans: "Vazirmatn Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -51,7 +53,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
+  --color-ring-offset-background: var(--ring-offset-background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -108,6 +110,9 @@
   --sidebar-accent-foreground: oklch(0.98 0.005 260);
   --sidebar-border: oklch(1 0 0 / 0.08);
   --sidebar-ring: oklch(0.78 0.17 320 / 0.6);
+
+  /* Set per-track from the artwork; drives the now-playing gradient. */
+  --track-accent: oklch(0.78 0.17 320);
 }
 
 .dark {
@@ -130,6 +135,28 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
+  }
+
+  /* Persian text sits optically smaller than Latin at the same size. */
+  html[lang="fa"] body {
+    font-feature-settings: "ss01";
+  }
+
+  /* Keep the whole app right-to-left; numerals stay LTR. */
+  :where(html[dir="rtl"]) {
+    --tw-gradient-position: to left;
+  }
+
+  /* Latin-only strings (URLs, IDs, bitrates) inside Persian text. */
+  [dir="rtl"] .ltr-nums {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+
+  /* Focus ring that survives the dark glass surfaces. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
 }
 
@@ -163,4 +190,12 @@
   background: linear-gradient(90deg, var(--color-muted) 0%, oklch(0.28 0.02 270) 50%, var(--color-muted) 100%);
   background-size: 800px 100%;
   animation: shimmer 1.8s linear infinite;
+}
+
+/* Ambient page glow tinted by the current artwork. */
+@utility ambient {
+  background:
+    radial-gradient(120% 60% at 50% -10%, color-mix(in oklch, var(--track-accent) 35%, transparent) 0%, transparent 70%),
+    var(--color-background);
+  transition: background 900ms ease;
 }

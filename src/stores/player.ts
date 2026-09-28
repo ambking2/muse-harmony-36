@@ -8,6 +8,7 @@ interface PlayerState {
   originalQueue: Track[]; // for un-shuffle
   index: number;
   isPlaying: boolean;
+  isBuffering: boolean;
   currentTime: number;
   duration: number;
   volume: number;
@@ -17,13 +18,14 @@ interface PlayerState {
   repeat: RepeatMode;
   playbackRate: number;
   sleepAt: number | null; // ms epoch
-  accent: string | null; // hex or oklch
+  accent: string | null; // css color derived from the current artwork
 
   playTrack: (t: Track, list?: Track[]) => void;
   playQueue: (list: Track[], startIndex?: number) => void;
   addToQueue: (t: Track) => void;
   playNext: (t: Track) => void;
   removeFromQueue: (index: number) => void;
+  moveInQueue: (from: number, to: number) => void;
   clearQueue: () => void;
   next: () => void;
   prev: () => void;
@@ -58,6 +60,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   originalQueue: [],
   index: 0,
   isPlaying: false,
+  isBuffering: false,
   currentTime: 0,
   duration: 0,
   volume: 1,
@@ -72,13 +75,15 @@ export const usePlayer = create<PlayerState>((set, get) => ({
 
   playTrack: (t, list) => {
     const arr = list && list.length ? list : [t];
-    const idx = Math.max(0, arr.findIndex((x) => x.id === t.id && x.source === t.source));
+    const found = arr.findIndex((x) => x.id === t.id && x.source === t.source);
     set({
       queue: arr,
       originalQueue: arr,
-      index: idx === -1 ? 0 : idx,
+      index: found === -1 ? 0 : found,
       isPlaying: true,
+      isBuffering: true,
       currentTime: 0,
+      duration: 0,
     });
   },
   playQueue: (list, startIndex = 0) =>
@@ -87,7 +92,9 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       originalQueue: list,
       index: Math.min(Math.max(0, startIndex), Math.max(0, list.length - 1)),
       isPlaying: true,
+      isBuffering: true,
       currentTime: 0,
+      duration: 0,
     }),
   addToQueue: (t) =>
     set((s) => ({ queue: [...s.queue, t], originalQueue: [...s.originalQueue, t] })),
@@ -103,9 +110,29 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       let idx = s.index;
       if (index < s.index) idx -= 1;
       if (index === s.index) idx = Math.min(idx, q.length - 1);
-      return { queue: q, index: Math.max(0, idx) };
+      return {
+        queue: q,
+        originalQueue: s.originalQueue.filter((_, i) => i !== index),
+        index: Math.max(0, idx),
+        isPlaying: q.length === 0 ? false : s.isPlaying,
+      };
     }),
-  clearQueue: () => set({ queue: [], originalQueue: [], index: 0, isPlaying: false }),
+  // Move a queue item to an absolute position — used by queue drag & drop.
+  moveInQueue: (from, to) =>
+    set((s) => {
+      if (from === to) return s;
+      const q = [...s.queue];
+      const [item] = q.splice(from, 1);
+      if (!item) return s;
+      q.splice(Math.max(0, Math.min(q.length, to)), 0, item);
+      const currentItem = s.queue[s.index];
+      const index = q.findIndex(
+        (t) => t.id === currentItem?.id && t.source === currentItem?.source,
+      );
+      return { queue: q, index: index === -1 ? s.index : index };
+    }),
+  clearQueue: () =>
+    set({ queue: [], originalQueue: [], index: 0, isPlaying: false, isBuffering: false }),
 
   next: () => {
     const { queue, index, repeat } = get();
@@ -115,11 +142,11 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       return;
     }
     if (index + 1 >= queue.length) {
-      if (repeat === "all") set({ index: 0, currentTime: 0, isPlaying: true });
-      else set({ isPlaying: false });
+      if (repeat === "all") set({ index: 0, currentTime: 0, duration: 0, isPlaying: true });
+      else set({ isPlaying: false, isBuffering: false });
       return;
     }
-    set({ index: index + 1, currentTime: 0, isPlaying: true });
+    set({ index: index + 1, currentTime: 0, duration: 0, isPlaying: true, isBuffering: true });
   },
   prev: () => {
     const { index, currentTime } = get();
@@ -131,7 +158,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       set({ currentTime: 0, _seekRequest: get()._seekRequest + 1 });
       return;
     }
-    set({ index: index - 1, currentTime: 0, isPlaying: true });
+    set({ index: index - 1, currentTime: 0, duration: 0, isPlaying: true, isBuffering: true });
   },
   setPlaying: (p) => set({ isPlaying: p }),
   togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),
@@ -159,8 +186,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
     })),
   setPlaybackRate: (r) => set({ playbackRate: r }),
-  setSleepMinutes: (m) =>
-    set({ sleepAt: m === null ? null : Date.now() + m * 60_000 }),
+  setSleepMinutes: (m) => set({ sleepAt: m === null ? null : Date.now() + m * 60_000 }),
   setAccent: (a) => set({ accent: a }),
 }));
 

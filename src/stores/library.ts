@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { DownloadItem, Playlist, Track } from "@/lib/types";
 import { trackKey } from "@/lib/types";
+import { getAudioBlob, listAudioIds } from "@/lib/offline";
 
 interface LibraryState {
   library: Track[]; // saved tracks
@@ -32,10 +33,7 @@ interface LibraryState {
   addDownload: (d: DownloadItem) => void;
   updateDownload: (id: string, patch: Partial<DownloadItem>) => void;
   removeDownload: (id: string) => void;
-}
-
-function ensureTrack(state: LibraryState, t: Track) {
-  state.tracksById[trackKey(t)] = t;
+  hydrateDownloads: () => Promise<void>;
 }
 
 export const useLibrary = create<LibraryState>()(
@@ -114,8 +112,7 @@ export const useLibrary = create<LibraryState>()(
             p.id === id ? { ...p, name, updatedAt: Date.now() } : p,
           ),
         })),
-      deletePlaylist: (id) =>
-        set((s) => ({ playlists: s.playlists.filter((p) => p.id !== id) })),
+      deletePlaylist: (id) => set((s) => ({ playlists: s.playlists.filter((p) => p.id !== id) })),
       addToPlaylist: (id, t) =>
         set((s) => {
           const k = trackKey(t);
@@ -147,16 +144,54 @@ export const useLibrary = create<LibraryState>()(
           }),
         })),
 
-      addDownload: (d) => set((s) => ({ downloads: [d, ...s.downloads.filter((x) => x.id !== d.id)] })),
+      addDownload: (d) =>
+        set((s) => ({ downloads: [d, ...s.downloads.filter((x) => x.id !== d.id)] })),
       updateDownload: (id, patch) =>
         set((s) => ({
           downloads: s.downloads.map((d) => (d.id === id ? { ...d, ...patch } : d)),
         })),
-      removeDownload: (id) => set((s) => ({ downloads: s.downloads.filter((d) => d.id !== id) })),
+      removeDownload: (id) =>
+        set((s) => {
+          const old = s.downloads.find((d) => d.id === id);
+          if (old?.blobUrl) URL.revokeObjectURL(old.blobUrl);
+          return { downloads: s.downloads.filter((d) => d.id !== id) };
+        }),
+
+      // Re-create object URLs for downloads finished in a previous session.
+      // Metadata is in localStorage, the audio bytes are in IndexedDB — this
+      // is what makes offline playback survive a reload.
+      hydrateDownloads: async () => {
+        const downloads = get().downloads;
+        if (!downloads.length) return;
+        const stored = new Set(await listAudioIds());
+        const next: DownloadItem[] = [];
+        for (const d of downloads) {
+          // An in-flight download can never resume after a reload.
+          if (d.status === "done") {
+            if (!stored.has(d.id)) {
+              next.push({ ...d, status: "error", progress: 0 });
+              continue;
+            }
+            const blob = await getAudioBlob(d.id);
+            next.push(
+              blob ? { ...d, blobUrl: URL.createObjectURL(blob) } : { ...d, status: "error" },
+            );
+            continue;
+          }
+          if (d.status === "downloading" || d.status === "queued") {
+            next.push({ ...d, status: "error", progress: 0 });
+            continue;
+          }
+          next.push(d);
+        }
+        set({ downloads: next });
+      },
     }),
     {
       name: "muis-library",
-      storage: createJSONStorage(() => (typeof window !== "undefined" ? localStorage : undefined as unknown as Storage)),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : (undefined as unknown as Storage),
+      ),
       partialize: (s) => ({
         library: s.library,
         favorites: s.favorites,
@@ -165,11 +200,10 @@ export const useLibrary = create<LibraryState>()(
         searchHistory: s.searchHistory,
         playlists: s.playlists,
         tracksById: s.tracksById,
-        // downloads intentionally omitted (blobs)
+        // Metadata only. The audio bytes live in IndexedDB (src/lib/offline.ts)
+        // and blobUrl is a per-session object URL that must never be persisted.
+        downloads: s.downloads.map(({ blobUrl: _blobUrl, ...rest }) => rest),
       }),
     },
   ),
 );
-
-// unused import guard
-void ensureTrack;
