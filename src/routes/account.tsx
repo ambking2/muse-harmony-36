@@ -5,7 +5,6 @@ import {
   Check,
   Copy,
   Globe,
-  HardDriveDownload,
   Link2,
   Lock,
   LogIn,
@@ -19,7 +18,6 @@ import { toast } from "sonner";
 
 import { AppShell, BackLink } from "@/components/layout/AppShell";
 import { accountApi, playlistApi, useSession } from "@/lib/account";
-import type { StorageMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/account")({
@@ -44,43 +42,15 @@ function AccountPage() {
     <AppShell>
       <div className="space-y-6">
         <BackLink />
-        {session?.username ? (
-          <SignedIn username={session.username} storage={session.mode} />
-        ) : (
-          <SignedOut storage={session?.mode ?? "file"} />
-        )}
+        {session?.username ? <SignedIn username={session.username} /> : <SignedOut />}
       </div>
     </AppShell>
   );
 }
 
-/**
- * Says, when the server is holding accounts in memory, that they will not be
- * there after a restart.
- *
- * Only that case earns a notice. Everything here works in all three modes, so
- * there is no reason to put anything in front of someone over where the data
- * happens to sit — but "my account vanished" is worth saying out loud once
- * rather than leaving it to be discovered.
- */
-function Ephemeral() {
-  return (
-    <div className="mt-5 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5">
-      <p className="flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400">
-        <HardDriveDownload className="size-5 shrink-0" />
-        این نسخه موقتی است
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        حساب‌ها و پلی‌لیست‌های اشتراکی فعلاً در حافظه‌ی همین سرور نگه‌داری می‌شوند. همه‌چیز کار
-        می‌کند، ولی با هر راه‌اندازی دوباره پاک می‌شود. اگر روی همین سرور بمانی مشکلی نیست.
-      </p>
-    </div>
-  );
-}
-
 /* -------------------------------------------------------------- signed out */
 
-function SignedOut({ storage }: { storage: StorageMode }) {
+function SignedOut() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [mode, setMode] = useState<Mode>("signin");
@@ -146,8 +116,6 @@ function SignedOut({ storage }: { storage: StorageMode }) {
       <p className="mt-2 text-sm text-muted-foreground">
         برای همگام‌سازی پلی‌لیست‌ها بین دستگاه‌ها و اشتراک‌گذاری عمومی، حساب بسازید.
       </p>
-
-      {storage === "memory" && <Ephemeral />}
 
       <div className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-xs">
         {tabs.map((t) => (
@@ -227,7 +195,7 @@ function SignedOut({ storage }: { storage: StorageMode }) {
 
 /* --------------------------------------------------------------- signed in */
 
-function SignedIn({ username, storage }: { username: string; storage: StorageMode }) {
+function SignedIn({ username }: { username: string }) {
   const qc = useQueryClient();
   const [leaving, setLeaving] = useState(false);
 
@@ -282,8 +250,6 @@ function SignedIn({ username, storage }: { username: string; storage: StorageMod
           خروج
         </button>
       </div>
-
-      {storage === "memory" && <Ephemeral />}
 
       <section>
         <h2 className="text-lg font-black">پلی‌لیست‌های اشتراکی</h2>
