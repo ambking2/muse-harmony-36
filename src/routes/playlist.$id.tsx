@@ -3,10 +3,11 @@ import { AppShell, BackLink } from "@/components/layout/AppShell";
 import { useLibrary } from "@/stores/library";
 import { TrackRow } from "@/components/music/TrackRow";
 import { usePlayer } from "@/stores/player";
-import { Music, Pencil, Play, Share2, Shuffle, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Music, Pencil, Play, Shuffle, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { SharePlaylist } from "@/components/music/SharePlaylist";
 
 export const Route = createFileRoute("/playlist/$id")({ component: PlaylistPage });
 
@@ -106,24 +107,7 @@ function PlaylistPage() {
           >
             <Pencil className="size-4" /> تغییر نام
           </button>
-          <button
-            onClick={async () => {
-              const url = `${window.location.origin}/playlist/${playlist.id}`;
-              try {
-                if (navigator.share) {
-                  await navigator.share({ title: playlist.name, url });
-                } else {
-                  await navigator.clipboard.writeText(url);
-                  toast.success("لینک کپی شد");
-                }
-              } catch {
-                // Share sheet dismissed.
-              }
-            }}
-            className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm"
-          >
-            <Share2 className="size-4" /> اشتراک
-          </button>
+          <SharePlaylist playlistId={playlist.id} name={playlist.name} tracks={tracks} />
           <button
             onClick={() => {
               if (confirm(`پلی‌لیست «${playlist.name}» حذف شود؟`)) {

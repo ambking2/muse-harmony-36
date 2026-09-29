@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NowPlayingRouteImport } from './routes/now-playing'
@@ -16,14 +17,23 @@ import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TKeyRouteImport } from './routes/t.$key'
 import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
+import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as MixIdRouteImport } from './routes/mix.$id'
 import { Route as ArtistNameRouteImport } from './routes/artist.$name'
+import { Route as ApiPlaylistsRouteImport } from './routes/api/playlists'
+import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as AlbumNameRouteImport } from './routes/album.$name'
 import { Route as ApiGdSplatRouteImport } from './routes/api/gd.$'
 
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -59,6 +69,11 @@ const DownloadsRoute = DownloadsRouteImport.update({
   path: '/downloads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -74,6 +89,11 @@ const PlaylistIdRoute = PlaylistIdRouteImport.update({
   path: '/playlist/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PIdRoute = PIdRouteImport.update({
+  id: '/p/$id',
+  path: '/p/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MixIdRoute = MixIdRouteImport.update({
   id: '/mix/$id',
   path: '/mix/$id',
@@ -82,6 +102,16 @@ const MixIdRoute = MixIdRouteImport.update({
 const ArtistNameRoute = ArtistNameRouteImport.update({
   id: '/artist/$name',
   path: '/artist/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPlaylistsRoute = ApiPlaylistsRouteImport.update({
+  id: '/api/playlists',
+  path: '/api/playlists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRoute = ApiAuthRouteImport.update({
+  id: '/api/auth',
+  path: '/api/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlbumNameRoute = AlbumNameRouteImport.update({
@@ -97,6 +127,7 @@ const ApiGdSplatRoute = ApiGdSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -104,15 +135,20 @@ export interface FileRoutesByFullPath {
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/auth': typeof ApiAuthRoute
+  '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
+  '/p/$id': typeof PIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -120,9 +156,13 @@ export interface FileRoutesByTo {
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/auth': typeof ApiAuthRoute
+  '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
+  '/p/$id': typeof PIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
@@ -130,6 +170,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -137,9 +178,13 @@ export interface FileRoutesById {
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/auth': typeof ApiAuthRoute
+  '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
+  '/p/$id': typeof PIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
@@ -148,6 +193,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -155,15 +201,20 @@ export interface FileRouteTypes {
     | '/now-playing'
     | '/profile'
     | '/settings'
+    | '/studio'
     | '/album/$name'
+    | '/api/auth'
+    | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
+    | '/p/$id'
     | '/playlist/$id'
     | '/t/$key'
     | '/api/gd/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -171,15 +222,20 @@ export interface FileRouteTypes {
     | '/now-playing'
     | '/profile'
     | '/settings'
+    | '/studio'
     | '/album/$name'
+    | '/api/auth'
+    | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
+    | '/p/$id'
     | '/playlist/$id'
     | '/t/$key'
     | '/api/gd/$'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -187,9 +243,13 @@ export interface FileRouteTypes {
     | '/now-playing'
     | '/profile'
     | '/settings'
+    | '/studio'
     | '/album/$name'
+    | '/api/auth'
+    | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
+    | '/p/$id'
     | '/playlist/$id'
     | '/t/$key'
     | '/api/gd/$'
@@ -197,6 +257,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   DownloadsRoute: typeof DownloadsRoute
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
@@ -204,9 +265,13 @@ export interface RootRouteChildren {
   NowPlayingRoute: typeof NowPlayingRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
+  StudioRoute: typeof StudioRoute
   AlbumNameRoute: typeof AlbumNameRoute
+  ApiAuthRoute: typeof ApiAuthRoute
+  ApiPlaylistsRoute: typeof ApiPlaylistsRoute
   ArtistNameRoute: typeof ArtistNameRoute
   MixIdRoute: typeof MixIdRoute
+  PIdRoute: typeof PIdRoute
   PlaylistIdRoute: typeof PlaylistIdRoute
   TKeyRoute: typeof TKeyRoute
   ApiGdSplatRoute: typeof ApiGdSplatRoute
@@ -214,6 +279,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -263,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DownloadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -284,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaylistIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$id': {
+      id: '/p/$id'
+      path: '/p/$id'
+      fullPath: '/p/$id'
+      preLoaderRoute: typeof PIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mix/$id': {
       id: '/mix/$id'
       path: '/mix/$id'
@@ -296,6 +382,20 @@ declare module '@tanstack/react-router' {
       path: '/artist/$name'
       fullPath: '/artist/$name'
       preLoaderRoute: typeof ArtistNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/playlists': {
+      id: '/api/playlists'
+      path: '/api/playlists'
+      fullPath: '/api/playlists'
+      preLoaderRoute: typeof ApiPlaylistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth': {
+      id: '/api/auth'
+      path: '/api/auth'
+      fullPath: '/api/auth'
+      preLoaderRoute: typeof ApiAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/album/$name': {
@@ -317,6 +417,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   DownloadsRoute: DownloadsRoute,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
@@ -324,9 +425,13 @@ const rootRouteChildren: RootRouteChildren = {
   NowPlayingRoute: NowPlayingRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
+  StudioRoute: StudioRoute,
   AlbumNameRoute: AlbumNameRoute,
+  ApiAuthRoute: ApiAuthRoute,
+  ApiPlaylistsRoute: ApiPlaylistsRoute,
   ArtistNameRoute: ArtistNameRoute,
   MixIdRoute: MixIdRoute,
+  PIdRoute: PIdRoute,
   PlaylistIdRoute: PlaylistIdRoute,
   TKeyRoute: TKeyRoute,
   ApiGdSplatRoute: ApiGdSplatRoute,
