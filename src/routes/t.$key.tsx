@@ -18,7 +18,10 @@ export const Route = createFileRoute("/t/$key")({
     const t = match.loaderData;
     const title = t ? `${t.name}${t.artist[0] ? ` — ${t.artist[0]}` : ""}` : "muis";
     return {
-      meta: [{ title: `${title} — muis` }, { name: "description", content: t?.name ?? "مUIS" }],
+      meta: [
+        { title: `${title} — muis` },
+        { name: "description", content: t?.name ?? "muis — پخش‌کننده‌ی موسیقی فارسی" },
+      ],
     };
   },
   component: SharedTrackPage,

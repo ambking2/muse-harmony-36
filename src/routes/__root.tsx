@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0b0810" },
-      { title: "مUIS — موسیقی، بازطراحی‌شده" },
+      { title: "muis — پخش‌کننده‌ی موسیقی فارسی" },
       {
         name: "description",
         content:
@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "muis" },
       { property: "og:locale", content: "fa_IR" },
-      { property: "og:title", content: "muis — موسیقی، بازطراحی‌شده" },
+      { property: "og:title", content: "muis — پخش‌کننده‌ی موسیقی فارسی" },
       {
         property: "og:description",
         content: "پخش، دانلود و سازماندهیی موسیقی‌های ایرانی و جهانی، هرجا که باشید.",
