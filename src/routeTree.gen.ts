@@ -25,6 +25,7 @@ import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as MixIdRouteImport } from './routes/mix.$id'
 import { Route as ArtistNameRouteImport } from './routes/artist.$name'
 import { Route as ApiPlaylistsRouteImport } from './routes/api/playlists'
+import { Route as ApiLibraryRouteImport } from './routes/api/library'
 import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as AlbumNameRouteImport } from './routes/album.$name'
 import { Route as ApiGdSplatRouteImport } from './routes/api/gd.$'
@@ -109,6 +110,11 @@ const ApiPlaylistsRoute = ApiPlaylistsRouteImport.update({
   path: '/api/playlists',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLibraryRoute = ApiLibraryRouteImport.update({
+  id: '/api/library',
+  path: '/api/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthRoute = ApiAuthRouteImport.update({
   id: '/api/auth',
   path: '/api/auth',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
   '/mix/$id': typeof MixIdRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/album/$name'
     | '/api/auth'
+    | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/album/$name'
     | '/api/auth'
+    | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/album/$name'
     | '/api/auth'
+    | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
     | '/mix/$id'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRoute
   AlbumNameRoute: typeof AlbumNameRoute
   ApiAuthRoute: typeof ApiAuthRoute
+  ApiLibraryRoute: typeof ApiLibraryRoute
   ApiPlaylistsRoute: typeof ApiPlaylistsRoute
   ArtistNameRoute: typeof ArtistNameRoute
   MixIdRoute: typeof MixIdRoute
@@ -391,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPlaylistsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/library': {
+      id: '/api/library'
+      path: '/api/library'
+      fullPath: '/api/library'
+      preLoaderRoute: typeof ApiLibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth': {
       id: '/api/auth'
       path: '/api/auth'
@@ -428,6 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRoute,
   AlbumNameRoute: AlbumNameRoute,
   ApiAuthRoute: ApiAuthRoute,
+  ApiLibraryRoute: ApiLibraryRoute,
   ApiPlaylistsRoute: ApiPlaylistsRoute,
   ArtistNameRoute: ArtistNameRoute,
   MixIdRoute: MixIdRoute,
