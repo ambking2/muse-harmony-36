@@ -10,8 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "bun test src",
-    "backup": "bun scripts/backup.ts",
-    "restore": "bun scripts/backup.ts restore",
+    "backup": "bun scripts/db.ts",
+    "restore": "bun scripts/db.ts restore",
+    "export": "bun scripts/db.ts export",
     "format": "prettier --write ."
   },
   "dependencies": {

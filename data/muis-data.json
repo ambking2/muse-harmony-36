@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "note": "Archive of muis accounts and shared playlists. Password hashes, recovery codes and session tokens are deliberately absent, so nothing here can be used to sign in — it is a record, not a credential store.",
+  "users": [],
+  "playlists": []
+}
