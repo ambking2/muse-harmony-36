@@ -9,6 +9,11 @@ import type { DocumentBackend, Snapshot } from "./document";
  * costs nothing to leave out.
  *
  * One key, `muis`, holding the whole document.
+ *
+ * Superseded by D1 (`d1.ts`) and kept for a worker set up before it. One
+ * difference worth knowing: KV reads are eventually consistent, so a Worker
+ * reading straight back after a write can see the previous value for a second
+ * or so. D1 is not like that, which is part of why it is the one to use.
  */
 export interface KVNamespace {
   get(key: string, type: "text"): Promise<string | null>;

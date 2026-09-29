@@ -55,8 +55,9 @@ export function openBackend(onFailure?: (error: unknown) => void): DocumentBacke
           // Swallowed on purpose, and the queue recovers. A rejected promise
           // left in the chain poisons every write that follows it, so one
           // failure would otherwise be permanent. The document itself is safe:
-          // the store's write-through cache still holds it, and the next write
-          // tries the file again.
+          // the next write tries the file again, and the reader in
+          // `documentStore` goes back to the backend for every operation rather
+          // than believing a copy it was given earlier.
           onFailure?.(err);
         });
       return queue;

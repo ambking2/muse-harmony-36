@@ -37,13 +37,29 @@ export interface DocumentBackend {
 }
 
 export function documentStore(backend: DocumentBackend): Store {
-  /** Write-through cache; see where each backend explains why it needs one. */
-  let recent: Snapshot | null = null;
-
+  /**
+   * Every operation starts by reading the document, and nothing is cached
+   * between them.
+   *
+   * That sounds wasteful until the host is a Cloudflare Worker, which is not one
+   * process but many. Each isolate gets its own copy of this module and its own
+   * memory, and an isolate that remembered the document would answer from that
+   * memory: it would not see a session opened on another isolate and would
+   * sign a perfectly good user out, and when it next wrote, it would save its
+   * stale copy and quietly delete whatever the other isolate had just stored.
+   * Both happened in production before this was removed — a login that worked,
+   * then 401 on the very next request.
+   *
+   * So the cost is one read per operation, which on a single-row document is a
+   * fast, indexed lookup, and in exchange every isolate tells the truth. What
+   * is left is that two genuinely simultaneous writes can still race, since
+   * both read before either writes; that is the honest limit of keeping the
+   * whole database in one value, and the reason to stop doing that is to stop
+   * doing that.
+   */
   const load = async (): Promise<Snapshot> => {
-    if (recent) return recent;
     const stored = await backend.read();
-    recent = {
+    return {
       users: stored?.users ?? {},
       sessions: stored?.sessions ?? {},
       playlists: stored?.playlists ?? {},
@@ -51,7 +67,6 @@ export function documentStore(backend: DocumentBackend): Store {
       // is not a problem: the first sign-in sends one.
       libraries: stored?.libraries ?? {},
     };
-    return recent;
   };
 
   const save = async (next: Snapshot): Promise<void> => {
@@ -59,7 +74,6 @@ export function documentStore(backend: DocumentBackend): Store {
     for (const [sid, session] of Object.entries(next.sessions)) {
       if (now - session.at > SESSION_TTL_MS) delete next.sessions[sid];
     }
-    recent = next;
     await backend.write(next);
   };
 
