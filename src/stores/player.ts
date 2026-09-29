@@ -47,13 +47,22 @@ interface PlayerState {
 }
 
 function shuffleArr<T>(arr: T[], keepIndex: number) {
-  const keep = arr[keepIndex];
-  const rest = arr.filter((_, i) => i !== keepIndex);
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rest[i], rest[j]] = [rest[j], rest[i]];
+  if (arr.length === 0) return arr;
+  // Clamped rather than trusted: an index past the end used to pull
+  // `undefined` out of the array and splice it into the front of the queue.
+  const i = Math.max(0, Math.min(keepIndex, arr.length - 1));
+  const keep = arr[i];
+  const rest = arr.filter((_, k) => k !== i);
+  for (let j = rest.length - 1; j > 0; j--) {
+    const k = Math.floor(Math.random() * (j + 1));
+    [rest[j], rest[k]] = [rest[k], rest[j]];
   }
   return [keep, ...rest];
+}
+
+/** Tracks are identified by provider + id; position is not identity. */
+function sameTrack(a?: Track, b?: Track): boolean {
+  return !!a && !!b && a.id === b.id && a.source === b.source;
 }
 
 export const usePlayer = create<PlayerState>((set, get) => ({
@@ -81,6 +90,10 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       queue: arr,
       originalQueue: arr,
       index: found === -1 ? 0 : found,
+      // A fresh queue is in its given order. Leaving `shuffle` set here is what
+      // made the playlist page's shuffle button play in order the second time
+      // it was pressed: the next toggle turned shuffling *off*.
+      shuffle: false,
       isPlaying: true,
       isBuffering: true,
       currentTime: 0,
@@ -92,6 +105,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       queue: list,
       originalQueue: list,
       index: Math.min(Math.max(0, startIndex), Math.max(0, list.length - 1)),
+      shuffle: false,
       isPlaying: true,
       isBuffering: true,
       currentTime: 0,
@@ -108,17 +122,29 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     set((s) => {
       const q = [...s.queue];
       q.splice(s.index + 1, 0, t);
-      return { queue: q };
+      // Mirror the insert into the stored order, right after the current
+      // track. Without this the track vanished the moment shuffle was turned
+      // off, because the original order never learned it existed.
+      const o = [...s.originalQueue];
+      const current = s.queue[s.index];
+      const at = o.findIndex((x) => sameTrack(x, current));
+      o.splice(at === -1 ? o.length : at + 1, 0, t);
+      return { queue: q, originalQueue: o };
     }),
   removeFromQueue: (index) =>
     set((s) => {
+      const target = s.queue[index];
       const q = s.queue.filter((_, i) => i !== index);
+      // Filtered by identity, not by position. While shuffled, index `index`
+      // points at a different track in the stored order, and removing that one
+      // instead would resurrect a track the user just deleted.
+      const o = target ? s.originalQueue.filter((x) => !sameTrack(x, target)) : s.originalQueue;
       let idx = s.index;
       if (index < s.index) idx -= 1;
       if (index === s.index) idx = Math.min(idx, q.length - 1);
       return {
         queue: q,
-        originalQueue: s.originalQueue.filter((_, i) => i !== index),
+        originalQueue: o,
         index: Math.max(0, idx),
         isPlaying: q.length === 0 ? false : s.isPlaying,
       };
@@ -127,18 +153,36 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   moveInQueue: (from, to) =>
     set((s) => {
       if (from === to) return s;
+      const clamp = (n: number) => Math.max(0, Math.min(n, s.queue.length));
       const q = [...s.queue];
       const [item] = q.splice(from, 1);
       if (!item) return s;
-      q.splice(Math.max(0, Math.min(q.length, to)), 0, item);
-      const currentItem = s.queue[s.index];
-      const index = q.findIndex(
-        (t) => t.id === currentItem?.id && t.source === currentItem?.source,
-      );
-      return { queue: q, index: index === -1 ? s.index : index };
+      q.splice(clamp(to), 0, item);
+      const current = s.queue[s.index];
+      const index = q.findIndex((t) => sameTrack(t, current));
+
+      // While shuffled, what the user is dragging is the *shuffled* order, and
+      // there is no meaningful equivalent position in the stored one. Leaving
+      // it alone is the honest answer: turning shuffle off restores the order
+      // the playlist was actually in.
+      if (s.shuffle) return { queue: q, index: index === -1 ? s.index : index };
+
+      const o = [...s.originalQueue];
+      const [stored] = o.splice(from, 1);
+      if (stored) o.splice(clamp(to), 0, stored);
+      return { queue: q, originalQueue: o, index: index === -1 ? s.index : index };
     }),
   clearQueue: () =>
-    set({ queue: [], originalQueue: [], index: 0, isPlaying: false, isBuffering: false }),
+    set({
+      queue: [],
+      originalQueue: [],
+      index: 0,
+      // Same reasoning as playQueue: with no queue there is no order to be
+      // shuffled, and leaving the flag set made the next one appear broken.
+      shuffle: false,
+      isPlaying: false,
+      isBuffering: false,
+    }),
 
   next: () => {
     const { queue, index, repeat } = get();
@@ -177,13 +221,12 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   toggleShuffle: () =>
     set((s) => {
       if (s.shuffle) {
-        // restore
-        const curTrack = s.queue[s.index];
-        const idx = s.originalQueue.findIndex(
-          (t) => t.id === curTrack?.id && t.source === curTrack?.source,
-        );
+        // Restore the stored order, keeping the same track playing.
+        const current = s.queue[s.index];
+        const idx = s.originalQueue.findIndex((t) => sameTrack(t, current));
         return { shuffle: false, queue: s.originalQueue, index: Math.max(0, idx) };
       }
+      if (s.queue.length === 0) return s;
       const shuffled = shuffleArr(s.queue, s.index);
       return { shuffle: true, queue: shuffled, index: 0 };
     }),
