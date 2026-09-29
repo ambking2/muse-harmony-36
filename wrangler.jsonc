@@ -7,14 +7,18 @@
 // The worker has no writable disk, so with no binding an account only lives as
 // long as the isolate that accepted it. This one is a D1 database: SQLite that
 // belongs to the same Cloudflare account as the worker. The app keeps the whole
-// document as a single JSON value in a single row — there is no schema beyond
-// migrations/0001_document.sql, which the app also creates on first use.
+// document as a single JSON value in a single row — no schema beyond
+// migrations/0001_document.sql, which it also creates on first use if allowed.
 //
 // To set up a new one:
 //   1. npx wrangler d1 create muis   (prints a database_id)
-//   2. put that id in database_id below, and the name in database_name
-//   3. npx wrangler d1 execute muis --remote --file=migrations/0001_document.sql
-//   4. deploy
+//   2. put that id in database_id below
+//   3. npx wrangler d1 execute MUIS_DB --remote --file=migrations/0001_document.sql
+//   4. npx wrangler deploy
+//
+// `database_name` is left out on purpose: the binding is all a Worker needs, and
+// naming the database again is a second thing to get wrong. The CLI targets it
+// by the binding name instead — MUIS_DB above.
 //
 // Without the binding the worker answers exactly as it always has: it keeps
 // accounts in memory, and everything that does not need an account keeps working.
@@ -22,7 +26,6 @@
   "d1_databases": [
     {
       "binding": "MUIS_DB",
-      "database_name": "muis",
       "database_id": "92829035-dfaa-4025-91fd-02f6c5e948dd"
     }
   ]
