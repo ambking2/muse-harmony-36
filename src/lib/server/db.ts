@@ -28,9 +28,9 @@ function binding<T>(name: string): T | undefined {
   return (globalThis as { __env__?: Record<string, unknown> }).__env__?.[name] as T | undefined;
 }
 
-let handle: Promise<{ store: Store; mode: StorageMode }> | null = null;
+let handle: Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> | null = null;
 
-async function build(): Promise<{ store: Store; mode: StorageMode }> {
+async function build(): Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> {
   const kv = binding<KVNamespace>("MUIS");
   if (kv) {
     const { documentStore } = await import("./document");
@@ -42,7 +42,13 @@ async function build(): Promise<{ store: Store; mode: StorageMode }> {
       import("./document"),
       import("./file"),
     ]);
-    return { store: documentStore(openBackend()), mode: "file" };
+    // A disk that starts refusing writes mid-life should not turn every signup
+    // into a 500. The file backend keeps the document in memory when a write
+    // fails, and this is what lets storageMode() report that honestly instead
+    // of still claiming "file".
+    let failed = false;
+    const store = documentStore(openBackend(() => (failed = true)));
+    return { store, mode: "file", degraded: () => failed };
   } catch {
     // No writable disk, which is exactly the Worker case. Memory from here.
     const [{ documentStore }, { openBackend }] = await Promise.all([
@@ -53,14 +59,15 @@ async function build(): Promise<{ store: Store; mode: StorageMode }> {
   }
 }
 
-function open(): Promise<{ store: Store; mode: StorageMode }> {
+function open(): Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> {
   handle ??= build();
   return handle;
 }
 
-/** Where the account data is going, so the interface can say so out loud. */
+/** Where the account data is going, so anything listening can say so. */
 export async function storageMode(): Promise<StorageMode> {
-  return (await open()).mode;
+  const { mode, degraded } = await open();
+  return degraded?.() ? "memory" : mode;
 }
 
 /** Test seam: forget the backend so the next call picks again. */
