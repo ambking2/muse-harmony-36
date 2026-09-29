@@ -1,25 +1,29 @@
 import type { Store } from "./store";
+import type { LibraryDocument } from "../types";
 import type { StoredPlaylist, UserRecord } from "./types";
 
 /**
  * The account database, as one JSON object.
  *
- * This is the whole of it: three maps, no schema, no tables, no migrations.
- * A user, a session and a shared playlist are plain values in plain maps, the
- * same shape you would get from `JSON.parse` of a file.
+ * This is the whole of it: four maps, no schema, no tables, no migrations.
+ * A user, a session, a shared playlist and the library that follows an account
+ * from device to device are plain values in plain maps, the same shape you
+ * would get from `JSON.parse` of a file.
  *
  * Where the object is *kept* is a separate question with a separate answer, and
  * that is all a backend supplies: something that reads the object and something
- * that writes it. A file on disk, a Cloudflare KV value, or plain memory all
- * serve the same code, which is why the three of them cannot drift apart.
+ * that writes it. A file on disk, a D1 row, a KV value, or plain memory all
+ * serve the same code, which is why none of them can drift apart.
  */
 export interface Snapshot {
   users: Record<string, UserRecord>;
   sessions: Record<string, { username: string; at: number }>;
   playlists: Record<string, StoredPlaylist>;
+  /** Per account: playlists, favourites, history. See `LibraryDocument`. */
+  libraries: Record<string, LibraryDocument>;
 }
 
-export const EMPTY: Snapshot = { users: {}, sessions: {}, playlists: {} };
+export const EMPTY: Snapshot = { users: {}, sessions: {}, playlists: {}, libraries: {} };
 
 /** How long a session stays valid. Long by design: this is a music player. */
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -43,6 +47,9 @@ export function documentStore(backend: DocumentBackend): Store {
       users: stored?.users ?? {},
       sessions: stored?.sessions ?? {},
       playlists: stored?.playlists ?? {},
+      // A database written before accounts carried a library has none, which
+      // is not a problem: the first sign-in sends one.
+      libraries: stored?.libraries ?? {},
     };
     return recent;
   };
@@ -102,6 +109,15 @@ export function documentStore(backend: DocumentBackend): Store {
         if (session.username !== username) sessions[sid] = session;
       }
       await save({ ...db, sessions });
+    },
+
+    async getLibrary(username) {
+      return (await load()).libraries[username] ?? null;
+    },
+
+    async saveLibrary(username, document) {
+      const db = await load();
+      await save({ ...db, libraries: { ...db.libraries, [username]: document } });
     },
 
     async findPlaylist(id) {

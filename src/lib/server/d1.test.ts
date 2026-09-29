@@ -3,8 +3,9 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import { login, register } from "./auth";
-import { findUser, resetForTests, storageMode } from "./db";
+import { findUser, getLibrary, resetForTests, saveLibrary, storageMode } from "./db";
 import type { D1Database } from "./d1";
+import type { LibraryDocument } from "../types";
 
 /**
  * The account flow against a D1 backend, exercised without a Worker.
@@ -119,6 +120,84 @@ const broken: D1Database = {
     throw new Error("DDL is not allowed from the Workers runtime");
   },
 };
+
+/**
+ * The library that follows an account between devices.
+ *
+ * It is stored in the same document as everything else, keyed by name, so the
+ * thing worth testing is not the storage but the isolation: one account must
+ * never see another's playlists, and a name with no library must read as
+ * absent rather than as somebody else's.
+ */
+function library(name: string, key: string): LibraryDocument {
+  return {
+    library: [],
+    favorites: [key],
+    favoriteArtists: [name],
+    history: [{ key, at: 1 }],
+    searchHistory: [name],
+    playlists: [
+      {
+        id: `${name}-list`,
+        name,
+        createdAt: 1,
+        updatedAt: 1,
+        trackKeys: [key],
+      },
+    ],
+    tracksById: {
+      [key]: {
+        id: "1",
+        name,
+        artist: [name],
+        album: "",
+        pic_id: "",
+        url_id: "",
+        lyric_id: "",
+        source: "netease",
+      },
+    },
+  };
+}
+
+describe("the account library", () => {
+  beforeAll(() => {
+    (globalThis as { __env__?: unknown }).__env__ = { MUIS_DB: database };
+    resetForTests();
+  });
+
+  it("is absent until the account saves one", async () => {
+    await register("nima", "a long enough password");
+    expect(await getLibrary("nima")).toBeNull();
+  });
+
+  it("keeps two accounts' libraries apart", async () => {
+    await register("parisa", "a long enough password");
+    await saveLibrary("ali", library("ali", "netease:1"));
+    await saveLibrary("parisa", library("parisa", "netease:2"));
+
+    const a = await getLibrary("ali");
+    const p = await getLibrary("parisa");
+    expect(a?.favorites).toEqual(["netease:1"]);
+    expect(p?.favorites).toEqual(["netease:2"]);
+    expect(a?.playlists[0]?.name).toBe("ali");
+    expect(p?.playlists[0]?.name).toBe("parisa");
+  });
+
+  it("replaces a library rather than merging into it", async () => {
+    // A playlist deleted on one device has to stay deleted on the next, which
+    // is why this is a replacement and not a union.
+    await saveLibrary("ali", library("ali", "netease:1"));
+    const after = await getLibrary("ali");
+    expect(after?.favorites).toEqual(["netease:1"]);
+    expect(after?.playlists).toHaveLength(1);
+  });
+
+  it("comes back from the row after a restart", async () => {
+    resetForTests();
+    expect((await getLibrary("ali"))?.favorites).toEqual(["netease:1"]);
+  });
+});
 
 describe("a D1 database that is not usable", () => {
   beforeAll(() => {

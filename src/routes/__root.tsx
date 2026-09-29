@@ -18,6 +18,8 @@ import appCss from "../styles.css?url";
 // rarely needed and would only compete for bandwidth.
 import vazirmatnArabic from "@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { useSession } from "@/lib/account";
+import { useAccountLibrary } from "@/lib/library-sync";
 import { AudioEngine } from "@/hooks/use-audio-engine";
 import { useLibrary } from "@/stores/library";
 
@@ -137,6 +139,20 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Playlists, favourites and history follow the account rather than the device,
+ * so signing in brings them with it. Signed out, nothing happens and the
+ * library stays where it was: on this machine.
+ *
+ * A component of its own because it reads the session, and the session is a
+ * query — which needs the QueryClientProvider below it to already be mounted.
+ */
+function AccountLibrarySync() {
+  const session = useSession();
+  useAccountLibrary(session.data?.username ?? null);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const hydrateDownloads = useLibrary((s) => s.hydrateDownloads);
@@ -150,6 +166,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
       <AudioEngine />
+      <AccountLibrarySync />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

@@ -68,6 +68,24 @@ export function trackKey(t: Pick<Track, "source" | "id">) {
   return `${t.source}:${t.id}`;
 }
 
+/**
+ * The part of a library that belongs to a person rather than a device.
+ *
+ * Playlists, favourites and history used to live in localStorage, which meant
+ * they were gone on a new phone and followed whoever used the browser last.
+ * With an account they travel with the name instead. What stays on the device
+ * is what really is the device's: downloaded audio, and the settings.
+ */
+export interface LibraryDocument {
+  library: Track[];
+  favorites: string[];
+  favoriteArtists: string[];
+  history: { key: string; at: number }[];
+  searchHistory: string[];
+  playlists: Playlist[];
+  tracksById: Record<string, Track>;
+}
+
 export function keyToParts(k: string): { source: MusicSource; id: string } {
   const [source, ...rest] = k.split(":");
   return { source: source as MusicSource, id: rest.join(":") };

@@ -1,4 +1,4 @@
-import type { StorageMode } from "../types";
+import type { StorageMode, LibraryDocument } from "../types";
 import type { D1Database } from "./d1";
 import type { KVNamespace } from "./kv";
 import type { Store } from "./store";
@@ -62,6 +62,8 @@ function failover(primary: Store, spare: Store, onFail: (error: unknown) => void
     putSession: (sid, username, at) => attempt((s) => s.putSession(sid, username, at)),
     deleteSession: (sid) => attempt((s) => s.deleteSession(sid)),
     deleteSessionsFor: (username) => attempt((s) => s.deleteSessionsFor(username)),
+    getLibrary: (username) => attempt((s) => s.getLibrary(username)),
+    saveLibrary: (username, document) => attempt((s) => s.saveLibrary(username, document)),
     findPlaylist: (id) => attempt((s) => s.findPlaylist(id)),
     listPlaylistsByOwner: (owner) => attempt((s) => s.listPlaylistsByOwner(owner)),
     insertPlaylist: (playlist) => attempt((s) => s.insertPlaylist(playlist)),
@@ -152,6 +154,16 @@ export async function updateUser(
   patch: { passwordHash: string; salt: string; recoveryHashes: string[] },
 ): Promise<void> {
   return (await open()).store.updateUser(username, patch);
+}
+
+/* ------------------------------------------------------------------ library */
+
+export async function getLibrary(username: string): Promise<LibraryDocument | null> {
+  return (await open()).store.getLibrary(username);
+}
+
+export async function saveLibrary(username: string, document: LibraryDocument): Promise<void> {
+  return (await open()).store.saveLibrary(username, document);
 }
 
 /* ----------------------------------------------------------------- sessions */

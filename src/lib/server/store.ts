@@ -1,3 +1,4 @@
+import type { LibraryDocument } from "../types";
 import type { StoredPlaylist, UserRecord } from "./types";
 
 /**
@@ -23,6 +24,11 @@ export interface Store {
   putSession(sid: string, username: string, at: number): Promise<void>;
   deleteSession(sid: string): Promise<void>;
   deleteSessionsFor(username: string): Promise<void>;
+
+  /* library */
+  /** The account's own library, or null if it has never been saved. */
+  getLibrary(username: string): Promise<LibraryDocument | null>;
+  saveLibrary(username: string, document: LibraryDocument): Promise<void>;
 
   /* playlists */
   findPlaylist(id: string): Promise<StoredPlaylist | null>;
