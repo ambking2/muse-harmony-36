@@ -1,64 +1,52 @@
 import type { D1Database } from "./d1";
-import type { Query } from "./driver";
+import type { KVNamespace } from "./kv";
+import type { Store } from "./store";
 
 import type { StoredPlaylist, UserRecord } from "./types";
 
 /**
- * The account and shared-playlist database.
+ * The account database.
  *
- * It is SQLite in both places, which keeps a single copy of the schema and a
- * single copy of every query:
+ * It is the same three questions wherever it runs, and only the storage differs:
  *
- *   - On the deployed Cloudflare worker, a D1 binding. There is no writable
- *     disk there, so a file would be thrown away on the next cold start.
- *   - In development and the preview, a file at `.data/muis.sqlite`.
+ *   - On the deployed Cloudflare worker, a binding: KV when one is set, else D1.
+ *   - In development and the preview, a SQLite file at `.data/muis.sqlite`.
  *
- * `open()` picks whichever is present. Nothing is configured by hand for the
- * second one, and the first only needs a `d1_databases` entry in
- * `wrangler.jsonc`; without that binding the worker reports accounts as
- * unavailable instead of failing, which is the same refusal the file-only build
- * used to give.
+ * The file is the default because it needs nothing set up at all. A worker has
+ * no disk, so there a binding is the only way to keep an account alive across a
+ * cold start; which one is a line in `wrangler.jsonc`.
  *
- * Every statement uses bound parameters. No caller-supplied value is ever
- * interpolated into SQL text, including usernames and playlist ids.
+ * With no binding and no writable disk, `isDurable()` reports false and the
+ * account routes say so rather than accepting a registration that would be gone
+ * by the next restart.
+ *
+ * Every backend is reached through a dynamic `import()`. That is not only about
+ * keeping server code out of the browser graph: the file backend uses `node:fs`
+ * and `node:sqlite`, which Workers does not have, so loading it eagerly would
+ * fail the whole account route on the worker instead of letting a binding serve
+ * it.
  */
-
-/**
- * The D1 binding, if this is a worker that has one.
- *
- * Nitro's Cloudflare entry point assigns the bindings object here before any
- * request is handled, which is what makes the database reachable from a module
- * that has no request context of its own.
- */
-function d1Binding(): D1Database | undefined {
-  return (globalThis as { __env__?: Record<string, unknown> }).__env__?.DB as
-    | D1Database
-    | undefined;
+function binding<T>(name: string): T | undefined {
+  return (globalThis as { __env__?: Record<string, unknown> }).__env__?.[name] as T | undefined;
 }
 
-/**
- * Opens the database, once.
- *
- * Both backends are reached through a dynamic `import()`. The file driver uses
- * `node:fs` and `node:sqlite`, which Workers does not have, so loading it
- * eagerly would fail the whole account route there instead of letting D1 serve
- * it. The dynamic form also keeps both drivers out of the browser graph — the
- * same reason `src/lib/shared-playlist.ts` reaches for this file dynamically.
- *
- * The promise is memoised, including a rejected one: if neither backend can be
- * opened, every later call should fail the same way rather than retrying on
- * every request.
- */
-let handle: Promise<Query> | null = null;
+let handle: Promise<Store> | null = null;
 
-function open(): Promise<Query> {
+function open(): Promise<Store> {
   handle ??= (async () => {
-    const binding = d1Binding();
-    const db = binding
-      ? (await import("./d1")).openDatabase(binding)
-      : (await import("./sqlite")).openDatabase();
-    await db.migrate();
-    return db;
+    const kv = binding<KVNamespace>("MUIS");
+    const store = kv
+      ? (await import("./kv")).openStore(kv)
+      : await (async () => {
+          const d1 = binding<D1Database>("DB");
+          return (await import("./sql")).openStore(
+            d1 ? (await import("./d1")).openDatabase(d1) : undefined,
+          );
+        })();
+    // Once per process, before anything reads. The file and D1 both create
+    // their tables here; KV has nothing to create.
+    await store.migrate();
+    return store;
   })();
   return handle;
 }
@@ -66,9 +54,9 @@ function open(): Promise<Query> {
 /**
  * Whether accounts can work here.
  *
- * The probe is a real query rather than a look at the environment, because on a
- * worker with no binding it is the open that fails, not the configuration. The
- * answer is cached: it cannot change without a restart, and every render asks.
+ * A real query rather than a look at the environment, because on a worker with
+ * no binding it is the open that fails, not the configuration. Cached: it cannot
+ * change without a restart, and every render asks.
  */
 let healthy: Promise<boolean> | null = null;
 
@@ -80,177 +68,79 @@ export function isDurable(): Promise<boolean> {
   return healthy;
 }
 
+/**
+ * Forgets which backend was opened, so the next call picks again.
+ *
+ * Test seam only. The cache is module state, so a suite that installs a binding
+ * and expects to be served by it has to be able to say so — otherwise whichever
+ * suite happens to run first decides the backend for all the others, and the
+ * rest quietly test something other than what they claim to.
+ */
+export function resetForTests(): void {
+  handle = null;
+  healthy = null;
+}
+
 /* -------------------------------------------------------------------- users */
 
-type Row = Record<string, unknown>;
-
-const USER_COLUMNS = "username, password_hash, salt, recovery_hashes, created_at";
-const PLAYLIST_COLUMNS = "id, owner, name, is_public, created_at, updated_at, tracks";
-
-/**
- * Whether an insert failed because the name was taken.
- *
- * The message text differs between the two backends — the file driver raises
- * SQLite's own error, D1 prefixes it with `D1_ERROR` and appends the code — so
- * both spellings are matched. Nothing else is swallowed: reporting a real fault
- * as "name taken" would send the person round in circles.
- */
-function isDuplicateName(err: unknown): boolean {
-  const message = err instanceof Error ? err.message : String(err);
-  return message.includes("UNIQUE constraint failed") || message.includes("SQLITE_CONSTRAINT");
-}
-
-function rowToUser(row: Row): UserRecord {
-  return {
-    username: String(row.username),
-    passwordHash: String(row.password_hash),
-    salt: String(row.salt),
-    recoveryHashes: JSON.parse(String(row.recovery_hashes)) as string[],
-    createdAt: Number(row.created_at),
-  };
-}
-
 export async function findUser(username: string): Promise<UserRecord | null> {
-  const row = await (
-    await open()
-  ).one<Row>(`SELECT ${USER_COLUMNS} FROM users WHERE username = ?`, username);
-  return row ? rowToUser(row) : null;
+  return (await open()).findUser(username);
 }
 
 /**
  * False when the name is already taken.
  *
- * The insert is attempted and the constraint violation is caught, rather than
- * checking for the name first and then inserting. A check-then-insert leaves a
- * window in which two simultaneous signups for the same name both pass it, and
- * one of them is then told the name was taken after the fact.
+ * What guarantees that differs by backend, and each does the best it can: the
+ * file and D1 both let the database refuse the second insert, while KV has no
+ * conditional write and so has to check first.
  */
 export async function createUser(user: UserRecord): Promise<boolean> {
-  try {
-    await (
-      await open()
-    ).run(
-      `INSERT INTO users (${USER_COLUMNS}) VALUES (?, ?, ?, ?, ?)`,
-      user.username,
-      user.passwordHash,
-      user.salt,
-      JSON.stringify(user.recoveryHashes),
-      user.createdAt,
-    );
-    return true;
-  } catch (err) {
-    if (isDuplicateName(err)) return false;
-    throw err;
-  }
+  return (await open()).createUser(user);
 }
 
 export async function updateUser(
   username: string,
   patch: { passwordHash: string; salt: string; recoveryHashes: string[] },
 ): Promise<void> {
-  await (
-    await open()
-  ).run(
-    "UPDATE users SET password_hash = ?, salt = ?, recovery_hashes = ? WHERE username = ?",
-    patch.passwordHash,
-    patch.salt,
-    JSON.stringify(patch.recoveryHashes),
-    username,
-  );
+  return (await open()).updateUser(username, patch);
 }
 
 /* ----------------------------------------------------------------- sessions */
 
 export async function getSession(sid: string): Promise<{ username: string; at: number } | null> {
-  const row = await (
-    await open()
-  ).one<Row>("SELECT username, created_at FROM sessions WHERE sid = ?", sid);
-  return row ? { username: String(row.username), at: Number(row.created_at) } : null;
+  return (await open()).getSession(sid);
 }
 
 export async function putSession(sid: string, username: string, at: number): Promise<void> {
-  await (
-    await open()
-  ).run(
-    `INSERT INTO sessions (sid, username, created_at) VALUES (?, ?, ?)
-     ON CONFLICT (sid) DO UPDATE SET username = excluded.username,
-                                   created_at = excluded.created_at`,
-    sid,
-    username,
-    at,
-  );
+  return (await open()).putSession(sid, username, at);
 }
 
 export async function deleteSession(sid: string): Promise<void> {
-  await (await open()).run("DELETE FROM sessions WHERE sid = ?", sid);
+  return (await open()).deleteSession(sid);
 }
 
 export async function deleteSessionsFor(username: string): Promise<void> {
-  await (await open()).run("DELETE FROM sessions WHERE username = ?", username);
+  return (await open()).deleteSessionsFor(username);
 }
 
 /* ---------------------------------------------------------------- playlists */
 
-function rowToPlaylist(row: Row): StoredPlaylist {
-  return {
-    id: String(row.id),
-    owner: String(row.owner),
-    name: String(row.name),
-    isPublic: Number(row.is_public) === 1,
-    createdAt: Number(row.created_at),
-    updatedAt: Number(row.updated_at),
-    tracks: JSON.parse(String(row.tracks)) as StoredPlaylist["tracks"],
-  };
-}
-
 export async function findPlaylist(id: string): Promise<StoredPlaylist | null> {
-  const row = await (
-    await open()
-  ).one<Row>(`SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE id = ?`, id);
-  return row ? rowToPlaylist(row) : null;
+  return (await open()).findPlaylist(id);
 }
 
 export async function listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]> {
-  const rows = await (
-    await open()
-  ).many<Row>(
-    `SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE owner = ? ORDER BY updated_at DESC`,
-    owner,
-  );
-  return rows.map(rowToPlaylist);
+  return (await open()).listPlaylistsByOwner(owner);
 }
 
-export async function insertPlaylist(p: StoredPlaylist): Promise<void> {
-  await (
-    await open()
-  ).run(
-    `INSERT INTO playlists (${PLAYLIST_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    p.id,
-    p.owner,
-    p.name,
-    p.isPublic ? 1 : 0,
-    p.createdAt,
-    p.updatedAt,
-    JSON.stringify(p.tracks),
-  );
+export async function insertPlaylist(playlist: StoredPlaylist): Promise<void> {
+  return (await open()).insertPlaylist(playlist);
 }
 
-export async function updatePlaylist(p: StoredPlaylist): Promise<void> {
-  await (
-    await open()
-  ).run(
-    "UPDATE playlists SET name = ?, is_public = ?, updated_at = ?, tracks = ? WHERE id = ?",
-    p.name,
-    p.isPublic ? 1 : 0,
-    p.updatedAt,
-    JSON.stringify(p.tracks),
-    p.id,
-  );
+export async function updatePlaylist(playlist: StoredPlaylist): Promise<void> {
+  return (await open()).updatePlaylist(playlist);
 }
 
 export async function deletePlaylist(id: string, owner: string): Promise<boolean> {
-  const changes = await (
-    await open()
-  ).run("DELETE FROM playlists WHERE id = ? AND owner = ?", id, owner);
-  return changes > 0;
+  return (await open()).deletePlaylist(id, owner);
 }

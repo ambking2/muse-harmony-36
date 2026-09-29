@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 
-import { afterAll, describe, expect, it } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,6 +13,7 @@ import {
   insertPlaylist,
   isDurable,
   listPlaylistsByOwner,
+  resetForTests,
 } from "./db";
 import type { D1Database } from "./d1";
 import type { StoredPlaylist } from "./types";
@@ -63,10 +64,6 @@ const binding: D1Database = {
   },
 };
 
-// Set before anything calls the database: db.ts reads the binding once, on the
-// first request it serves.
-(globalThis as { __env__?: unknown }).__env__ = { DB: binding };
-
 /** Filled in by the registration test, consumed by the recovery one. */
 let recoveryCodes: string[] = [];
 const PASSWORD = "a long enough password";
@@ -77,6 +74,14 @@ afterAll(() => {
 });
 
 describe("the D1 driver", () => {
+  // In here, not at module load: bun evaluates every test file's body before
+  // running any test, so a binding installed at load time is overwritten by
+  // whichever file loaded last.
+  beforeAll(() => {
+    (globalThis as { __env__?: unknown }).__env__ = { DB: binding };
+    resetForTests();
+  });
+
   it("creates its tables on first use", async () => {
     expect(await isDurable()).toBe(true);
     const tables = file

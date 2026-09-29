@@ -4,24 +4,25 @@
 // writes to .output/server/, so this is the one place a service is attached to
 // the worker. Nothing in it is needed to run the app locally.
 //
-// D1 is where accounts and shared playlists live once deployed: the worker has
-// no disk to put a file on, so without a binding every account would be lost on
-// the next cold start. It is the same Cloudflare account as the worker — no
-// second vendor, no key, no separate bill.
+// The worker has no writable disk, so it has no way to keep an account alive
+// across a restart without a binding of some kind. This one is a Workers KV
+// namespace: a key/value store inside the same Cloudflare account as the
+// worker, created with the same CLI. No second vendor, no key, no separate bill.
+// An account is one JSON value under `u:<name>` — there is no schema and no SQL
+// to it, which is the closest a Worker gets to a text file.
 //
 // To turn it on:
-//   1. npx wrangler d1 create muis          (prints a database_id)
+//   1. npx wrangler kv namespace create muis   (prints a namespace id)
 //   2. paste that id below and delete the "//" markers
 //   3. deploy
 //
-// Until then the worker answers exactly as it did before: it reports accounts as
+// Without it the worker answers exactly as it always has: it reports accounts as
 // unavailable, and everything that does not need an account keeps working.
 {
-  // "d1_databases": [
+  // "kv_namespaces": [
   //   {
-  //     "binding": "DB",
-  //     "database_name": "muis",
-  //     "database_id": "PASTE_THE_DATABASE_ID_HERE"
+  //     "binding": "MUIS",
+  //     "id": "PASTE_THE_NAMESPACE_ID_HERE"
   //   }
   // ]
 }
