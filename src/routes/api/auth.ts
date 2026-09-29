@@ -9,7 +9,7 @@ import {
   recover,
   register,
 } from "@/lib/server/auth";
-import { isDurable } from "@/lib/server/store";
+import { isDurable } from "@/lib/server/db";
 
 function json(body: unknown, status = 200, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -54,11 +54,18 @@ async function handle(request: Request) {
 
   if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
 
-  // The file store cannot survive a Workers deploy. Say so here, where a
-  // client can act on it, rather than accepting a registration that will be
-  // gone the moment the isolate recycles.
+  // The account database is Turso over libSQL. If it is unreachable, say so
+  // here, where a client can act on it, rather than accepting a registration
+  // that will be gone the moment the isolate recycles.
   if (!(await isDurable())) {
-    return json({ error: "ذخیره‌سازی روی این محیط پایدار نیست. لطفاً بعداً تلاش کنید." }, 503);
+    return json(
+      {
+        error:
+          "پایگاه‌داده در دسترس نیست. کمی بعد دوباره تلاش کنید — اگر ادامه داشت، تنظیمات سرور کامل نیست.",
+        code: "database-unavailable",
+      },
+      503,
+    );
   }
 
   const body = (await request.json().catch(() => ({}))) as {

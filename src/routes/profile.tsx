@@ -13,9 +13,11 @@ import {
   HardDrive,
   Sparkles,
   ChevronLeft,
+  UserRound,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLibrary } from "@/stores/library";
+import { useSession } from "@/lib/account";
 import { formatBytes } from "@/lib/gdmusic";
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage });
@@ -28,6 +30,7 @@ function ProfilePage() {
   const history = useLibrary((s) => s.history);
   const favoriteArtists = useLibrary((s) => s.favoriteArtists);
   const tracksById = useLibrary((s) => s.tracksById);
+  const { data: session } = useSession();
 
   const done = downloads.filter((d) => d.status === "done");
   const offlineSize = done.reduce((sum, d) => sum + (d.size || 0), 0);
@@ -96,7 +99,7 @@ function ProfilePage() {
             >
               ♪
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-black tracking-tight sm:text-3xl">پروفایل شما</h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {library.length > 0
@@ -104,6 +107,16 @@ function ProfilePage() {
                   : "هنوز آهنگی به کتابخانه اضافه نکرده‌اید"}
               </p>
             </div>
+            {/* The account page was otherwise unreachable — the only link to it
+                lived inside the share dialog, which a signed-out visitor has to
+                already find. This is the obvious place to sign in from. */}
+            <Link
+              to="/account"
+              className="flex shrink-0 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            >
+              <UserRound className="size-4" />
+              {session?.username ?? "ورود / ثبت‌نام"}
+            </Link>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

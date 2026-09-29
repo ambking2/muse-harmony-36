@@ -16,8 +16,15 @@ import {
   newSessionToken,
   timingSafeEqual,
 } from "./crypto";
-import { mutate, readState } from "./store";
-import type { UserRecord } from "./types";
+import {
+  createUser,
+  deleteSession,
+  deleteSessionsFor,
+  findUser,
+  getSession,
+  putSession,
+  updateUser,
+} from "./db";
 
 /** Sessions are long-lived by design: this is a music player, not a bank. */
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -90,6 +97,12 @@ export interface AuthOk {
 
 export type AuthResult = { ok: false; error: string } | AuthOk;
 
+async function startSession(username: string): Promise<string> {
+  const token = newSessionToken();
+  await putSession(await newSessionId(token), username, Date.now());
+  return token;
+}
+
 export async function register(
   rawUsername: string,
   password: string,
@@ -98,31 +111,21 @@ export async function register(
   if (invalid) return { ok: false, error: invalid };
   const username = canonicalUsername(rawUsername);
 
-  if (await readState((s) => s.users.some((u) => u.username === username))) {
-    return { ok: false, error: "این نام کاربری قبلاً گرفته شده است." };
-  }
-
   const codes = generateRecoveryCodes();
   // One salt, derived once, then used for the hash. Deriving them separately
-  // would leave the record holding a salt that does not match its hash and
-  // lock the account out on first login.
+  // would store a salt that does not match its hash and lock the account out on
+  // first login.
   const salt = newSalt();
-  const user: UserRecord = {
+  const created = await createUser({
     username,
     salt,
     passwordHash: await hashPassword(password, salt),
     recoveryHashes: await Promise.all(codes.map(hashRecoveryCode)),
     createdAt: Date.now(),
-  };
-
-  const token = newSessionToken();
-  const sid = await newSessionId(token);
-  await mutate((s) => {
-    s.users.push(user);
-    s.sessions[sid] = { username, at: Date.now() };
   });
+  if (!created) return { ok: false, error: "این نام کاربری قبلاً گرفته شده است." };
 
-  return { ok: true, token, username, recoveryCodes: codes };
+  return { ok: true, token: await startSession(username), username, recoveryCodes: codes };
 }
 
 export async function login(rawUsername: string, password: string): Promise<AuthResult> {
@@ -131,7 +134,7 @@ export async function login(rawUsername: string, password: string): Promise<Auth
     return { ok: false, error: "تلاش‌های ناموفق زیاد بود. چند دقیقه بعد دوباره امتحان کنید." };
   }
 
-  const user = await readState((s) => s.users.find((u) => u.username === username));
+  const user = await findUser(username);
   // Hash even when the user is missing, so a wrong name costs the same as a
   // wrong password and neither answers faster than the other.
   const candidate = await hashPassword(password, user?.salt ?? newSalt());
@@ -142,12 +145,7 @@ export async function login(rawUsername: string, password: string): Promise<Auth
   }
 
   clearFailures(username);
-  const token = newSessionToken();
-  const sid = await newSessionId(token);
-  await mutate((s) => {
-    s.sessions[sid] = { username, at: Date.now() };
-  });
-  return { ok: true, token, username };
+  return { ok: true, token: await startSession(username), username };
 }
 
 export async function recover(
@@ -163,55 +161,39 @@ export async function recover(
   }
 
   const codeHash = await hashRecoveryCode(rawCode);
-  const found = await readState((s) => {
-    const user = s.users.find((u) => u.username === username);
-    return user?.recoveryHashes.some((h) => timingSafeEqual(h, codeHash)) ?? false;
-  });
-
-  if (!found) {
+  const user = await findUser(username);
+  if (!user?.recoveryHashes.some((h) => timingSafeEqual(h, codeHash))) {
     noteFailure(username);
     return { ok: false, error: "کد بازیابی درست نیست." };
   }
   clearFailures(username);
 
   const salt = newSalt();
-  const hash = await hashPassword(newPassword, salt);
-
-  // One pass, so no concurrent request can observe a half-reset account — a
-  // record with a new salt but the old hash would reject every login.
-  await mutate((s) => {
-    const user = s.users.find((u) => u.username === username);
-    if (!user) return;
-    user.salt = salt;
-    user.passwordHash = hash;
-    // Codes are single-use, and any session opened with the old password is
-    // no longer trustworthy.
-    user.recoveryHashes = [];
-    for (const [sid, session] of Object.entries(s.sessions)) {
-      if (session.username === username) delete s.sessions[sid];
-    }
+  // Codes are single-use, and any session opened with the old password is no
+  // longer trustworthy. The order matters: revoke first, so there is no window
+  // in which the new password is live but the old session still is too.
+  await deleteSessionsFor(username);
+  await updateUser(username, {
+    salt,
+    passwordHash: await hashPassword(newPassword, salt),
+    recoveryHashes: [],
   });
 
   return { ok: true };
 }
 
 export async function logout(token: string): Promise<void> {
-  const sid = await newSessionId(token);
-  await mutate((s) => {
-    delete s.sessions[sid];
-  });
+  await deleteSession(await newSessionId(token));
 }
 
 /** Resolves a session cookie to a username, or null if absent or expired. */
 export async function currentUser(token: string | null): Promise<string | null> {
   if (!token) return null;
   const sid = await newSessionId(token);
-  const session = await readState((s) => s.sessions[sid]);
+  const session = await getSession(sid);
   if (!session) return null;
   if (Date.now() - session.at > SESSION_TTL_MS) {
-    await mutate((s) => {
-      delete s.sessions[sid];
-    });
+    await deleteSession(sid);
     return null;
   }
   return session.username;

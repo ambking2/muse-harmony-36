@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { currentUser, SESSION_COOKIE } from "@/lib/server/auth";
-import { mutate, readState } from "@/lib/server/store";
+import {
+  deletePlaylist,
+  findPlaylist,
+  insertPlaylist,
+  listPlaylistsByOwner,
+  updatePlaylist,
+} from "@/lib/server/db";
 import type { StoredPlaylist } from "@/lib/server/types";
 import type { Track } from "@/lib/types";
 
@@ -43,7 +49,7 @@ async function handle(request: Request) {
   // Reading a public playlist is the one action open to signed-out visitors —
   // it is the entire point of a public link.
   if (request.method === "GET" && id) {
-    const playlist = await readState((s) => s.playlists.find((p) => p.id === id));
+    const playlist = await findPlaylist(id);
     if (!playlist) return json({ error: "not found" }, 404);
     if (!playlist.isPublic && playlist.owner !== user) {
       // Deliberately indistinguishable from "does not exist": confirming that a
@@ -55,9 +61,7 @@ async function handle(request: Request) {
 
   if (request.method === "GET") {
     if (!user) return json({ error: "unauthorized" }, 401);
-    const playlists = await readState((s) =>
-      s.playlists.filter((p) => p.owner === user).map(summarise),
-    );
+    const playlists = (await listPlaylistsByOwner(user)).map(summarise);
     return json({ playlists });
   }
 
@@ -69,16 +73,16 @@ async function handle(request: Request) {
   };
 
   if (request.method === "POST" && id) {
-    const owned = await readState((s) => s.playlists.some((p) => p.id === id && p.owner === user));
-    if (!owned) return json({ error: "not found" }, 404);
-    await mutate((s) => {
-      const p = s.playlists.find((x) => x.id === id && x.owner === user);
-      if (!p) return;
-      if (typeof body.isPublic === "boolean") p.isPublic = body.isPublic;
-      if (typeof body.name === "string" && body.name.trim()) p.name = body.name.trim();
-      if (Array.isArray(body.tracks)) p.tracks = body.tracks;
-      p.updatedAt = Date.now();
-    });
+    const existing = await findPlaylist(id);
+    if (!existing || existing.owner !== user) return json({ error: "not found" }, 404);
+    const next: StoredPlaylist = {
+      ...existing,
+      name: (body.name ?? "").trim() || existing.name,
+      isPublic: typeof body.isPublic === "boolean" ? body.isPublic : existing.isPublic,
+      tracks: Array.isArray(body.tracks) ? body.tracks : existing.tracks,
+      updatedAt: Date.now(),
+    };
+    await updatePlaylist(next);
     return json({ ok: true });
   }
 
@@ -86,8 +90,9 @@ async function handle(request: Request) {
     const name = (body.name ?? "").trim();
     if (!name) return json({ error: "name required" }, 400);
     const playlist: StoredPlaylist = {
-      // 10 chars of base32 is 50 bits — short enough to read aloud or paste,
-      // wide enough that guessing one is not a practical attack.
+      // 8 hex characters of a v4 UUID is 32 bits. Short enough to read aloud or
+      // paste, and every request that touches a private playlist is scoped to
+      // the owner, so the id is an identifier rather than the only secret.
       id: crypto.randomUUID().slice(0, 8),
       owner: user,
       name,
@@ -96,19 +101,12 @@ async function handle(request: Request) {
       updatedAt: Date.now(),
       tracks: Array.isArray(body.tracks) ? body.tracks : [],
     };
-    await mutate((s) => {
-      s.playlists.push(playlist);
-    });
+    await insertPlaylist(playlist);
     return json({ playlist: summarise(playlist) }, 200);
   }
 
   if (request.method === "DELETE" && id) {
-    const removed = await mutate((s) => {
-      const i = s.playlists.findIndex((p) => p.id === id && p.owner === user);
-      if (i < 0) return false;
-      s.playlists.splice(i, 1);
-      return true;
-    });
+    const removed = await deletePlaylist(id, user);
     return removed ? json({ ok: true }) : json({ error: "not found" }, 404);
   }
 

@@ -23,8 +23,8 @@ export interface SharedResult {
 export const fetchSharedPlaylist = createServerFn({ method: "GET" })
   .validator((id: string) => id)
   .handler(async ({ data: id }): Promise<SharedResult | null> => {
-    const { readState } = await import("./server/store");
-    const playlist = await readState((s) => s.playlists.find((p) => p.id === id));
+    const { findPlaylist } = await import("./server/db");
+    const playlist = await findPlaylist(id);
     if (!playlist) return null;
     // Only public playlists are resolved here. Ownership is settled by the
     // cookie in the HTTP endpoint; the loader has no session, and letting a

@@ -11,7 +11,7 @@ import type { Track } from "./types";
 
 export interface SessionInfo {
   username: string | null;
-  /** False when the file store cannot survive this runtime — see lib/server/store. */
+  /** False when the account database is unreachable — see lib/server/db. */
   durable: boolean;
 }
 
