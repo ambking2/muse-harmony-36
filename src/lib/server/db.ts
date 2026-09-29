@@ -1,54 +1,74 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { D1Database } from "./d1";
+import type { Query } from "./driver";
 
 import type { StoredPlaylist, UserRecord } from "./types";
 
 /**
- * The account and shared-playlist database: a SQLite file on disk.
+ * The account and shared-playlist database.
  *
- * Chosen because it needs no account, no service and no setup — the whole point
- * is that it just runs. `node:sqlite` ships inside Node and Bun, so there is no
- * driver to install, no HTTP round trip per query, and no key to lose.
+ * It is SQLite in both places, which keeps a single copy of the schema and a
+ * single copy of every query:
  *
- * The cost, stated plainly: this is a file, and the deploy target is Cloudflare
- * Workers, whose filesystem is read-only. There it cannot be opened at all, and
- * `isDurable()` reports false rather than accepting a registration that would
- * silently disappear on the next cold start. Local development and the preview
- * work normally. Moving to an edge database later means replacing the body of
- * these functions and nothing else, because each one is already exactly one
- * statement.
+ *   - On the deployed Cloudflare worker, a D1 binding. There is no writable
+ *     disk there, so a file would be thrown away on the next cold start.
+ *   - In development and the preview, a file at `.data/muis.sqlite`.
+ *
+ * `open()` picks whichever is present. Nothing is configured by hand for the
+ * second one, and the first only needs a `d1_databases` entry in
+ * `wrangler.jsonc`; without that binding the worker reports accounts as
+ * unavailable instead of failing, which is the same refusal the file-only build
+ * used to give.
  *
  * Every statement uses bound parameters. No caller-supplied value is ever
  * interpolated into SQL text, including usernames and playlist ids.
  */
 
 /**
- * Opens the file, once.
+ * The D1 binding, if this is a worker that has one.
  *
- * Reached through a dynamic `import()` rather than imported at the top of this
- * file, for two reasons. The driver module uses `node:fs` and `node:sqlite`,
- * which do not exist on Workers; loading it lazily means the account routes
- * still answer there, reporting that accounts are unavailable, instead of the
- * module failing to load at all. And the dynamic form keeps the driver out of
- * the browser graph — the same reason `src/lib/shared-playlist.ts` reaches for
- * this file dynamically.
- *
- * The promise is memoised, including a rejected one: if the file cannot be
- * opened, every later call should fail the same way instead of retrying a
- * directory creation on every request.
+ * Nitro's Cloudflare entry point assigns the bindings object here before any
+ * request is handled, which is what makes the database reachable from a module
+ * that has no request context of its own.
  */
-let handle: Promise<DatabaseSync> | null = null;
+function d1Binding(): D1Database | undefined {
+  return (globalThis as { __env__?: Record<string, unknown> }).__env__?.DB as
+    | D1Database
+    | undefined;
+}
 
-function open(): Promise<DatabaseSync> {
-  handle ??= import("./sqlite").then((m) => m.openDatabase());
+/**
+ * Opens the database, once.
+ *
+ * Both backends are reached through a dynamic `import()`. The file driver uses
+ * `node:fs` and `node:sqlite`, which Workers does not have, so loading it
+ * eagerly would fail the whole account route there instead of letting D1 serve
+ * it. The dynamic form also keeps both drivers out of the browser graph — the
+ * same reason `src/lib/shared-playlist.ts` reaches for this file dynamically.
+ *
+ * The promise is memoised, including a rejected one: if neither backend can be
+ * opened, every later call should fail the same way rather than retrying on
+ * every request.
+ */
+let handle: Promise<Query> | null = null;
+
+function open(): Promise<Query> {
+  handle ??= (async () => {
+    const binding = d1Binding();
+    const db = binding
+      ? (await import("./d1")).openDatabase(binding)
+      : (await import("./sqlite")).openDatabase();
+    await db.migrate();
+    return db;
+  })();
   return handle;
 }
 
 /**
  * Whether accounts can work here.
  *
- * The probe is a real open rather than a look at the environment, because on
- * Workers it is the open that fails, not the configuration. The answer is
- * cached: it cannot change without a restart, and every render asks.
+ * The probe is a real query rather than a look at the environment, because on a
+ * worker with no binding it is the open that fails, not the configuration. The
+ * answer is cached: it cannot change without a restart, and every render asks.
  */
 let healthy: Promise<boolean> | null = null;
 
@@ -67,6 +87,19 @@ type Row = Record<string, unknown>;
 const USER_COLUMNS = "username, password_hash, salt, recovery_hashes, created_at";
 const PLAYLIST_COLUMNS = "id, owner, name, is_public, created_at, updated_at, tracks";
 
+/**
+ * Whether an insert failed because the name was taken.
+ *
+ * The message text differs between the two backends — the file driver raises
+ * SQLite's own error, D1 prefixes it with `D1_ERROR` and appends the code — so
+ * both spellings are matched. Nothing else is swallowed: reporting a real fault
+ * as "name taken" would send the person round in circles.
+ */
+function isDuplicateName(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return message.includes("UNIQUE constraint failed") || message.includes("SQLITE_CONSTRAINT");
+}
+
 function rowToUser(row: Row): UserRecord {
   return {
     username: String(row.username),
@@ -78,9 +111,9 @@ function rowToUser(row: Row): UserRecord {
 }
 
 export async function findUser(username: string): Promise<UserRecord | null> {
-  const row = (await open())
-    .prepare(`SELECT ${USER_COLUMNS} FROM users WHERE username = ?`)
-    .get(username) as Row | undefined;
+  const row = await (
+    await open()
+  ).one<Row>(`SELECT ${USER_COLUMNS} FROM users WHERE username = ?`, username);
   return row ? rowToUser(row) : null;
 }
 
@@ -94,22 +127,19 @@ export async function findUser(username: string): Promise<UserRecord | null> {
  */
 export async function createUser(user: UserRecord): Promise<boolean> {
   try {
-    (await open())
-      .prepare(`INSERT INTO users (${USER_COLUMNS}) VALUES (?, ?, ?, ?, ?)`)
-      .run(
-        user.username,
-        user.passwordHash,
-        user.salt,
-        JSON.stringify(user.recoveryHashes),
-        user.createdAt,
-      );
+    await (
+      await open()
+    ).run(
+      `INSERT INTO users (${USER_COLUMNS}) VALUES (?, ?, ?, ?, ?)`,
+      user.username,
+      user.passwordHash,
+      user.salt,
+      JSON.stringify(user.recoveryHashes),
+      user.createdAt,
+    );
     return true;
   } catch (err) {
-    // Only the primary key is swallowed. Any other failure is a real fault and
-    // must surface rather than be reported to the user as "name taken".
-    if (err instanceof Error && err.message.includes("UNIQUE constraint failed: users.username")) {
-      return false;
-    }
+    if (isDuplicateName(err)) return false;
     throw err;
   }
 }
@@ -118,36 +148,45 @@ export async function updateUser(
   username: string,
   patch: { passwordHash: string; salt: string; recoveryHashes: string[] },
 ): Promise<void> {
-  (await open())
-    .prepare(`UPDATE users SET password_hash = ?, salt = ?, recovery_hashes = ? WHERE username = ?`)
-    .run(patch.passwordHash, patch.salt, JSON.stringify(patch.recoveryHashes), username);
+  await (
+    await open()
+  ).run(
+    "UPDATE users SET password_hash = ?, salt = ?, recovery_hashes = ? WHERE username = ?",
+    patch.passwordHash,
+    patch.salt,
+    JSON.stringify(patch.recoveryHashes),
+    username,
+  );
 }
 
 /* ----------------------------------------------------------------- sessions */
 
 export async function getSession(sid: string): Promise<{ username: string; at: number } | null> {
-  const row = (await open())
-    .prepare("SELECT username, created_at FROM sessions WHERE sid = ?")
-    .get(sid) as Row | undefined;
+  const row = await (
+    await open()
+  ).one<Row>("SELECT username, created_at FROM sessions WHERE sid = ?", sid);
   return row ? { username: String(row.username), at: Number(row.created_at) } : null;
 }
 
 export async function putSession(sid: string, username: string, at: number): Promise<void> {
-  (await open())
-    .prepare(
-      `INSERT INTO sessions (sid, username, created_at) VALUES (?, ?, ?)
-       ON CONFLICT (sid) DO UPDATE SET username = excluded.username,
-                                     created_at = excluded.created_at`,
-    )
-    .run(sid, username, at);
+  await (
+    await open()
+  ).run(
+    `INSERT INTO sessions (sid, username, created_at) VALUES (?, ?, ?)
+     ON CONFLICT (sid) DO UPDATE SET username = excluded.username,
+                                   created_at = excluded.created_at`,
+    sid,
+    username,
+    at,
+  );
 }
 
 export async function deleteSession(sid: string): Promise<void> {
-  (await open()).prepare("DELETE FROM sessions WHERE sid = ?").run(sid);
+  await (await open()).run("DELETE FROM sessions WHERE sid = ?", sid);
 }
 
 export async function deleteSessionsFor(username: string): Promise<void> {
-  (await open()).prepare("DELETE FROM sessions WHERE username = ?").run(username);
+  await (await open()).run("DELETE FROM sessions WHERE username = ?", username);
 }
 
 /* ---------------------------------------------------------------- playlists */
@@ -165,44 +204,53 @@ function rowToPlaylist(row: Row): StoredPlaylist {
 }
 
 export async function findPlaylist(id: string): Promise<StoredPlaylist | null> {
-  const row = (await open())
-    .prepare(`SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE id = ?`)
-    .get(id) as Row | undefined;
+  const row = await (
+    await open()
+  ).one<Row>(`SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE id = ?`, id);
   return row ? rowToPlaylist(row) : null;
 }
 
 export async function listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]> {
-  const rows = (await open())
-    .prepare(`SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE owner = ? ORDER BY updated_at DESC`)
-    .all(owner) as Row[];
+  const rows = await (
+    await open()
+  ).many<Row>(
+    `SELECT ${PLAYLIST_COLUMNS} FROM playlists WHERE owner = ? ORDER BY updated_at DESC`,
+    owner,
+  );
   return rows.map(rowToPlaylist);
 }
 
 export async function insertPlaylist(p: StoredPlaylist): Promise<void> {
-  (await open())
-    .prepare(`INSERT INTO playlists (${PLAYLIST_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-    .run(
-      p.id,
-      p.owner,
-      p.name,
-      p.isPublic ? 1 : 0,
-      p.createdAt,
-      p.updatedAt,
-      JSON.stringify(p.tracks),
-    );
+  await (
+    await open()
+  ).run(
+    `INSERT INTO playlists (${PLAYLIST_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    p.id,
+    p.owner,
+    p.name,
+    p.isPublic ? 1 : 0,
+    p.createdAt,
+    p.updatedAt,
+    JSON.stringify(p.tracks),
+  );
 }
 
 export async function updatePlaylist(p: StoredPlaylist): Promise<void> {
-  (await open())
-    .prepare(
-      "UPDATE playlists SET name = ?, is_public = ?, updated_at = ?, tracks = ? WHERE id = ?",
-    )
-    .run(p.name, p.isPublic ? 1 : 0, p.updatedAt, JSON.stringify(p.tracks), p.id);
+  await (
+    await open()
+  ).run(
+    "UPDATE playlists SET name = ?, is_public = ?, updated_at = ?, tracks = ? WHERE id = ?",
+    p.name,
+    p.isPublic ? 1 : 0,
+    p.updatedAt,
+    JSON.stringify(p.tracks),
+    p.id,
+  );
 }
 
 export async function deletePlaylist(id: string, owner: string): Promise<boolean> {
-  const result = (await open())
-    .prepare("DELETE FROM playlists WHERE id = ? AND owner = ?")
-    .run(id, owner);
-  return Number(result.changes) > 0;
+  const changes = await (
+    await open()
+  ).run("DELETE FROM playlists WHERE id = ? AND owner = ?", id, owner);
+  return changes > 0;
 }

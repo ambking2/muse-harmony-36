@@ -3,14 +3,17 @@ import { join } from "node:path";
 
 import { DatabaseSync } from "node:sqlite";
 
+import type { Query, SqlValue } from "./driver";
+import { SCHEMA } from "./driver";
+
 /**
- * The SQLite file itself: opened, tuned and schema-created.
+ * The database as a file on disk: used in development and in the preview.
  *
- * This is the only module that touches `node:fs` and `node:sqlite`, and it is
- * reached only through a dynamic `import()` from `db.ts`. That indirection is
- * what lets the account routes keep loading on Cloudflare Workers, where those
- * two builtins do not exist at all — a static import would fail the whole route
- * at module-resolution time instead of letting `isDurable()` report the truth.
+ * This is the only module that touches `node:fs` and `node:sqlite`, and
+ * `db.ts` reaches it through a dynamic `import()`. That indirection is what
+ * lets the account routes keep loading on Cloudflare Workers, where those two
+ * builtins do not exist at all — a static import would fail the whole route at
+ * module-resolution time instead of letting the D1 driver take over.
  *
  * The file lives at `.data/muis.sqlite`, resolved from the working directory.
  * The dev server, the preview and the built server are all started from the
@@ -19,39 +22,7 @@ import { DatabaseSync } from "node:sqlite";
  */
 const DATA_DIR = join(process.cwd(), ".data");
 
-const SCHEMA = `
-  CREATE TABLE IF NOT EXISTS users (
-    username       TEXT PRIMARY KEY,
-    password_hash  TEXT NOT NULL,
-    salt           TEXT NOT NULL,
-    recovery_hashes TEXT NOT NULL,
-    created_at     INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS sessions (
-    sid        TEXT PRIMARY KEY,
-    username   TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
-    created_at INTEGER NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS sessions_username ON sessions (username);
-  CREATE TABLE IF NOT EXISTS playlists (
-    id         TEXT PRIMARY KEY,
-    owner      TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
-    name       TEXT NOT NULL,
-    is_public  INTEGER NOT NULL DEFAULT 0,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL,
-    tracks     TEXT NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS playlists_owner ON playlists (owner);
-`;
-
-/**
- * Opens the file, creating the directory and the tables if they are not there.
- *
- * Every statement is `IF NOT EXISTS`, so this runs on first use and is safe to
- * run again after a restart.
- */
-export function openDatabase(): DatabaseSync {
+export function openDatabase(): Query {
   mkdirSync(DATA_DIR, { recursive: true });
   const db = new DatabaseSync(join(DATA_DIR, "muis.sqlite"));
   // WAL means a crash mid-write rolls back to the last complete transaction
@@ -63,6 +34,19 @@ export function openDatabase(): DatabaseSync {
   db.exec("PRAGMA synchronous = FULL");
   db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA foreign_keys = ON");
-  db.exec(SCHEMA);
-  return db;
+
+  return {
+    async one<T>(sql: string, ...args: SqlValue[]): Promise<T | null> {
+      return (db.prepare(sql).get(...args) as T | undefined) ?? null;
+    },
+    async many<T>(sql: string, ...args: SqlValue[]): Promise<T[]> {
+      return db.prepare(sql).all(...args) as T[];
+    },
+    async run(sql: string, ...args: SqlValue[]): Promise<number> {
+      return Number(db.prepare(sql).run(...args).changes);
+    },
+    async migrate(): Promise<void> {
+      db.exec(SCHEMA.join(";\n"));
+    },
+  };
 }
