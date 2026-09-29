@@ -14,7 +14,9 @@ import {
   newSalt,
   newSessionId,
   newSessionToken,
+  pbkdf2Iterations,
   timingSafeEqual,
+  verifyPassword,
 } from "./crypto";
 import {
   createUser,
@@ -137,14 +139,26 @@ export async function login(rawUsername: string, password: string): Promise<Auth
   const user = await findUser(username);
   // Hash even when the user is missing, so a wrong name costs the same as a
   // wrong password and neither answers faster than the other.
-  const candidate = await hashPassword(password, user?.salt ?? newSalt());
+  const checked = user
+    ? await verifyPassword(password, user.salt, user.passwordHash)
+    : { ok: false, iterations: 0 };
 
-  if (!user || !timingSafeEqual(candidate, user.passwordHash)) {
+  if (!user || !checked.ok) {
     noteFailure(username);
     return { ok: false, error: "نام کاربری یا رمز اشتباه است." };
   }
 
   clearFailures(username);
+  // An account whose hash predates the current work factor is brought up to it
+  // now, quietly, the first time it signs in on a host that can afford more.
+  const current = await pbkdf2Iterations();
+  if (checked.iterations !== current) {
+    void updateUser(username, {
+      passwordHash: await hashPassword(password, user.salt),
+      salt: user.salt,
+      recoveryHashes: user.recoveryHashes,
+    }).catch(() => {});
+  }
   return { ok: true, token: await startSession(username), username };
 }
 

@@ -61,7 +61,15 @@ async function handle(request: Request) {
   };
 
   if (action === "register") {
-    const result = await register(body.username ?? "", body.password ?? "");
+    // A throw here used to come back as a blank crash page with no way to tell
+    // what had gone wrong. Password hashing on a host with a tight CPU budget is
+    // the kind of thing that throws, so the message is passed on rather than
+    // swallowed.
+    const result = await register(body.username ?? "", body.password ?? "").catch(
+      (err: unknown) => {
+        throw new Error(`ثبت‌نام انجام نشد: ${err instanceof Error ? err.message : String(err)}`);
+      },
+    );
     if (!result.ok) return json(result, 400);
     return json(result, 200, sessionCookie(result.token));
   }
