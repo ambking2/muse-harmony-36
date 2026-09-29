@@ -54,14 +54,15 @@ async function handle(request: Request) {
 
   if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
 
-  // The account database is Turso over libSQL. If it is unreachable, say so
-  // here, where a client can act on it, rather than accepting a registration
-  // that will be gone the moment the isolate recycles.
+  // The account database is a SQLite file on disk. Where there is no writable
+  // disk — the deployed Cloudflare worker — it cannot be opened at all, so say
+  // so here, where a client can act on it, rather than accepting a registration
+  // that would be gone the moment the isolate recycles.
   if (!(await isDurable())) {
     return json(
       {
         error:
-          "پایگاه‌داده در دسترس نیست. کمی بعد دوباره تلاش کنید — اگر ادامه داشت، تنظیمات سرور کامل نیست.",
+          "پایگاه‌داده در دسترس نیست. این نسخه روی محیطی اجرا می‌شود که دیسک ماندگار ندارد، پس ثبت‌نام و ورود ممکن نیست.",
         code: "database-unavailable",
       },
       503,

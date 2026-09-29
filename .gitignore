@@ -17,6 +17,11 @@ dist-ssr
 .nitro
 *.local
 
+# The account database: a SQLite file created at runtime by
+# src/lib/server/sqlite.ts. It holds password hashes and session ids, so it is
+# never committed.
+.data/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
