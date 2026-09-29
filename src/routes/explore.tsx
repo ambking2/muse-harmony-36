@@ -3,10 +3,12 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { AppShell, PageHeader } from "@/components/layout/AppShell";
-import { getPicUrl, searchSmart, SOURCES } from "@/lib/gdmusic";
+import { getPicUrl, picKey, searchSmart } from "@/lib/gdmusic";
 import { isIranianTrack } from "@/lib/search";
 import { hasPersianScript } from "@/lib/text";
-import type { MusicSource, Track } from "@/lib/types";
+import { featuredIranianArtists, suggestAliases } from "@/lib/aliases";
+import { FEATURED_PLAYLISTS } from "@/lib/featured";
+import type { Track } from "@/lib/types";
 import { TrackRow } from "@/components/music/TrackRow";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
@@ -17,7 +19,6 @@ import {
   Loader2,
   Mic2,
   ListMusic,
-  Flame,
   Sparkles,
   Play,
   Shuffle,
@@ -27,8 +28,6 @@ import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   q: z.string().optional(),
-  src: z.enum(["all", "netease", "kuwo", "joox"]).optional(),
-  ir: z.enum(["0", "1"]).optional(),
 });
 
 export const Route = createFileRoute("/explore")({
@@ -46,6 +45,9 @@ const LANES: { title: string; query: string; emoji: string }[] = [
   { title: "دسته‌بندی ملایران", query: "علیرضا طلیسچی", emoji: "🌟" },
 ];
 
+/** Number of lane cards fetched on the idle screen — each one is a network call. */
+const LANE_COUNT = 4;
+
 const QUICK = [
   "محسن یگانه",
   "بنیامین بهزاد",
@@ -58,7 +60,7 @@ const QUICK = [
 ];
 
 function Explore() {
-  const { q: initialQ, src, ir } = Route.useSearch();
+  const { q: initialQ } = Route.useSearch();
   const navigate = useNavigate({ from: "/explore" });
   const [query, setQuery] = useState(initialQ ?? "");
   const [debounced, setDebounced] = useState(initialQ ?? "");
@@ -67,19 +69,13 @@ function Explore() {
   const pushSearch = useLibrary((s) => s.pushSearch);
   const clearSearchHistory = useLibrary((s) => s.clearSearchHistory);
 
-  const source: "all" | MusicSource = src ?? "all";
-  const iranianFirst = ir !== "0";
-
-  const setSource = (next: "all" | MusicSource) =>
-    navigate({
-      search: (p) => ({ ...p, src: next === "all" ? undefined : next }),
-      replace: true,
-    });
-  const setIranian = (next: boolean) =>
-    navigate({
-      search: (p) => ({ ...p, ir: next ? undefined : ("0" as const) }),
-      replace: true,
-    });
+  // Persian type-ahead. Only shown when the typed text is Persian and the
+  // user hasn't already landed on an exact alias, so it never nags.
+  const suggestions = useMemo(() => {
+    const q = query.trim();
+    if (!hasPersianScript(q)) return [];
+    return suggestAliases(q).filter((s) => s.fa.trim() !== q);
+  }, [query]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -108,16 +104,10 @@ function Explore() {
   }, []);
 
   const infinite = useInfiniteQuery({
-    queryKey: ["explore", debounced, source, iranianFirst],
+    queryKey: ["explore", debounced],
     enabled: !!debounced.trim(),
     initialPageParam: 1,
-    queryFn: ({ pageParam }) =>
-      searchSmart(debounced, {
-        count: 24,
-        page: pageParam,
-        iranianFirst,
-        sources: source === "all" ? undefined : [source],
-      }),
+    queryFn: ({ pageParam }) => searchSmart(debounced, { count: 24, page: pageParam }),
     getNextPageParam: (last, all) => (last.length >= 12 ? all.length + 1 : undefined),
     staleTime: 5 * 60_000,
   });
@@ -163,30 +153,22 @@ function Explore() {
           isLoading={infinite.isLoading}
         />
 
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
-          <SourceChip active={source === "all"} onClick={() => setSource("all")}>
-            همه
-          </SourceChip>
-          {SOURCES.map((s) => (
-            <SourceChip
-              key={s.id}
-              active={source === s.id}
-              onClick={() => setSource(s.id)}
-              sub={sourceLabel(s.id)}
-            >
-              {s.label}
-            </SourceChip>
-          ))}
-          <span className="mx-1 w-px shrink-0 bg-white/10" />
-          <SourceChip
-            active={iranianFirst}
-            onClick={() => setIranian(!iranianFirst)}
-            icon={Flame}
-            title="اولویت به آثار ایرانی"
-          >
-            ایرانی‌ها اول
-          </SourceChip>
-        </div>
+        {suggestions.length > 0 && (
+          <div className="glass -mt-2 flex flex-wrap gap-2 rounded-2xl p-3">
+            <span className="w-full text-[11px] uppercase tracking-widest text-muted-foreground">
+              منظورتان این بود؟
+            </span>
+            {suggestions.map((s) => (
+              <button
+                key={s.latin}
+                onClick={() => setQuery(s.fa)}
+                className="rounded-full bg-white/5 px-3 py-1.5 text-sm transition hover:bg-white/10"
+              >
+                {s.fa}
+              </button>
+            ))}
+          </div>
+        )}
 
         {!debounced.trim() ? (
           <IdleState
@@ -200,7 +182,6 @@ function Explore() {
               query={debounced}
               count={items.length}
               iranianCount={iranianCount}
-              iranianFirst={iranianFirst}
               onPlayAll={() => usePlayer.getState().playQueue(items, 0)}
               onShuffle={() => {
                 usePlayer.getState().playQueue(items, 0);
@@ -301,7 +282,7 @@ function SearchBar({
 }) {
   const isFa = hasPersianScript(query);
   return (
-    <div className="glass sticky top-16 z-20 flex items-center gap-2 rounded-2xl border border-white/10 p-2">
+    <div className="glass sticky top-2 z-20 flex items-center gap-2 rounded-2xl border border-white/10 p-2">
       {isLoading ? (
         <Loader2 className="ms-2 size-5 shrink-0 animate-spin text-muted-foreground" />
       ) : (
@@ -331,56 +312,16 @@ function SearchBar({
   );
 }
 
-function sourceLabel(id: MusicSource) {
-  return id === "netease" ? "نت‌ایس" : id === "kuwo" ? "کوئو" : "جواکس";
-}
-
-function SourceChip({
-  active,
-  onClick,
-  children,
-  sub,
-  icon: Icon,
-  title,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  sub?: string;
-  icon?: typeof Flame;
-  title?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      aria-pressed={active}
-      className={cn(
-        "flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition",
-        active
-          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-          : "glass text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {Icon && <Icon className="size-3.5" />}
-      {children}
-      {sub && <span className="text-[10px] opacity-60 ltr-nums">{sub}</span>}
-    </button>
-  );
-}
-
 function ResultSummary({
   query,
   count,
   iranianCount,
-  iranianFirst,
   onPlayAll,
   onShuffle,
 }: {
   query: string;
   count: number;
   iranianCount: number;
-  iranianFirst: boolean;
   onPlayAll: () => void;
   onShuffle: () => void;
 }) {
@@ -391,7 +332,7 @@ function ResultSummary({
           {count.toLocaleString("fa-IR")}
         </span>{" "}
         نتیجه برای «{query}»
-        {iranianFirst && iranianCount > 0 && (
+        {iranianCount > 0 && (
           <>
             {" · "}
             <span className="text-primary ltr-nums">
@@ -435,9 +376,7 @@ function EntityRail({
       <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
         <Icon className="size-3.5" /> {title}
       </h3>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {children}
-      </div>
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">{children}</div>
     </section>
   );
 }
@@ -475,13 +414,22 @@ function TrackThumb({
   className?: string;
 }) {
   const { data } = useQuery({
-    queryKey: ["pic", track.source, track.pic_id, "150"],
+    queryKey: picKey(track.source, track.pic_id, 150),
     enabled: !!track.pic_id,
     staleTime: 30 * 60_000,
     queryFn: () => getPicUrl(track.source, track.pic_id, 150),
   });
   return data ? (
-    <img src={data} alt="" className={cn("shrink-0 object-cover", className)} />
+    // A results page can show dozens of these at once; without lazy loading the
+    // browser starts every thumbnail the moment the markup arrives, competing
+    // with the JS and fonts for the same connection.
+    <img
+      src={data}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className={cn("shrink-0 object-cover", className)}
+    />
   ) : (
     <div className={cn("skeleton shrink-0", className)} />
   );
@@ -496,8 +444,34 @@ function IdleState({
   onPick: (q: string) => void;
   onClearHistory: () => void;
 }) {
+  const artists = featuredIranianArtists(12);
   return (
     <div className="space-y-8">
+      <section>
+        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+          <Mic2 className="size-3.5" /> خواننده‌های ایرانی
+        </h3>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {artists.map((a) => (
+            <Link
+              key={a.latin}
+              to="/artist/$name"
+              params={{ name: a.fa }}
+              className="glass flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-white/10"
+            >
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                {a.fa.slice(0, 1)}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{a.fa}</span>
+                <span className="block truncate text-[11px] text-muted-foreground ltr-nums">
+                  {a.latin}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
       {history.length > 0 && (
         <section className="space-y-2">
           <div className="flex items-center justify-between">
@@ -541,6 +515,7 @@ function IdleState({
       </section>
 
       <Lanes onPick={onPick} />
+      <FeaturedMixes />
     </div>
   );
 }
@@ -551,9 +526,42 @@ function Lanes({ onPick }: { onPick: (q: string) => void }) {
       <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
         <TrendingUp className="size-3.5" /> حالا این‌ها را گوش کنید
       </h3>
-      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {LANES.map((lane) => (
+      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
+        {LANES.slice(0, LANE_COUNT).map((lane) => (
           <LaneCard key={lane.title} {...lane} onPick={onPick} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Hand-curated Iranian collections. Search can find an artist but never the
+ * album or playlist around them, so this is the only rail on the page that
+ * surfaces music the user did not have to think to ask for.
+ */
+function FeaturedMixes() {
+  return (
+    <section className="space-y-3">
+      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+        <ListMusic className="size-3.5" /> پلی‌لیست‌های ایرانی
+      </h3>
+      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
+        {FEATURED_PLAYLISTS.map((p) => (
+          <Link
+            key={p.id}
+            to="/mix/$id"
+            params={{ id: p.id }}
+            className="glass w-52 shrink-0 rounded-2xl p-3 transition hover:bg-white/10"
+          >
+            <div className="relative mb-3 grid aspect-square w-full place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-transparent text-5xl">
+              {p.emoji}
+            </div>
+            <div className="truncate text-sm font-semibold">{p.title}</div>
+            <div className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+              {p.blurb}
+            </div>
+          </Link>
         ))}
       </div>
     </section>

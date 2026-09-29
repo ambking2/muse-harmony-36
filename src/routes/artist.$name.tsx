@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { AppShell, PageHeader } from "@/components/layout/AppShell";
 import { searchSmart } from "@/lib/gdmusic";
 import { normalizeFa } from "@/lib/text";
-import { isIranianTrack } from "@/lib/search";
+import { isIranianTrack, matchesEntity } from "@/lib/search";
 import { TrackRow } from "@/components/music/TrackRow";
 import { Artwork } from "@/components/music/Artwork";
 import { trackKey } from "@/lib/types";
@@ -42,10 +42,11 @@ function ArtistPage() {
       const k = trackKey(t);
       if (seen.has(k)) continue;
       seen.add(k);
-      if (t.artist.some((a) => normalizeFa(a).includes(needle))) out.push(t);
+      // Cross-script: a Persian artist name has to match a romanised credit.
+      if (t.artist.some((a) => matchesEntity(a, decoded))) out.push(t);
     }
     return out;
-  }, [query.data, needle]);
+  }, [query.data, decoded]);
 
   const albums = useMemo(() => {
     const m = new Map<string, Track>();
@@ -54,7 +55,7 @@ function ArtistPage() {
   }, [list]);
 
   const hero = list[0];
-  const isFav = favoriteArtists.some((a) => normalizeFa(a) === needle);
+  const isFav = favoriteArtists.some((a) => matchesEntity(a, decoded));
   const iranian = list.filter(isIranianTrack).length;
 
   return (

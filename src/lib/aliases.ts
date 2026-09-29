@@ -52,6 +52,10 @@ const ARTIST_ALIASES: Record<string, string> = {
   "حسین علیزاده": "Hossein Alizadeh",
   "مهدی یراحمی": "Mehdi Yarrahi",
   "محسن چاوشی": "Mohsen Chavoshi",
+  "سیروان خسروی": "Sirvan Khosravi",
+  "سیروان خسروي": "Sirvan Khosravi",
+  "رضا شجاعی": "Reza Shajaei",
+  "رضا شجاعي": "Reza Shajaei",
   "محمدرضا شجری پور": "Mohammadreza Shajarian",
   "شهاب اکبری": "Shahab Akbari",
   "علیرضا شاه محمدی": "Alireza Shahmohammadi",
@@ -59,6 +63,11 @@ const ARTIST_ALIASES: Record<string, string> = {
   "ایمان کردونی": "Iman Kardouni",
   "سیاوش قمیشی": "Siavash Ghomayshi",
   ابی: "Ebi",
+  // NetEase indexes Ebi thinly under his short stage name — a Japanese artist
+  // of the same name crowds him out — so his signature songs get their own
+  // entries, which return him reliably.
+  "دلپوش ابی": "Delpoosh Ebi",
+  "شبی که ماه شد": "Ebi Shabike Mah Shod",
   "محمدرضا چهارسو": "Mohammadreza Chaharsough",
   "پرواز چماوشی": "Parvaz Chamavoshi",
   "محسن نامجو": "Mohsen Namjoo",
@@ -174,6 +183,11 @@ const ALL: Record<string, string> = {
   ...ARTIST_ALIASES,
 };
 
+/** Every Persian term the table knows, for suggestions and browse rails. */
+export function allAliases(): Record<string, string> {
+  return ALL;
+}
+
 /** Look up a Persian phrase in the alias table. Exact normalised match only. */
 export function latinAliasFor(phrase: string): string | null {
   const key = normalizeFa(phrase).replace(/\s+/g, " ");
@@ -211,4 +225,73 @@ export function resolveLatinQuery(query: string): string | null {
 /** True when the query itself is Persian script and therefore needs an alias. */
 export function needsAlias(query: string): boolean {
   return /[؀-ۿ]/.test(query);
+}
+
+/** One suggestion row: the Persian form to show, and the Latin term to search. */
+export interface AliasSuggestion {
+  /** Persian label shown in the UI. */
+  fa: string;
+  /** Exact Latin string the providers index. */
+  latin: string;
+}
+
+const SUGGESTABLE: AliasSuggestion[] = Object.entries(ALL)
+  // Only artist-shaped entries make good suggestions; a suggestion that just
+  // restates a genre isn't a search term anyone wants to tap.
+  .filter(([fa, latin]) => !(fa in GENRE_ALIASES) && latin.length > 2)
+  .map(([fa, latin]) => ({ fa, latin }));
+
+/**
+ * Type-ahead suggestions for a partially typed Persian query.
+ * Prefix matches rank above mid-string matches, and shorter names win ties so
+ * "محسن" surfaces before "محسن یگانه" once both match.
+ */
+export function suggestAliases(query: string, limit = 6): AliasSuggestion[] {
+  const q = normalizeFa(query);
+  if (q.length < 2) return [];
+  const scored: { s: AliasSuggestion; score: number }[] = [];
+  for (const s of SUGGESTABLE) {
+    const fa = normalizeFa(s.fa);
+    if (fa.startsWith(q)) scored.push({ s, score: 2 - fa.length / 100 });
+    else if (fa.includes(q)) scored.push({ s, score: 1 - fa.length / 100 });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map((x) => x.s);
+}
+
+/**
+ * A curated set of Iranian artists for the "browse" rail, so the home and
+ * search screens have something real to offer before the user types.
+ */
+export function featuredIranianArtists(limit = 12): AliasSuggestion[] {
+  const names = [
+    "محسن یگانه",
+    "بنیامین بهزاد",
+    "گوگوش",
+    "داریوش اقبالی",
+    "معین",
+    "سیاوش قمیشی",
+    "علیرضا طلیسچی",
+    "محسن چاوشی",
+    "رضا بهرام",
+    "همایون",
+    "امیر تتلو",
+    "مرتضی پاشایی",
+    "شادمهر عقیلی",
+    "ستار",
+    "پرواز همای",
+    "کوروش یغمایی",
+    "هیچکس",
+    "محمدرضا شجریان",
+  ];
+  const seen = new Set<string>();
+  const out: AliasSuggestion[] = [];
+  for (const fa of names) {
+    const latin = ALL[normalizeFa(fa)];
+    if (!latin || seen.has(latin)) continue;
+    seen.add(latin);
+    out.push({ fa, latin });
+    if (out.length >= limit) break;
+  }
+  return out;
 }

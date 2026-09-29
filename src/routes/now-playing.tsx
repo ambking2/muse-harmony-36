@@ -1,13 +1,23 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
-import { formatTime, getLyric, getPicUrl, QUALITIES } from "@/lib/gdmusic";
+import {
+  formatTime,
+  getLyric,
+  getPicUrl,
+  hasRealLyrics,
+  isSameSong,
+  lyricLookupQueries,
+  picKey,
+  searchTracks,
+  QUALITIES,
+} from "@/lib/gdmusic";
 import { trackKey } from "@/lib/types";
-import type { Quality } from "@/lib/types";
+import type { LyricLine, Quality } from "@/lib/types";
 import {
   ChevronDown,
   Heart,
@@ -29,8 +39,11 @@ import {
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { RippleButton } from "@/components/ui/ripple-button";
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
+import { shareTrack } from "@/lib/share-link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TrackMenu } from "@/components/music/TrackMenu";
@@ -67,8 +80,8 @@ function NowPlaying() {
   const downloaded = downloads.some((d) => d.id.startsWith(`${key}:`) && d.status === "done");
 
   const pic = useQuery({
-    queryKey: ["pic", key, "800"],
-    enabled: !!track && !track!.picUrl,
+    queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 800),
+    enabled: !!track && !track.picUrl,
     staleTime: 30 * 60_000,
     queryFn: () => getPicUrl(track!.source, track!.pic_id, 800),
   });
@@ -80,19 +93,50 @@ function NowPlaying() {
     queryFn: () => getLyric(track!.source, track!.lyric_id),
   });
 
+  /**
+   * Joox never returns a lyric sheet — measured 0/8 against NetEase's 8/8 for
+   * the same songs — while both providers list the same track. So when the
+   * track's own provider comes back empty, look the title up on NetEase and
+   * take the first hit that actually has words. Costs one extra search, and
+   * only for the tracks that would otherwise show nothing at all.
+   */
+  const needsFallback = !!track && !lyrics.isLoading && !hasRealLyrics(lyrics.data?.lines ?? []);
+  const fallback = useQuery({
+    queryKey: ["lyric-fallback", key],
+    enabled: needsFallback,
+    staleTime: 60 * 60_000,
+    retry: false,
+    queryFn: async () => {
+      const blank = { lines: [], romanized: [], translated: [] };
+      for (const q of lyricLookupQueries(track!)) {
+        const hits = await searchTracks(q, { source: "netease", count: 5 });
+        for (const hit of hits) {
+          if (!isSameSong(track!, hit)) continue;
+          const found = await getLyric("netease", hit.lyric_id);
+          // A sheet of nothing but credits is not a rescue — keep looking.
+          if (found.lines.length >= 3) return found;
+        }
+      }
+      return blank;
+    },
+  });
+
+  const shown = hasRealLyrics(lyrics.data?.lines ?? [])
+    ? lyrics.data
+    : (fallback.data ?? lyrics.data);
+
   const [showLyrics, setShowLyrics] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(true);
+  const hasTranslation = (shown?.translated.length ?? 0) > 0;
 
   if (!track) {
     return (
       <AppShell>
         <div className="py-24 text-center">
           <p className="text-muted-foreground">در حال حاضر چیزی پخش نمی‌شود.</p>
-          <button
-            onClick={() => router.navigate({ to: "/explore" })}
-            className="mt-4 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
+          <RippleButton className="mt-4" onClick={() => router.navigate({ to: "/explore" })}>
             رفتن به جستجو
-          </button>
+          </RippleButton>
         </div>
       </AppShell>
     );
@@ -101,20 +145,12 @@ function NowPlaying() {
   const art = track.picUrl ?? pic.data;
   const remaining = Math.max(0, (duration || 0) - currentTime);
 
+  // Rejects rather than resolving false: LoadingButton shows "کپی شد" only
+  // after the action resolves, so a refused clipboard has to take the failure
+  // path or the button would confirm a copy that never happened.
   const share = async () => {
-    const url = `${window.location.origin}/explore?q=${encodeURIComponent(
-      `${track.name} ${track.artist[0] ?? ""}`,
-    )}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: track.name, text: track.artist.join("، "), url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success("لینک کپی شد");
-      }
-    } catch {
-      // Share sheet dismissed.
-    }
+    if (!(await shareTrack(track))) throw new Error("clipboard refused");
+    toast.success("لینک کپی شد");
   };
 
   return (
@@ -126,6 +162,7 @@ function NowPlaying() {
             src={art}
             alt=""
             aria-hidden
+            decoding="async"
             className="size-full object-cover opacity-50 blur-3xl saturate-150"
           />
         )}
@@ -174,7 +211,7 @@ function NowPlaying() {
         >
           <div className="relative aspect-square overflow-hidden rounded-3xl shadow-2xl shadow-black/60">
             {art ? (
-              <img src={art} alt={track.name} className="size-full object-cover" />
+              <img src={art} alt={track.name} decoding="async" className="size-full object-cover" />
             ) : (
               <div className="skeleton size-full" />
             )}
@@ -190,9 +227,26 @@ function NowPlaying() {
         <div className="mt-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-black">{track.name}</h1>
-            <p className="truncate text-muted-foreground">{track.artist.join("، ")}</p>
+            <div className="flex flex-wrap gap-x-2">
+              {track.artist.map((a) => (
+                <Link
+                  key={a}
+                  to="/artist/$name"
+                  params={{ name: a }}
+                  className="max-w-full truncate text-muted-foreground transition hover:text-primary"
+                >
+                  {a}
+                </Link>
+              ))}
+            </div>
             {track.album && (
-              <p className="mt-0.5 truncate text-xs text-muted-foreground/70">{track.album}</p>
+              <Link
+                to="/album/$name"
+                params={{ name: track.album }}
+                className="mt-0.5 block truncate text-xs text-muted-foreground/70 transition hover:text-primary"
+              >
+                {track.album}
+              </Link>
             )}
           </div>
           <button
@@ -282,24 +336,27 @@ function NowPlaying() {
             <Type className="size-4" /> {showLyrics ? "پنهان‌کردن متن" : "متن ترانه"}
           </button>
           <QualityMenu quality={quality} onChange={setQuality} />
-          <button
-            onClick={() => void downloadTrack(track, quality)}
+          <LoadingButton
+            variant="glass"
+            onAction={() => downloadTrack(track, quality)}
+            loadingText="در حال دانلود…"
+            successText="دانلود شد"
             disabled={downloaded}
-            className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm disabled:opacity-50"
           >
-            {isOffline || downloaded ? (
-              <WifiOff className="size-4" />
-            ) : (
-              <Download className="size-4" />
-            )}
+            {isOffline || downloaded ? <WifiOff /> : <Download />}
+            {/* `downloaded` is read back from storage, so the label has to say
+                "done" for a file saved in a previous session too — not only
+                inside LoadingButton's own success window. */}
             {downloaded ? "دانلود شد" : "دانلود"}
-          </button>
-          <button
-            onClick={share}
-            className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm"
+          </LoadingButton>
+          <LoadingButton
+            variant="glass"
+            onAction={share}
+            loadingText="در حال کپی…"
+            successText="کپی شد"
           >
-            <Share2 className="size-4" /> اشتراک
-          </button>
+            <Share2 /> اشتراک
+          </LoadingButton>
           <TrackMenu track={track}>
             <button className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm">
               <Plus className="size-4" /> بیشتر
@@ -310,10 +367,25 @@ function NowPlaying() {
 
         {showLyrics && (
           <div className="mt-6 flex-1">
+            {hasTranslation && (
+              <div className="mb-3 flex justify-center">
+                <button
+                  onClick={() => setShowTranslation((v) => !v)}
+                  aria-pressed={showTranslation}
+                  className={cn(
+                    "glass rounded-full px-3.5 py-1.5 text-xs transition",
+                    showTranslation ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {showTranslation ? "ترجمه روشن" : "ترجمه خاموش"}
+                </button>
+              </div>
+            )}
             <Lyrics
-              lines={lyrics.data?.lines ?? []}
+              lines={shown?.lines ?? []}
               current={currentTime}
-              loading={lyrics.isLoading}
+              loading={lyrics.isLoading || (needsFallback && fallback.isFetching)}
+              showSecondLine={showTranslation && hasTranslation}
             />
           </div>
         )}
@@ -353,10 +425,12 @@ function Lyrics({
   lines,
   current,
   loading,
+  showSecondLine = false,
 }: {
-  lines: { time: number; text: string }[];
+  lines: LyricLine[];
   current: number;
   loading: boolean;
+  showSecondLine?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const activeIdx = useMemo(() => {
@@ -388,17 +462,28 @@ function Lyrics({
       ref={containerRef}
       className="no-scrollbar max-h-80 space-y-3 overflow-y-auto pb-24 pt-8 text-center"
     >
+      {" "}
       {lines.map((l, i) => (
-        <p
-          key={`${i}-${l.time}`}
-          data-lrc={i}
-          className={cn(
-            "px-4 text-base leading-relaxed transition-all",
-            i === activeIdx ? "text-lg font-bold text-foreground" : "text-muted-foreground/60",
+        <div key={`${i}-${l.time}`} data-lrc={i} className="px-4 transition-all">
+          <p
+            className={cn(
+              "leading-relaxed",
+              i === activeIdx ? "text-lg font-bold text-foreground" : "text-muted-foreground/60",
+            )}
+          >
+            {l.text}
+          </p>
+          {showSecondLine && l.text2 && (
+            <p
+              className={cn(
+                "mt-0.5 text-sm leading-relaxed",
+                i === activeIdx ? "text-muted-foreground" : "text-muted-foreground/40",
+              )}
+            >
+              {l.text2}
+            </p>
           )}
-        >
-          {l.text}
-        </p>
+        </div>
       ))}
     </div>
   );

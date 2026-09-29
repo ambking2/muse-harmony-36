@@ -2,6 +2,7 @@ import type { LyricLine, MusicSource, Quality, StreamUrl, Track } from "./types"
 import { trackKey } from "./types";
 import { needsAlias, resolveLatinQuery } from "./aliases";
 import { dedupeTracks, queryVariants, rankTracks } from "./search";
+import { similarity, stripDecorations } from "./text";
 import { filterJunk } from "./quality";
 
 const BASE = "/api/gd/proxy"; // splat proxy — path segment is ignored
@@ -34,11 +35,15 @@ async function api<T>(params: Record<string, string | number | undefined>): Prom
   return p;
 }
 
-export const SOURCES: { id: MusicSource; label: string }[] = [
-  { id: "netease", label: "NetEase" },
-  { id: "kuwo", label: "Kuwo" },
-  { id: "joox", label: "JOOX" },
-];
+/**
+ * Providers actually queried. The upstream API advertises ten, but probing it
+ * shows only these two return usable data: one now answers "source is not
+ * supported", and another serves adult content that has nothing to do with the
+ * catalogue this app is for. The rest sit behind a request signature that the
+ * endpoint rejects. Anything added here gets queried on every search, so a
+ * dead provider costs latency for nothing.
+ */
+export const SOURCES: MusicSource[] = ["netease", "joox"];
 
 export const QUALITIES: { br: Quality; label: string }[] = [
   { br: 128, label: "128 kbps" },
@@ -81,29 +86,6 @@ function interleave(lists: Track[][]): Track[] {
 }
 
 /**
- * Search every provider in parallel and merge into one ranked list.
- * Results are scored against the query, Iranian/Persian-language releases are
- * boosted, and near-duplicate rows are collapsed.
- */
-export async function searchTracksAll(
-  name: string,
-  {
-    count = 20,
-    page = 1,
-    iranianFirst = true,
-  }: { count?: number; page?: number; iranianFirst?: boolean } = {},
-): Promise<Track[]> {
-  if (!name.trim()) return [];
-  const per = Math.max(8, Math.ceil((count * 1.5) / SOURCES.length) + 2);
-  const results = await Promise.all(SOURCES.map((s) => searchOne(name, s.id, per, page)));
-  const merged = filterJunk(interleave(results));
-  return rankTracks(merged, name, {
-    keepUnmatched: true,
-    iranianBoost: iranianFirst ? 2.5 : 0,
-  });
-}
-
-/**
  * The main search entry point.
  *
  * A Persian query is translated to the Latin form the providers actually index
@@ -127,7 +109,7 @@ export async function searchSmart(
 ): Promise<Track[]> {
   const query = raw.trim();
   if (!query) return [];
-  const pool = sources?.length ? sources : SOURCES.map((s) => s.id);
+  const pool = sources?.length ? sources : SOURCES;
 
   const run = async (term: string): Promise<Track[]> =>
     (await Promise.all(pool.map((id) => searchOne(term, id, Math.max(10, count), page)))).flat();
@@ -162,49 +144,70 @@ export async function searchSmart(
   });
 }
 
-/** A single provider, still ranked and de-duplicated. */
-export async function searchTracksIn(
-  name: string,
-  source: MusicSource,
-  {
-    count = 30,
-    page = 1,
-    iranianFirst = true,
-  }: {
-    count?: number;
-    page?: number;
-    iranianFirst?: boolean;
-  } = {},
-): Promise<Track[]> {
-  if (!name.trim()) return [];
-  const alias = needsAlias(name) ? resolveLatinQuery(name) : null;
-  const terms = alias ? [alias, name] : [name];
-  const batches = await Promise.all(terms.map((t) => searchOne(t, source, count, page)));
-  return rankTracks(filterJunk(batches.flat()), name, {
-    keepUnmatched: true,
-    iranianBoost: iranianFirst ? 2.5 : 0,
-  });
+/**
+ * A curated provider playlist. This is the one endpoint that hands back real,
+ * human-curated track lists instead of search noise, which is what the
+ * "featured" rails need.
+ */
+export interface ProviderPlaylist {
+  id: string;
+  name: string;
+  cover: string;
+  tracks: Track[];
 }
 
-/** Artists and albums present in a result set, for the "jump to" rails. */
-export function extractEntities(tracks: Track[]) {
-  const artists: string[] = [];
-  const albums: string[] = [];
-  const seenArtist = new Set<string>();
-  const seenAlbum = new Set<string>();
-  for (const t of tracks) {
-    for (const a of t.artist ?? []) {
-      if (a && !seenArtist.has(a)) {
-        seenArtist.add(a);
-        artists.push(a);
-      }
-    }
-    if (t.album && !seenAlbum.has(t.album)) {
-      seenAlbum.add(t.album);
-      albums.push(t.album);
-    }
+export async function getPlaylist(
+  source: MusicSource,
+  id: string,
+): Promise<ProviderPlaylist | null> {
+  if (!id) return null;
+  try {
+    const data = await api<{
+      playlist?: {
+        id: number | string;
+        name?: string;
+        coverImgUrl?: string;
+        tracks?: {
+          id: number | string;
+          name?: string;
+          dt?: number;
+          ar?: { id: number | string; name?: string }[];
+          al?: { id: number | string; name?: string; pic_str?: string; picUrl?: string };
+        }[];
+      };
+    }>({ types: "playlist", source, id });
+
+    const raw = data?.playlist;
+    if (!raw || !Array.isArray(raw.tracks)) return null;
+
+    const tracks: Track[] = raw.tracks.flatMap((t) => {
+      if (!t?.id) return [];
+      const ar = (t.ar ?? []).flatMap((a) => (a?.name ? [a.name] : []));
+      return [
+        {
+          id: String(t.id),
+          name: t.name ?? "",
+          artist: ar,
+          album: t.al?.name ?? "",
+          pic_id: t.al?.pic_str ?? t.al?.picUrl ?? "",
+          // Playlists carry the song id only; the url endpoint takes the same value.
+          url_id: String(t.id),
+          lyric_id: String(t.id),
+          source,
+        } satisfies Track,
+      ];
+    });
+
+    if (!tracks.length) return null;
+    return {
+      id: String(raw.id ?? id),
+      name: raw.name ?? "",
+      cover: raw.coverImgUrl ?? tracks[0].pic_id,
+      tracks,
+    };
+  } catch {
+    return null;
   }
-  return { artists, albums };
 }
 
 export async function getStreamUrl(
@@ -244,27 +247,145 @@ export async function getPicUrl(source: MusicSource, picId: string, size = 500):
   }
 }
 
-export async function getLyric(
-  source: MusicSource,
-  lyricId: string,
-): Promise<{ raw: string; lines: LyricLine[]; tRaw?: string }> {
-  if (!lyricId) return { raw: "", lines: [] };
+/**
+ * The one cache key for one piece of artwork.
+ *
+ * Call sites used to build this by hand and three different shapes ended up in
+ * the app — keyed by track id here, by pic id there — while all of them fetched
+ * the same `getPicUrl(source, pic_id, size)`. React Query can only dedupe within
+ * one key, so a track shown in a list and in the mini player resolved its cover
+ * twice. Deriving the key from the exact arguments of the fetch makes that
+ * impossible to get wrong again.
+ *
+ * The empty source/picId is the "no track loaded" case — the query is disabled
+ * then, but the key still has to be stable or React Query would treat every
+ * render as a new query.
+ */
+export function picKey(source: MusicSource | "", picId: string, size: number) {
+  return ["pic", source, picId, String(size)] as const;
+}
+
+export interface Lyrics {
+  lines: LyricLine[];
+  /** Romanised form, when the provider has one (mostly Mandarin catalogue). */
+  romanized: LyricLine[];
+  /** Translated form — shown as a second line under each lyric. */
+  translated: LyricLine[];
+}
+
+/**
+ * Pair up the translated/romanised timings with the main lyric lines, so the
+ * UI can render two lines per cue without re-parsing on every frame.
+ */
+function alignLines(base: LyricLine[], extra: LyricLine[]): LyricLine[] {
+  if (!base.length || !extra.length) return base;
+  const byTime = new Map<number, string>();
+  for (const l of extra) byTime.set(Math.round(l.time * 10), l.text);
+  return base.map((l) => ({
+    ...l,
+    ...(byTime.get(Math.round(l.time * 10)) ? { text2: byTime.get(Math.round(l.time * 10))! } : {}),
+  }));
+}
+
+/**
+ * The credit block every lyric sheet opens with — 作词/作曲, "Lyricist:", the
+ * Persian equivalents. They are real lines with real timestamps, so without
+ * this they render as the first two lines of the song.
+ */
+const CREDIT =
+  /^\s*(作词|作曲|编曲|制作|填词|词|曲|混音|录音|监制|统筹)\s*[:：]|^[\s\w]*(lyricist|lyrics by|composer|music by|written by|words by|arranged by|produced by|Recording|Mixing|Mastering)\s*[:：]|^\s*(ترانه\s*سرا|آهنگساز|ترجمه|تنظیم|ARR|تریدر)\s*[:：]/i;
+
+function isCredit(text: string): boolean {
+  return CREDIT.test(text);
+}
+
+/** A sheet that is nothing but credits is not a lyric sheet. */
+export function hasRealLyrics(lines: LyricLine[]): boolean {
+  return lines.filter((l) => !isCredit(l.text)).length >= 3;
+}
+
+/**
+ * Queries to try, widest first, when hunting for a lyric on another provider.
+ *
+ * Joox titles carry decorations NetEase does not use — "Baraye Azadi (feat.
+ * Shervin Hajipour)", "Potk (Official Video)" — and searching for the decorated
+ * form finds nothing even when the song is right there under its plain name.
+ * So the bracketed noise is stripped and the bare title is tried on its own.
+ */
+export function lyricLookupQueries(track: { name: string; artist?: string[] }): string[] {
+  const artist = track.artist?.[0]?.trim() ?? "";
+  const bare = stripDecorations(track.name);
+  const out = [track.name.trim(), `${artist} ${bare}`.trim(), bare].filter(Boolean);
+  return [...new Set(out)];
+}
+
+/** Do the two credit lists have anyone in common? Compared pairwise because the
+ *  providers order featured artists differently — Joox put "Káss" first on a
+ *  Shervin Hajipour track, NetEase put Hajipour first. */
+function artistsOverlap(a?: string[], b?: string[]): boolean {
+  if (!a?.length || !b?.length) return false;
+  return a.some((x) => b.some((y) => similarity(x, y) >= 0.8));
+}
+
+/**
+ * Whether a candidate from another provider is really the same song.
+ *
+ * This guard is what stops the fallback from lying. Measured against live
+ * results, NetEase's search is loose: asked for "Potk" it returns "Baraye",
+ * which does have a full lyric sheet, and two different songs can share a
+ * title across the two catalogues. Showing one song's words under another
+ * song's name is worse than showing none, so a candidate has to clear both the
+ * title and — when both sides credit an artist — the artist.
+ */
+export function isSameSong(
+  wanted: { name: string; artist?: string[] },
+  candidate: { name: string; artist?: string[] },
+): boolean {
+  const t = similarity(stripDecorations(wanted.name), stripDecorations(candidate.name));
+  if (t < 0.5) return false;
+
+  if (artistsOverlap(wanted.artist, candidate.artist)) return t >= 0.7;
+
+  // No shared artist to corroborate: only an essentially identical title and a
+  // near-identical credit list will do. Either side being anonymous is the one
+  // case where the title has to speak for itself.
+  const eitherUnknown = !wanted.artist?.length || !candidate.artist?.length;
+  return t >= 0.97 && (eitherUnknown || artistsOverlap(wanted.artist, candidate.artist));
+}
+
+export async function getLyric(source: MusicSource, lyricId: string): Promise<Lyrics> {
+  const empty: Lyrics = { lines: [], romanized: [], translated: [] };
+  if (!lyricId) return empty;
   try {
-    const data = await api<{ lyric?: string; tlyric?: string }>({
+    const data = await api<{ lyric?: string; tlyric?: string; romalrc?: string }>({
       types: "lyric",
       source,
       id: lyricId,
     });
-    return { raw: data.lyric ?? "", lines: parseLrc(data.lyric ?? ""), tRaw: data.tlyric };
+    // Credit lines are dropped from what the UI shows but kept in the count, so
+    // a sheet can still be recognised as "real" even when it is mostly credits.
+    const base = parseLrc(data.lyric ?? "").filter((l) => !isCredit(l.text));
+    const translated = parseLrc(data.tlyric ?? "").filter((l) => !isCredit(l.text));
+    const romanized = parseLrc(data.romalrc ?? "").filter((l) => !isCredit(l.text));
+    return {
+      lines: alignLines(base, translated),
+      romanized,
+      translated,
+    };
   } catch {
-    return { raw: "", lines: [] };
+    return empty;
   }
 }
 
 export function parseLrc(raw: string): LyricLine[] {
   if (!raw) return [];
   const out: LyricLine[] = [];
-  const re = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+  // Two timestamp shapes reach us. The common one is `[mm:ss.xx]`, but several
+  // providers emit a range — `[00:00.00-1]` — for the credit lines that open a
+  // lyric sheet. The old pattern required `]` straight after the fraction, so
+  // every line of those sheets failed to match and the whole song came back
+  // empty. The trailing `-<n>` is dropped and the start time is used.
+  const re = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?(?:-\d+)?\]/g;
   for (const line of raw.split(/\r?\n/)) {
     let m: RegExpExecArray | null;
     const times: number[] = [];

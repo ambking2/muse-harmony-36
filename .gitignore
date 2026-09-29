@@ -21,6 +21,13 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Locally installed agent skills — ~11MB of third-party reference data, and
+# installed twice over (.agents/ and agent/). Machine-local, not app source.
+.agents/
+agent/
+.claude/
+skills-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,12 +1,11 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource-variable/vazirmatn";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
-@import "@fontsource/inter/800.css";
+/* Latin + Arabic only. The default variable import also ships the cyrillic,
+   vietnamese, latin-ext and symbol slices. Vazirmatn already covers the Latin
+   text this UI shows (numbers and artist names), so the Inter fallback it used
+   to sit behind never actually rendered — it was 119KB of font for nothing. */
+@import "@fontsource-variable/vazirmatn/wght.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -32,8 +31,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans: "Vazirmatn Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  --font-sans: "Vazirmatn Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -50,6 +49,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -92,6 +92,9 @@
   --accent-a: 320 80% 65%;
   --destructive: oklch(0.68 0.22 25);
   --destructive-foreground: oklch(0.98 0.005 260);
+  /* Confirms a completed action (link copied, file saved). Deliberately far
+     from the primary magenta so the two states never read as the same thing. */
+  --success: oklch(0.72 0.17 155);
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.1);
   --ring: oklch(0.78 0.17 320 / 0.6);
@@ -113,6 +116,10 @@
 
   /* Set per-track from the artwork; drives the now-playing gradient. */
   --track-accent: oklch(0.78 0.17 320);
+  /* Height of the dock tray. The mini player anchors to this so the two
+     never overlap. Keep in sync with the tray's p-2 (8px) + button p-3
+     (12px) + 20px icon, plus the 8px page inset. */
+  --dock-inset: 68px;
 }
 
 .dark {
@@ -135,6 +142,27 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
+  }
+
+  /* The home page's sections are anchor targets. Without this the jump is
+     instant and the scroll-driven reveals fire before the eye has moved. */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Honour the OS setting for the CSS-driven motion too — framer-motion is
+     handled in JS, but the dock floats and the hero chevron bounces here. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* Persian text sits optically smaller than Latin at the same size. */

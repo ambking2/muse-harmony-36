@@ -1,8 +1,17 @@
+/// <reference types="bun" />
+// Scoped here rather than in tsconfig `types`, because pulling bun's whole type
+// surface into every file pushes `tsc -b` over the memory limit in CI.
 import { describe, expect, test } from "bun:test";
 import { normalizeFa, skeleton, similarity, stripDecorations, transliterateFa } from "./text";
-import { latinAliasFor, needsAlias, resolveLatinQuery } from "./aliases";
+import {
+  featuredIranianArtists,
+  latinAliasFor,
+  needsAlias,
+  resolveLatinQuery,
+  suggestAliases,
+} from "./aliases";
 import { isExplicit, isJunk, filterJunk } from "./quality";
-import { rankTracks, scoreTrack, queryVariants, dedupeTracks } from "./search";
+import { rankTracks, scoreTrack, queryVariants, dedupeTracks, matchesEntity } from "./search";
 import type { Track } from "./types";
 
 const track = (p: Partial<Track> & { name: string; artist: string[] }): Track =>
@@ -111,6 +120,30 @@ describe("aliases", () => {
     expect(needsAlias("eminem")).toBe(false);
     expect(needsAlias("محسن")).toBe(true);
   });
+
+  test("suggests artists for a partial Persian query", () => {
+    const s = suggestAliases("محسن");
+    expect(s.length).toBeGreaterThan(0);
+    expect(s.some((x) => x.latin === "Mohsen Yeganeh")).toBe(true);
+    // Every suggestion carries both a Persian label and a usable Latin term.
+    for (const x of s) {
+      expect(x.fa.length).toBeGreaterThan(0);
+      expect(x.latin).toMatch(/[a-z]/i);
+    }
+  });
+
+  test("does not suggest for very short or Latin input", () => {
+    expect(suggestAliases("م")).toEqual([]);
+    expect(suggestAliases("eminem")).toEqual([]);
+  });
+
+  test("featured artists are all resolvable", () => {
+    const list = featuredIranianArtists(12);
+    expect(list.length).toBeGreaterThan(0);
+    for (const a of list) expect(latinAliasFor(a.fa)).toBeTruthy();
+    // No duplicates by Latin term.
+    expect(new Set(list.map((a) => a.latin)).size).toBe(list.length);
+  });
 });
 
 describe("queryVariants", () => {
@@ -153,6 +186,31 @@ describe("quality filter", () => {
 
   test("filterJunk preserves the real rows", () => {
     expect(filterJunk([real, aiSpam, seoSpam, streetCover])).toEqual([real]);
+  });
+});
+
+describe("matchesEntity", () => {
+  test("matches a Persian name against its romanised credit", () => {
+    // The regression: an artist page reached with a Persian name used to show
+    // "no tracks found" because romanised credits never contained the string.
+    expect(matchesEntity("Mohsen Yeganeh", "محسن یگانه")).toBe(true);
+    expect(matchesEntity("Googoosh", "گوگوش")).toBe(true);
+    expect(matchesEntity("Amir Tataloo", "امیر تتلو")).toBe(true);
+  });
+
+  test("matches a romanised query against a Persian credit", () => {
+    expect(matchesEntity("سیاوش قمیشی", "Siavash Ghomayshi")).toBe(true);
+  });
+
+  test("still matches plain same-script names", () => {
+    expect(matchesEntity("Eminem", "eminem")).toBe(true);
+    expect(matchesEntity("Mohsen Yeganeh feat. X", "Mohsen Yeganeh")).toBe(true);
+  });
+
+  test("does not match unrelated names", () => {
+    expect(matchesEntity("Eminem", "محسن یگانه")).toBe(false);
+    expect(matchesEntity("Googoosh", "Dariush")).toBe(false);
+    expect(matchesEntity("", "گوگوش")).toBe(false);
   });
 });
 
@@ -204,5 +262,29 @@ describe("scoreTrack and rankTracks", () => {
     const dup = track({ name: "Yalan", artist: ["Mohsen Yeganeh"], id: "a" });
     const fuzzy = track({ name: "Yalan", artist: ["Mohsen Yeganeh"], id: "z" });
     expect(dedupeTracks([dup, dup, fuzzy])).toHaveLength(1);
+  });
+
+  // "ابی" skeletons to two letters, which used to fall under the length guard
+  // and lose the alias bonus — leaving a JOOX upload that merely contains the
+  // word "ابی" (Persian for "blue") at the top of the results.
+  test("a short aliased name still outranks a title that merely contains it", () => {
+    const real = track({ name: "Delpoosh", artist: ["Ebi"], id: "1" });
+    const spam = track({
+      name: "آهنگ مست محلی | با پیراهن ابی و چشمان خماری",
+      artist: ["Afg Star"],
+      id: "2",
+      source: "joox",
+    });
+    const ranked = rankTracks([spam, real], "ابی", { keepUnmatched: true });
+    expect(ranked[0].artist[0]).toBe("Ebi");
+  });
+
+  test("a foreign-script title cannot outrank a Latin one for a Persian query", () => {
+    // Both are by an artist called "Ebi"; only the Latin-script row is the
+    // Iranian singer the user is asking for.
+    const latin = track({ name: "Atreh Toh", artist: ["Ebi"], id: "1" });
+    const japanese = track({ name: "夕立空", artist: ["Ebi"], id: "2" });
+    const ranked = rankTracks([japanese, latin], "ابی", { keepUnmatched: true });
+    expect(ranked[0].id).toBe("1");
   });
 });

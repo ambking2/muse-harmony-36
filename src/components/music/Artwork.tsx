@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPicUrl } from "@/lib/gdmusic";
+import { getPicUrl, picKey } from "@/lib/gdmusic";
 import type { Track } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export function Artwork({
   rounded?: string;
 }) {
   const q = useQuery({
-    queryKey: ["pic", track?.source, track?.pic_id, String(size)],
+    queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", size),
     enabled: !!track?.pic_id,
     staleTime: 30 * 60_000,
     queryFn: () => getPicUrl(track!.source, track!.pic_id, size),
@@ -33,6 +33,7 @@ export function Artwork({
           src={q.data}
           alt={track?.name ?? ""}
           loading="lazy"
+          decoding="async"
           className="size-full object-cover"
           referrerPolicy="no-referrer"
         />

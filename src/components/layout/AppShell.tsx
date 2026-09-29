@@ -1,21 +1,23 @@
-import type { ReactNode } from "react";
-import { useEffect } from "react";
+import type { ComponentType, LazyExoticComponent, ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, Search, Command as CommandIcon, Download, ListMusic } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { BottomNav } from "./BottomNav";
-import { MiniPlayer } from "../player/MiniPlayer";
-import { QueueSheet } from "../player/QueueSheet";
-import { CommandPalette } from "../CommandPalette";
+import { ChevronLeft } from "lucide-react";
+import { DockNav } from "./Dock";
 import { Toaster } from "@/components/ui/sonner";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
 import { useArtworkAccent } from "@/hooks/use-artwork-accent";
-import { useLibrary } from "@/stores/library";
-import { usePlayer } from "@/stores/player";
 import { paletteRegistry, queueRegistry } from "@/lib/ui-control";
+import type { OpenerRegistry } from "@/lib/ui-control";
 import { cn } from "@/lib/utils";
 
-/** Pages that own their own large title — the shell skips its header for them. */
+const QueueSheet = lazy(() =>
+  import("../player/QueueSheet").then((m) => ({ default: m.QueueSheet })),
+);
+const CommandPalette = lazy(() =>
+  import("../CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+
+/** Pages that own their own large title — the shell skips its page chrome for them. */
 const STANDALONE = new Set(["/now-playing"]);
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -25,8 +27,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isStandalone = STANDALONE.has(pathname);
-  const downloads = useLibrary((s) => s.downloads);
-  const queue = usePlayer((s) => s.queue);
 
   // Move the page to the top on navigation (single-page app behaviour).
   useEffect(() => {
@@ -34,97 +34,63 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="ambient relative min-h-screen text-foreground">
-      {!isStandalone && <TopBar downloadCount={downloads.length} queueCount={queue.length} />}
+    // `overflow-x-clip` stops any single wide child (a long title, a bleeded
+    // rail) from turning into a page-wide horizontal scrollbar, while rails
+    // that really do scroll keep their own `overflow-x-auto`.
+    <div className="ambient relative min-h-screen overflow-x-clip text-foreground">
+      <DeferredOverlay registry={paletteRegistry} load={COMMAND_PALETTE_CHUNK}>
+        <CommandPalette />
+      </DeferredOverlay>
+      <DeferredOverlay registry={queueRegistry} load={QUEUE_SHEET_CHUNK}>
+        <QueueSheet />
+      </DeferredOverlay>
 
-      <CommandPalette />
-      <QueueSheet />
+      <main className={cn("mx-auto max-w-6xl px-4 pb-44 pt-6 sm:px-6", isStandalone && "pb-40")}>
+        {children}
+      </main>
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.main
-          key={pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className={cn(
-            "mx-auto max-w-6xl px-4 pb-56 pt-4 sm:px-6 md:pb-40",
-            isStandalone && "pb-40",
-          )}
-        >
-          {children}
-        </motion.main>
-      </AnimatePresence>
-
-      <MiniPlayer />
-      <BottomNav />
+      <DockNav />
       <Toaster position="top-center" theme="dark" richColors closeButton />
     </div>
   );
 }
 
-function TopBar({ downloadCount, queueCount }: { downloadCount: number; queueCount: number }) {
-  return (
-    <header className="sticky top-0 z-30">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-lg font-black tracking-tight"
-          aria-label="muis"
-        >
-          <span
-            className="grid size-8 place-items-center rounded-xl text-sm text-white shadow-lg"
-            style={{ background: "var(--track-accent)" }}
-          >
-            ♪
-          </span>
-          <span className="hidden sm:inline">muis</span>
-        </Link>
+/**
+ * The command palette and the queue sheet are large — between them they drag in
+ * the dialog, drawer and animation libraries — and neither shows anything until
+ * the user asks for it. So their chunks are fetched during idle time rather
+ * than on the critical path, while the opener registers immediately so a click
+ * or a shortcut never lands on a dead button.
+ */
+function DeferredOverlay({
+  registry,
+  load,
+  children,
+}: {
+  registry: OpenerRegistry;
+  load: () => Promise<unknown>;
+  children: ReactNode;
+}) {
+  const [ready, setReady] = useState(false);
 
-        <div className="flex-1" />
+  useEffect(() => registry.register({ open: () => setReady(true) }), [registry]);
 
-        <button
-          onClick={() => paletteRegistry.openAll()}
-          className="glass flex h-10 items-center gap-2 rounded-full px-3 text-sm text-muted-foreground transition hover:text-foreground sm:w-64"
-          aria-label="جستجو"
-        >
-          <Search className="size-4" />
-          <span className="hidden flex-1 text-right sm:inline">جستجوی آهنگ، خواننده…</span>
-          <kbd className="glass hidden items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] sm:flex">
-            <CommandIcon className="size-2.5" />K
-          </kbd>
-        </button>
+  useEffect(() => {
+    const idle =
+      "requestIdleCallback" in window
+        ? requestIdleCallback(() => void load())
+        : setTimeout(() => void load(), 2000);
+    return () => {
+      if (typeof idle === "number") window.clearTimeout(idle);
+    };
+  }, [load]);
 
-        <Link
-          to="/downloads"
-          className="glass relative hidden size-10 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground sm:flex"
-          aria-label="دانلودها"
-        >
-          <Download className="size-4" />
-          {downloadCount > 0 && <Badge>{downloadCount}</Badge>}
-        </Link>
-
-        <button
-          onClick={() => queueRegistry.openAll()}
-          className="glass relative flex size-10 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
-          aria-label="صف پخش"
-        >
-          <ListMusic className="size-4" />
-          {queueCount > 0 && <Badge>{queueCount}</Badge>}
-        </button>
-      </div>
-      <div className="h-px bg-gradient-to-l from-transparent via-white/10 to-transparent" />
-    </header>
-  );
+  if (!ready) return null;
+  return <Suspense fallback={null}>{children}</Suspense>;
 }
 
-function Badge({ children }: { children: ReactNode }) {
-  return (
-    <span className="absolute -top-0.5 -left-0.5 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
-      {children}
-    </span>
-  );
-}
+const COMMAND_PALETTE_CHUNK = () => import("../CommandPalette");
+const QUEUE_SHEET_CHUNK = () => import("../player/QueueSheet");
 
 /** Section header used across the app's library-style pages. */
 export function PageHeader({
@@ -152,13 +118,13 @@ export function PageHeader({
 }
 
 /** Back link for the deep pages (artist/album/playlist). */
-export function BackLink() {
+export function BackLink({ to = "/explore" }: { to?: string }) {
   return (
     <Link
-      to="/explore"
+      to={to}
       className="glass mb-4 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground"
     >
-      <ChevronRight className="size-4 rotate-180" />
+      <ChevronLeft className="size-4" />
       بازگشت
     </Link>
   );

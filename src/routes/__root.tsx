@@ -10,6 +10,13 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+// Imported through Vite so the content hash lands in the URL. Preloading the
+// Arabic slice matters more than it looks: it is the face every word on screen
+// uses, and without a preload the browser only discovers it after it has
+// parsed the stylesheet and matched the glyphs — a full round trip of blank
+// text on a cold cache. The Latin slice is left to load on its own; it is
+// rarely needed and would only compete for bandwidth.
+import vazirmatnArabic from "@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AudioEngine } from "@/hooks/use-audio-engine";
 import { useLibrary } from "@/stores/library";
@@ -97,6 +104,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "preload",
+        as: "font",
+        type: "font/woff2",
+        href: vazirmatnArabic,
+        crossOrigin: "anonymous",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "manifest", href: "/manifest.webmanifest" },

@@ -6,6 +6,16 @@ async function proxy(request: Request) {
   const url = new URL(request.url);
   const target = `${UPSTREAM}${url.search}`;
   const type = url.searchParams.get("types") ?? "";
+
+  // Artwork is fetched in two steps — resolve the CDN URL, then download the
+  // image — and every cover in a list pays for both. A (source, pic id, size)
+  // always resolves to the same picture, so those lookups can be cached hard;
+  // everything else is live data and keeps a short TTL.
+  const isPic = type === "pic";
+  const cacheControl = isPic
+    ? "public, max-age=31536000, immutable"
+    : "public, max-age=60, s-maxage=60";
+
   try {
     const res = await fetch(target, {
       headers: { "user-agent": "Mozilla/5.0 muis-lovable/1.0" },
@@ -18,6 +28,8 @@ async function proxy(request: Request) {
         status: 200,
         headers: {
           "content-type": "application/json",
+          // An upstream failure is not a stable answer, so don't let it stick
+          // for a year the way a real artwork URL does.
           "cache-control": "public, max-age=30",
           "access-control-allow-origin": "*",
         },
@@ -28,7 +40,7 @@ async function proxy(request: Request) {
       status: 200,
       headers: {
         "content-type": res.headers.get("content-type") ?? "application/json",
-        "cache-control": "public, max-age=60, s-maxage=60",
+        "cache-control": cacheControl,
         "access-control-allow-origin": "*",
       },
     });

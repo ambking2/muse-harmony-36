@@ -3,6 +3,7 @@ import { trackKey } from "./types";
 import { latinAliasFor, needsAlias, resolveLatinQuery } from "./aliases";
 import { sourceTrust } from "./quality";
 import {
+  hasForeignScript,
   hasPersianScript,
   normalizeEn,
   normalizeFa,
@@ -149,14 +150,18 @@ export function scoreTrack(t: Track, rawQuery: string): number {
     score += 5 * skeletonMatch(qSkeleton, nameEn);
     score += 3 * skeletonMatch(qSkeleton, artistEn);
     if (album) score += 1 * skeletonMatch(qSkeleton, normalizeEn(t.album ?? ""));
-    // A curated alias is an exact, trusted mapping — reward it strongly.
-    const alias = latinAliasFor(rawQuery);
-    if (alias) {
-      const aliasEn = normalizeEn(alias);
-      const artistNorm = normalizeEn(artistText);
-      if (artistNorm === aliasEn) score += 8;
-      else if (aliasEn && artistNorm.includes(aliasEn)) score += 6;
-    }
+  }
+
+  // A curated alias is an exact, trusted mapping — the strongest signal we
+  // have, so it is applied on its own terms. It deliberately does not share the
+  // skeleton guard above: short stage names like "ابی" skeleton to two letters
+  // and would otherwise lose their best chance of ranking the right artist.
+  const alias = queryIsPersian ? latinAliasFor(rawQuery) : null;
+  if (alias) {
+    const aliasEn = normalizeEn(alias);
+    const artistNorm = normalizeEn(artistText);
+    if (artistNorm === aliasEn) score += 8;
+    else if (aliasEn && artistNorm.includes(aliasEn)) score += 6;
   }
 
   // Multi-word queries: reward rows that contain every token somewhere.
@@ -170,6 +175,11 @@ export function scoreTrack(t: Track, rawQuery: string): number {
 
   // Prefer primary artist (first in the array) over featured ones.
   if (artists[0] && fieldMatch(artists[0], q) > 0) score += 0.75;
+
+  // A Persian query is looking for Persian-language work. A title in CJK,
+  // Cyrillic, Thai or Devanagari can be an exact artist-name match and still be
+  // the wrong continent, so it gets pushed below the Latin-script candidates.
+  if (queryIsPersian && hasForeignScript(t.name)) score -= 4;
 
   // Shorter titles are usually the canonical song, not a remix/extended mix.
   const tokensInName = titleTokens(t.name).length;
@@ -194,6 +204,45 @@ function skeletonMatch(qSkeleton: string, latin: string): number {
     if (best >= 0.99) break;
   }
   return best >= 0.7 ? best : 0;
+}
+
+/**
+ * Does a catalogue name refer to the entity the user asked for?
+ *
+ * Comparing normalised strings alone fails the moment the two sides are in
+ * different scripts: a Persian artist page holds "محسن یگانه" while every row
+ * credits "Mohsen Yeganeh", so a plain `includes` returned nothing and the
+ * page claimed the artist had no tracks. This checks three ways, cheapest
+ * first: the curated alias, an exact/contained normalised match, and finally
+ * the cross-script consonant skeleton.
+ */
+export function matchesEntity(candidate: string, query: string): boolean {
+  if (!candidate || !query) return false;
+  const cand = normalizeFa(candidate);
+  const q = normalizeFa(query);
+  if (!cand || !q) return false;
+
+  if (cand === q || cand.includes(q) || q.includes(cand)) return true;
+
+  // A curated alias names the exact Latin string the providers index.
+  const alias = latinAliasFor(query);
+  if (alias) {
+    const a = normalizeEn(alias);
+    const c = normalizeEn(candidate);
+    if (a && c && (c === a || c.includes(a) || a.includes(c))) return true;
+  }
+
+  // Cross-script: compare skeletons, and also check each word so a credited
+  // "Mohsen Yeganeh feat. X" still matches the artist "Mohsen Yeganeh".
+  const qs = skeleton(query);
+  if (qs.length >= 3) {
+    for (const word of cand.split(/\s+/)) {
+      if (word.length < 3) continue;
+      if (similarity(qs, skeleton(word)) >= 0.8) return true;
+    }
+    if (similarity(qs, skeleton(candidate)) >= 0.75) return true;
+  }
+  return false;
 }
 
 /** Deduplicate by source:id, then by a normalised "name|artist" key. */

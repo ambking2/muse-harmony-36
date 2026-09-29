@@ -77,9 +77,25 @@ const WHITESPACE_RE = /\s+/g;
 
 const PERSIAN_RANGE = /[؀-ۿݐ-ݿ]/;
 
+/** CJK, kana, hangul, cyrillic, thai — scripts this app never wants to surface. */
+const FOREIGN_SCRIPT_RANGE = /[぀-ヿ㐀-鿿가-힯Ѐ-ӿ฀-๿]/;
+
 /** True when the string contains at least one Arabic/Persian-script letter. */
 export function hasPersianScript(s: string): boolean {
   return PERSIAN_RANGE.test(s);
+}
+
+/**
+ * True when the title is written in a script that cannot be an Iranian release.
+ *
+ * Providers index Iranian music under Latin names, so a Latin-script row is
+ * always a better guess for a Persian query than a Japanese or Korean one — and
+ * short Latin stage names collide badly (searching "Ebi" surfaces a Japanese
+ * artist ahead of the Iranian singer). This is a ranking signal, not a filter:
+ * the row stays reachable for someone who actually wants that music.
+ */
+export function hasForeignScript(s: string): boolean {
+  return FOREIGN_SCRIPT_RANGE.test(s);
 }
 
 /**

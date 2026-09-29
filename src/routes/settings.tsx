@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageHeader } from "@/components/layout/AppShell";
-import { QUALITIES, SOURCES } from "@/lib/gdmusic";
+import { QUALITIES } from "@/lib/gdmusic";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
 import type { Quality } from "@/lib/types";
@@ -127,14 +127,10 @@ function SettingsPage() {
           </p>
         </Card>
 
-        <Card title="منابع داده">
+        <Card title="جستجو و داده">
           <p className="text-sm text-muted-foreground">
-            داده‌های موسیقی از {SOURCES.map((s) => s.label).join("، ")} و از طریق یک پروکسی سمت سرور
-            دریافت می‌شود.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            جستجو به‌صورت خودکار حروف عربی/فارسی را یکسان‌سازی می‌کند و در صورت کم‌بودن نتایج، شکل
-            لاتین عبارت را هم امتحان می‌کند.
+            جستجو حروف عربی/فارسی را یکسان‌سازی می‌کند، نام‌های فارسی را به شکل لاتین نگاشت می‌کند و
+            آثار ایرانی را بالاتر می‌آورد. همه‌ی درخواست‌ها از یک پروکسی سمت سرور عبور می‌کنند.
           </p>
         </Card>
 

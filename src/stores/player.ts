@@ -23,6 +23,7 @@ interface PlayerState {
   playTrack: (t: Track, list?: Track[]) => void;
   playQueue: (list: Track[], startIndex?: number) => void;
   addToQueue: (t: Track) => void;
+  addTracks: (list: Track[]) => void;
   playNext: (t: Track) => void;
   removeFromQueue: (index: number) => void;
   moveInQueue: (from: number, to: number) => void;
@@ -98,6 +99,11 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     }),
   addToQueue: (t) =>
     set((s) => ({ queue: [...s.queue, t], originalQueue: [...s.originalQueue, t] })),
+  addTracks: (list) =>
+    set((s) => ({
+      queue: [...s.queue, ...list],
+      originalQueue: [...s.originalQueue, ...list],
+    })),
   playNext: (t) =>
     set((s) => {
       const q = [...s.queue];

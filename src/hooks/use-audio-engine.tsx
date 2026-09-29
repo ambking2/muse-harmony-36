@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
-import { getPicUrl, getStreamUrl } from "@/lib/gdmusic";
+import { getPicUrl, getStreamUrl, picKey } from "@/lib/gdmusic";
 import { trackKey } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -33,8 +33,8 @@ export function AudioEngine() {
   });
 
   const picQ = useQuery({
-    queryKey: ["pic", trackId, "500"],
-    enabled: !!track && !track!.picUrl,
+    queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 500),
+    enabled: !!track && !track.picUrl,
     staleTime: 30 * 60_000,
     queryFn: () => getPicUrl(track!.source, track!.pic_id, 500),
   });

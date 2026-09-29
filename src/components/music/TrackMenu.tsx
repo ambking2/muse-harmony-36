@@ -27,6 +27,7 @@ import {
   Check,
 } from "lucide-react";
 import { downloadTrack } from "@/lib/download";
+import { shareTrack } from "@/lib/share-link";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { QUALITIES } from "@/lib/gdmusic";
@@ -50,20 +51,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
   const isFav = favorites.includes(k);
 
   const share = async () => {
-    // Deep-link straight into the explore page with the query pre-filled.
-    const url = `${window.location.origin}/explore?q=${encodeURIComponent(
-      `${track.name} ${track.artist[0] ?? ""}`,
-    )}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: track.name, text: track.artist.join("، "), url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success("لینک کپی شد");
-      }
-    } catch {
-      // User dismissed the share sheet.
-    }
+    if (await shareTrack(track)) toast.success("لینک کپی شد");
   };
 
   return (
@@ -180,7 +168,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
         )}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={share}>
+        <DropdownMenuItem onSelect={() => void share()}>
           <Share2 className="ml-2 size-4" /> اشتراک‌گذاری
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -1,3 +1,8 @@
+/**
+ * `kuwo` is kept in the type because tracks already saved on a user's device
+ * carry it, and the store has to be able to read them back. It is no longer
+ * queried — see SOURCES in lib/gdmusic.
+ */
 export type MusicSource = "netease" | "kuwo" | "joox";
 export type Quality = 128 | 320 | 999;
 
@@ -25,6 +30,8 @@ export interface StreamUrl {
 export interface LyricLine {
   time: number;
   text: string;
+  /** Second line shown under `text` — a translation or romanisation. */
+  text2?: string;
 }
 
 export interface DownloadItem {

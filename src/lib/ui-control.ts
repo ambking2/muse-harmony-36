@@ -26,3 +26,5 @@ function createRegistry() {
 
 export const paletteRegistry = createRegistry();
 export const queueRegistry = createRegistry();
+
+export type OpenerRegistry = ReturnType<typeof createRegistry>;

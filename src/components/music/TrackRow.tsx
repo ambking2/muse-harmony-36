@@ -4,15 +4,9 @@ import { trackKey } from "@/lib/types";
 import { Artwork } from "./Artwork";
 import { usePlayer } from "@/stores/player";
 import { cn } from "@/lib/utils";
-import { TrackMenu } from "./TrackMenu";
+import { TrackMenuLazy } from "./TrackMenuLazy";
 import { Equalizer } from "../player/QueueSheet";
 import { useLibrary } from "@/stores/library";
-
-const SOURCE_LABEL: Record<Track["source"], string> = {
-  netease: "نت‌ایس",
-  kuwo: "کوئو",
-  joox: "جواکس",
-};
 
 export function TrackRow({
   track,
@@ -20,14 +14,12 @@ export function TrackRow({
   index,
   showIndex = false,
   compact = false,
-  showSource = false,
 }: {
   track: Track;
   list?: Track[];
   index?: number;
   showIndex?: boolean;
   compact?: boolean;
-  showSource?: boolean;
 }) {
   const current = usePlayer((s) => s.queue[s.index]);
   const isPlaying = usePlayer((s) => s.isPlaying);
@@ -100,12 +92,6 @@ export function TrackRow({
         </div>
         <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
           <span className="truncate">{track.artist.join("، ")}</span>
-          {showSource && (
-            <>
-              <span aria-hidden>·</span>
-              <span className="shrink-0 opacity-70">{SOURCE_LABEL[track.source]}</span>
-            </>
-          )}
           {track.album && (
             <>
               <span aria-hidden>·</span>
@@ -115,7 +101,7 @@ export function TrackRow({
         </div>
       </button>
 
-      <TrackMenu track={track}>
+      <TrackMenuLazy track={track}>
         <button
           type="button"
           className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/10 hover:text-foreground md:opacity-0 md:group-hover:opacity-100"
@@ -123,7 +109,7 @@ export function TrackRow({
         >
           <MoreHorizontal className="size-5" />
         </button>
-      </TrackMenu>
+      </TrackMenuLazy>
     </div>
   );
 }

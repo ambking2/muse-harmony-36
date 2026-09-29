@@ -17,7 +17,9 @@ import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DownloadsRouteImport } from './routes/downloads'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TKeyRouteImport } from './routes/t.$key'
 import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
+import { Route as MixIdRouteImport } from './routes/mix.$id'
 import { Route as ArtistNameRouteImport } from './routes/artist.$name'
 import { Route as AlbumNameRouteImport } from './routes/album.$name'
 import { Route as ApiGdSplatRouteImport } from './routes/api/gd.$'
@@ -62,9 +64,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TKeyRoute = TKeyRouteImport.update({
+  id: '/t/$key',
+  path: '/t/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaylistIdRoute = PlaylistIdRouteImport.update({
   id: '/playlist/$id',
   path: '/playlist/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MixIdRoute = MixIdRouteImport.update({
+  id: '/mix/$id',
+  path: '/mix/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArtistNameRoute = ArtistNameRouteImport.update({
@@ -94,7 +106,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
   '/artist/$name': typeof ArtistNameRoute
+  '/mix/$id': typeof MixIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
+  '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRoutesByTo {
@@ -108,7 +122,9 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
   '/artist/$name': typeof ArtistNameRoute
+  '/mix/$id': typeof MixIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
+  '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRoutesById {
@@ -123,7 +139,9 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/album/$name': typeof AlbumNameRoute
   '/artist/$name': typeof ArtistNameRoute
+  '/mix/$id': typeof MixIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
+  '/t/$key': typeof TKeyRoute
   '/api/gd/$': typeof ApiGdSplatRoute
 }
 export interface FileRouteTypes {
@@ -139,7 +157,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/album/$name'
     | '/artist/$name'
+    | '/mix/$id'
     | '/playlist/$id'
+    | '/t/$key'
     | '/api/gd/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,7 +173,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/album/$name'
     | '/artist/$name'
+    | '/mix/$id'
     | '/playlist/$id'
+    | '/t/$key'
     | '/api/gd/$'
   id:
     | '__root__'
@@ -167,7 +189,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/album/$name'
     | '/artist/$name'
+    | '/mix/$id'
     | '/playlist/$id'
+    | '/t/$key'
     | '/api/gd/$'
   fileRoutesById: FileRoutesById
 }
@@ -182,7 +206,9 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   AlbumNameRoute: typeof AlbumNameRoute
   ArtistNameRoute: typeof ArtistNameRoute
+  MixIdRoute: typeof MixIdRoute
   PlaylistIdRoute: typeof PlaylistIdRoute
+  TKeyRoute: typeof TKeyRoute
   ApiGdSplatRoute: typeof ApiGdSplatRoute
 }
 
@@ -244,11 +270,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/t/$key': {
+      id: '/t/$key'
+      path: '/t/$key'
+      fullPath: '/t/$key'
+      preLoaderRoute: typeof TKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/playlist/$id': {
       id: '/playlist/$id'
       path: '/playlist/$id'
       fullPath: '/playlist/$id'
       preLoaderRoute: typeof PlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mix/$id': {
+      id: '/mix/$id'
+      path: '/mix/$id'
+      fullPath: '/mix/$id'
+      preLoaderRoute: typeof MixIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/artist/$name': {
@@ -286,7 +326,9 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   AlbumNameRoute: AlbumNameRoute,
   ArtistNameRoute: ArtistNameRoute,
+  MixIdRoute: MixIdRoute,
   PlaylistIdRoute: PlaylistIdRoute,
+  TKeyRoute: TKeyRoute,
   ApiGdSplatRoute: ApiGdSplatRoute,
 }
 export const routeTree = rootRouteImport

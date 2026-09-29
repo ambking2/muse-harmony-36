@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { AppShell, PageHeader } from "@/components/layout/AppShell";
 import { searchSmart } from "@/lib/gdmusic";
-import { normalizeFa } from "@/lib/text";
+import { matchesEntity } from "@/lib/search";
 import { TrackRow } from "@/components/music/TrackRow";
 import { Artwork } from "@/components/music/Artwork";
 import { trackKey } from "@/lib/types";
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/album/$name")({ component: AlbumPage });
 function AlbumPage() {
   const { name } = Route.useParams();
   const decoded = decodeURIComponent(name);
-  const needle = normalizeFa(decoded);
   const playQueue = usePlayer((s) => s.playQueue);
   const toggleShuffle = usePlayer((s) => s.toggleShuffle);
 
@@ -39,11 +38,12 @@ function AlbumPage() {
       const k = trackKey(t);
       if (seen.has(k)) continue;
       seen.add(k);
-      if (normalizeFa(t.album ?? "").includes(needle)) exact.push(t);
+      // Cross-script: a Persian album title has to match a romanised one.
+      if (matchesEntity(t.album ?? "", decoded)) exact.push(t);
       else fuzzy.push(t);
     }
     return { exact, fuzzy };
-  }, [query.data, needle]);
+  }, [query.data, decoded]);
 
   const tracks = exact.length ? exact : fuzzy;
   const hero = tracks[0];
@@ -126,7 +126,7 @@ function AlbumPage() {
         {tracks.length > 0 && (
           <div className="space-y-1">
             {tracks.map((t, i) => (
-              <TrackRow key={trackKey(t)} track={t} list={tracks} index={i} showIndex showSource />
+              <TrackRow key={trackKey(t)} track={t} list={tracks} index={i} showIndex />
             ))}
           </div>
         )}
