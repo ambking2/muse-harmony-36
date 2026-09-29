@@ -9,7 +9,7 @@ export type MusicSource = "netease" | "kuwo" | "joox";
  * Where the account database is being kept. "memory" means the server holds it
  * in RAM: everything works, and none of it survives a restart.
  */
-export type StorageMode = "kv" | "file" | "memory";
+export type StorageMode = "d1" | "kv" | "file" | "memory";
 export type Quality = 128 | 320 | 999;
 
 export interface Track {

@@ -1,4 +1,5 @@
 import type { StorageMode } from "../types";
+import type { D1Database } from "./d1";
 import type { KVNamespace } from "./kv";
 import type { Store } from "./store";
 
@@ -7,16 +8,17 @@ import type { StoredPlaylist, UserRecord } from "./types";
 /**
  * The account database: one JSON object, kept somewhere that lasts.
  *
- * Three places, tried in order, and the app behaves identically on all three:
+ * Four places, tried in order, and the app behaves identically on all four:
  *
- *   - a KV binding, if the host provides one — the only way an account survives
+ *   - a D1 binding, if the host provides one — the only way an account survives
  *     a restart on a Cloudflare Worker
+ *   - a KV binding, for a worker set up before D1
  *   - `.data/muis.json` on disk, which is what development and the preview get
  *   - memory, when there is nowhere to write — a Worker with no binding
  *
  * Memory is a working store, not an error. Signing up always works; what
  * changes is whether the account is still there after a restart, and
- * `storageMode()` reports which of the three is in play so the interface can say
+ * `storageMode()` reports which of the four is in play so the interface can say
  * so rather than leave it to be discovered.
  *
  * Every backend is reached through a dynamic `import()`. Beyond keeping server
@@ -31,6 +33,12 @@ function binding<T>(name: string): T | undefined {
 let handle: Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> | null = null;
 
 async function build(): Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> {
+  const d1 = binding<D1Database>("MUIS_DB");
+  if (d1) {
+    const { documentStore } = await import("./document");
+    const { openBackend } = await import("./d1");
+    return { store: documentStore(openBackend(d1)), mode: "d1" };
+  }
   const kv = binding<KVNamespace>("MUIS");
   if (kv) {
     const { documentStore } = await import("./document");

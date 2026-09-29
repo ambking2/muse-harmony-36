@@ -4,25 +4,26 @@
 // writes to .output/server/, so this is the one place a service is attached to
 // the worker. Nothing in it is needed to run the app locally.
 //
-// The worker has no writable disk, so it has no way to keep an account alive
-// across a restart without a binding of some kind. This one is a Workers KV
-// namespace: a key/value store inside the same Cloudflare account as the
-// worker, created with the same CLI. No second vendor, no key, no separate bill.
-// An account is one JSON value under `u:<name>` — there is no schema and no SQL
-// to it, which is the closest a Worker gets to a text file.
+// The worker has no writable disk, so with no binding an account only lives as
+// long as the isolate that accepted it. This one is a D1 database: SQLite that
+// belongs to the same Cloudflare account as the worker. The app keeps the whole
+// document as a single JSON value in a single row — there is no schema beyond
+// migrations/0001_document.sql, which the app also creates on first use.
 //
-// To turn it on:
-//   1. npx wrangler kv namespace create muis   (prints a namespace id)
-//   2. paste that id below and delete the "//" markers
-//   3. deploy
+// To set up a new one:
+//   1. npx wrangler d1 create muis   (prints a database_id)
+//   2. put that id in database_id below, and the name in database_name
+//   3. npx wrangler d1 execute muis --remote --file=migrations/0001_document.sql
+//   4. deploy
 //
-// Without it the worker answers exactly as it always has: it reports accounts as
-// unavailable, and everything that does not need an account keeps working.
+// Without the binding the worker answers exactly as it always has: it keeps
+// accounts in memory, and everything that does not need an account keeps working.
 {
-  // "kv_namespaces": [
-  //   {
-  //     "binding": "MUIS",
-  //     "id": "PASTE_THE_NAMESPACE_ID_HERE"
-  //   }
-  // ]
+  "d1_databases": [
+    {
+      "binding": "MUIS_DB",
+      "database_name": "muis",
+      "database_id": "92829035-dfaa-4025-91fd-02f6c5e948dd"
+    }
+  ]
 }
