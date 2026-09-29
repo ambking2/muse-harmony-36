@@ -1,0 +1,144 @@
+import type { Store } from "./store";
+import type { StoredPlaylist, UserRecord } from "./types";
+
+/**
+ * The account database, as one JSON object.
+ *
+ * This is the whole of it: three maps, no schema, no tables, no migrations.
+ * A user, a session and a shared playlist are plain values in plain maps, the
+ * same shape you would get from `JSON.parse` of a file.
+ *
+ * Where the object is *kept* is a separate question with a separate answer, and
+ * that is all a backend supplies: something that reads the object and something
+ * that writes it. A file on disk, a Cloudflare KV value, or plain memory all
+ * serve the same code, which is why the three of them cannot drift apart.
+ */
+export interface Snapshot {
+  users: Record<string, UserRecord>;
+  sessions: Record<string, { username: string; at: number }>;
+  playlists: Record<string, StoredPlaylist>;
+}
+
+export const EMPTY: Snapshot = { users: {}, sessions: {}, playlists: {} };
+
+/** How long a session stays valid. Long by design: this is a music player. */
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+
+export interface DocumentBackend {
+  /** The stored object, or null when there is nothing stored yet. */
+  read(): Promise<Snapshot | null>;
+  write(snapshot: Snapshot): Promise<void>;
+  /** Frees the resources the read/write pair holds, if any. */
+  close?(): void;
+}
+
+export function documentStore(backend: DocumentBackend): Store {
+  /** Write-through cache; see where each backend explains why it needs one. */
+  let recent: Snapshot | null = null;
+
+  const load = async (): Promise<Snapshot> => {
+    if (recent) return recent;
+    const stored = await backend.read();
+    recent = {
+      users: stored?.users ?? {},
+      sessions: stored?.sessions ?? {},
+      playlists: stored?.playlists ?? {},
+    };
+    return recent;
+  };
+
+  const save = async (next: Snapshot): Promise<void> => {
+    const now = Date.now();
+    for (const [sid, session] of Object.entries(next.sessions)) {
+      if (now - session.at > SESSION_TTL_MS) delete next.sessions[sid];
+    }
+    recent = next;
+    await backend.write(next);
+  };
+
+  return {
+    async findUser(username) {
+      return (await load()).users[username] ?? null;
+    },
+
+    async createUser(user) {
+      const db = await load();
+      if (db.users[user.username]) return false;
+      await save({ ...db, users: { ...db.users, [user.username]: user } });
+      return true;
+    },
+
+    async updateUser(username, patch) {
+      const db = await load();
+      const existing = db.users[username];
+      if (!existing) return;
+      await save({ ...db, users: { ...db.users, [username]: { ...existing, ...patch } } });
+    },
+
+    async getSession(sid) {
+      return (await load()).sessions[sid] ?? null;
+    },
+
+    async putSession(sid, username, at) {
+      const db = await load();
+      await save({ ...db, sessions: { ...db.sessions, [sid]: { username, at } } });
+    },
+
+    async deleteSession(sid) {
+      const db = await load();
+      if (!db.sessions[sid]) return;
+      const sessions = { ...db.sessions };
+      delete sessions[sid];
+      await save({ ...db, sessions });
+    },
+
+    async deleteSessionsFor(username) {
+      // Every session opened with a password that is about to change goes first,
+      // so there is no moment where the new password and an old session are
+      // both live.
+      const db = await load();
+      const sessions: Snapshot["sessions"] = {};
+      for (const [sid, session] of Object.entries(db.sessions)) {
+        if (session.username !== username) sessions[sid] = session;
+      }
+      await save({ ...db, sessions });
+    },
+
+    async findPlaylist(id) {
+      return (await load()).playlists[id] ?? null;
+    },
+
+    async listPlaylistsByOwner(owner) {
+      return Object.values((await load()).playlists)
+        .filter((p) => p.owner === owner)
+        .sort((a, b) => b.updatedAt - a.updatedAt);
+    },
+
+    async insertPlaylist(playlist) {
+      const db = await load();
+      await save({ ...db, playlists: { ...db.playlists, [playlist.id]: playlist } });
+    },
+
+    async updatePlaylist(playlist) {
+      const db = await load();
+      if (!db.playlists[playlist.id]) return;
+      await save({ ...db, playlists: { ...db.playlists, [playlist.id]: playlist } });
+    },
+
+    async deletePlaylist(id, owner) {
+      const db = await load();
+      const existing = db.playlists[id];
+      if (!existing || existing.owner !== owner) return false;
+      const playlists = { ...db.playlists };
+      delete playlists[id];
+      await save({ ...db, playlists });
+      return true;
+    },
+
+    async migrate() {
+      // There is nothing to migrate. No tables, no schema version, no upgrade
+      // step — the document makes itself on first write.
+      await load();
+    },
+  };
+}

@@ -9,7 +9,7 @@ import {
   recover,
   register,
 } from "@/lib/server/auth";
-import { isDurable } from "@/lib/server/db";
+import { storageMode } from "@/lib/server/db";
 
 function json(body: unknown, status = 200, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -46,28 +46,13 @@ async function handle(request: Request) {
   if (request.method === "GET") {
     if (action === "me") {
       const username = await currentUser(readToken(request));
-      return json({ username, durable: await isDurable() });
+      return json({ username, mode: await storageMode() });
     }
-    if (action === "durable") return json({ durable: await isDurable() });
+    if (action === "mode") return json({ mode: await storageMode() });
     return json({ error: "unknown action" }, 400);
   }
 
   if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
-
-  // The account database is a SQLite file on disk. Where there is no writable
-  // disk — the deployed Cloudflare worker — it cannot be opened at all, so say
-  // so here, where a client can act on it, rather than accepting a registration
-  // that would be gone the moment the isolate recycles.
-  if (!(await isDurable())) {
-    return json(
-      {
-        error:
-          "پایگاه‌داده در دسترس نیست. این نسخه روی محیطی اجرا می‌شود که دیسک ماندگار ندارد، پس ثبت‌نام و ورود ممکن نیست.",
-        code: "database-unavailable",
-      },
-      503,
-    );
-  }
 
   const body = (await request.json().catch(() => ({}))) as {
     username?: string;

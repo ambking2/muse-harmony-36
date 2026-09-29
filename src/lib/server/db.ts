@@ -1,146 +1,127 @@
-import type { D1Database } from "./d1";
+import type { StorageMode } from "../types";
 import type { KVNamespace } from "./kv";
 import type { Store } from "./store";
 
 import type { StoredPlaylist, UserRecord } from "./types";
 
 /**
- * The account database.
+ * The account database: one JSON object, kept somewhere that lasts.
  *
- * It is the same three questions wherever it runs, and only the storage differs:
+ * Three places, tried in order, and the app behaves identically on all three:
  *
- *   - On the deployed Cloudflare worker, a binding: KV when one is set, else D1.
- *   - In development and the preview, a SQLite file at `.data/muis.sqlite`.
+ *   - a KV binding, if the host provides one — the only way an account survives
+ *     a restart on a Cloudflare Worker
+ *   - `.data/muis.json` on disk, which is what development and the preview get
+ *   - memory, when there is nowhere to write — a Worker with no binding
  *
- * The file is the default because it needs nothing set up at all. A worker has
- * no disk, so there a binding is the only way to keep an account alive across a
- * cold start; which one is a line in `wrangler.jsonc`.
+ * Memory is a working store, not an error. Signing up always works; what
+ * changes is whether the account is still there after a restart, and
+ * `storageMode()` reports which of the three is in play so the interface can say
+ * so rather than leave it to be discovered.
  *
- * With no binding and no writable disk, `isDurable()` reports false and the
- * account routes say so rather than accepting a registration that would be gone
- * by the next restart.
- *
- * Every backend is reached through a dynamic `import()`. That is not only about
- * keeping server code out of the browser graph: the file backend uses `node:fs`
- * and `node:sqlite`, which Workers does not have, so loading it eagerly would
- * fail the whole account route on the worker instead of letting a binding serve
- * it.
+ * Every backend is reached through a dynamic `import()`. Beyond keeping server
+ * code out of the browser graph, it is what lets the file backend fail softly
+ * on a Worker instead of taking the whole route down with a missing `node:fs`.
  */
+
 function binding<T>(name: string): T | undefined {
   return (globalThis as { __env__?: Record<string, unknown> }).__env__?.[name] as T | undefined;
 }
 
-let handle: Promise<Store> | null = null;
+let handle: Promise<{ store: Store; mode: StorageMode }> | null = null;
 
-function open(): Promise<Store> {
-  handle ??= (async () => {
-    const kv = binding<KVNamespace>("MUIS");
-    const store = kv
-      ? (await import("./kv")).openStore(kv)
-      : await (async () => {
-          const d1 = binding<D1Database>("DB");
-          return (await import("./sql")).openStore(
-            d1 ? (await import("./d1")).openDatabase(d1) : undefined,
-          );
-        })();
-    // Once per process, before anything reads. The file and D1 both create
-    // their tables here; KV has nothing to create.
-    await store.migrate();
-    return store;
-  })();
+async function build(): Promise<{ store: Store; mode: StorageMode }> {
+  const kv = binding<KVNamespace>("MUIS");
+  if (kv) {
+    const { documentStore } = await import("./document");
+    const { openBackend } = await import("./kv");
+    return { store: documentStore(openBackend(kv)), mode: "kv" };
+  }
+  try {
+    const [{ documentStore }, { openBackend }] = await Promise.all([
+      import("./document"),
+      import("./file"),
+    ]);
+    return { store: documentStore(openBackend()), mode: "file" };
+  } catch {
+    // No writable disk, which is exactly the Worker case. Memory from here.
+    const [{ documentStore }, { openBackend }] = await Promise.all([
+      import("./document"),
+      import("./memory"),
+    ]);
+    return { store: documentStore(openBackend()), mode: "memory" };
+  }
+}
+
+function open(): Promise<{ store: Store; mode: StorageMode }> {
+  handle ??= build();
   return handle;
 }
 
-/**
- * Whether accounts can work here.
- *
- * A real query rather than a look at the environment, because on a worker with
- * no binding it is the open that fails, not the configuration. Cached: it cannot
- * change without a restart, and every render asks.
- */
-let healthy: Promise<boolean> | null = null;
-
-export function isDurable(): Promise<boolean> {
-  healthy ??= open().then(
-    () => true,
-    () => false,
-  );
-  return healthy;
+/** Where the account data is going, so the interface can say so out loud. */
+export async function storageMode(): Promise<StorageMode> {
+  return (await open()).mode;
 }
 
-/**
- * Forgets which backend was opened, so the next call picks again.
- *
- * Test seam only. The cache is module state, so a suite that installs a binding
- * and expects to be served by it has to be able to say so — otherwise whichever
- * suite happens to run first decides the backend for all the others, and the
- * rest quietly test something other than what they claim to.
- */
+/** Test seam: forget the backend so the next call picks again. */
 export function resetForTests(): void {
   handle = null;
-  healthy = null;
 }
 
 /* -------------------------------------------------------------------- users */
 
 export async function findUser(username: string): Promise<UserRecord | null> {
-  return (await open()).findUser(username);
+  return (await open()).store.findUser(username);
 }
 
-/**
- * False when the name is already taken.
- *
- * What guarantees that differs by backend, and each does the best it can: the
- * file and D1 both let the database refuse the second insert, while KV has no
- * conditional write and so has to check first.
- */
+/** False when the name is already taken. */
 export async function createUser(user: UserRecord): Promise<boolean> {
-  return (await open()).createUser(user);
+  return (await open()).store.createUser(user);
 }
 
 export async function updateUser(
   username: string,
   patch: { passwordHash: string; salt: string; recoveryHashes: string[] },
 ): Promise<void> {
-  return (await open()).updateUser(username, patch);
+  return (await open()).store.updateUser(username, patch);
 }
 
 /* ----------------------------------------------------------------- sessions */
 
 export async function getSession(sid: string): Promise<{ username: string; at: number } | null> {
-  return (await open()).getSession(sid);
+  return (await open()).store.getSession(sid);
 }
 
 export async function putSession(sid: string, username: string, at: number): Promise<void> {
-  return (await open()).putSession(sid, username, at);
+  return (await open()).store.putSession(sid, username, at);
 }
 
 export async function deleteSession(sid: string): Promise<void> {
-  return (await open()).deleteSession(sid);
+  return (await open()).store.deleteSession(sid);
 }
 
 export async function deleteSessionsFor(username: string): Promise<void> {
-  return (await open()).deleteSessionsFor(username);
+  return (await open()).store.deleteSessionsFor(username);
 }
 
 /* ---------------------------------------------------------------- playlists */
 
 export async function findPlaylist(id: string): Promise<StoredPlaylist | null> {
-  return (await open()).findPlaylist(id);
+  return (await open()).store.findPlaylist(id);
 }
 
 export async function listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]> {
-  return (await open()).listPlaylistsByOwner(owner);
+  return (await open()).store.listPlaylistsByOwner(owner);
 }
 
 export async function insertPlaylist(playlist: StoredPlaylist): Promise<void> {
-  return (await open()).insertPlaylist(playlist);
+  return (await open()).store.insertPlaylist(playlist);
 }
 
 export async function updatePlaylist(playlist: StoredPlaylist): Promise<void> {
-  return (await open()).updatePlaylist(playlist);
+  return (await open()).store.updatePlaylist(playlist);
 }
 
 export async function deletePlaylist(id: string, owner: string): Promise<boolean> {
-  return (await open()).deletePlaylist(id, owner);
+  return (await open()).store.deletePlaylist(id, owner);
 }

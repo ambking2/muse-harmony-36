@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { AppShell, BackLink } from "@/components/layout/AppShell";
 import { accountApi, playlistApi, useSession } from "@/lib/account";
+import type { StorageMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/account")({
@@ -44,9 +45,9 @@ function AccountPage() {
       <div className="space-y-6">
         <BackLink />
         {session?.username ? (
-          <SignedIn username={session.username} durable={session.durable} />
+          <SignedIn username={session.username} storage={session.mode} />
         ) : (
-          <SignedOut durable={session?.durable ?? false} />
+          <SignedOut storage={session?.mode ?? "file"} />
         )}
       </div>
     </AppShell>
@@ -54,24 +55,24 @@ function AccountPage() {
 }
 
 /**
- * Explains, in place, why accounts are unavailable — instead of letting the
- * person press a button that returns the same refusal forever.
+ * Says, when the server is holding accounts in memory, that they will not be
+ * there after a restart.
+ *
+ * Only that case earns a notice. Everything here works in all three modes, so
+ * there is no reason to put anything in front of someone over where the data
+ * happens to sit — but "my account vanished" is worth saying out loud once
+ * rather than leaving it to be discovered.
  */
-function NotDurable() {
+function Ephemeral() {
   return (
-    <div className="mb-6 rounded-3xl border border-destructive/30 bg-destructive/10 p-5">
-      <p className="flex items-center gap-2 font-semibold text-destructive">
+    <div className="mt-5 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5">
+      <p className="flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400">
         <HardDriveDownload className="size-5 shrink-0" />
-        ذخیره‌سازی روی این نسخه کار نمی‌کند
+        این نسخه موقتی است
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        این نسخه روی سروری اجرا می‌شود که دیسک ماندگار ندارد و هنوز به یک پایگاه‌داده وصل نشده است.
-        حساب‌ها و پلی‌لیست‌های اشتراکی هرجا ذخیره شوند با هر راه‌اندازی دوباره پاک می‌شوند، پس
-        ثبت‌نام را غیرفعال کرده‌ایم — تلاش دوباره هم نتیجه‌ای ندارد.
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        جستجو، پخش و دانلود بدون حساب کار می‌کنند. برای اشتراک‌گذاری بین دستگاه‌ها باید ذخیره‌سازی
-        به یک پایگاه‌داده‌ی واقعی منتقل شود.
+        حساب‌ها و پلی‌لیست‌های اشتراکی فعلاً در حافظه‌ی همین سرور نگه‌داری می‌شوند. همه‌چیز کار
+        می‌کند، ولی با هر راه‌اندازی دوباره پاک می‌شود. اگر روی همین سرور بمانی مشکلی نیست.
       </p>
     </div>
   );
@@ -79,7 +80,7 @@ function NotDurable() {
 
 /* -------------------------------------------------------------- signed out */
 
-function SignedOut({ durable }: { durable: boolean }) {
+function SignedOut({ storage }: { storage: StorageMode }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [mode, setMode] = useState<Mode>("signin");
@@ -146,11 +147,7 @@ function SignedOut({ durable }: { durable: boolean }) {
         برای همگام‌سازی پلی‌لیست‌ها بین دستگاه‌ها و اشتراک‌گذاری عمومی، حساب بسازید.
       </p>
 
-      {!durable && (
-        <div className="mt-5">
-          <NotDurable />
-        </div>
-      )}
+      {storage === "memory" && <Ephemeral />}
 
       <div className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-xs">
         {tabs.map((t) => (
@@ -177,7 +174,6 @@ function SignedOut({ durable }: { durable: boolean }) {
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
           dir="ltr"
-          disabled={!durable}
         />
         {mode === "recover" && (
           <input
@@ -186,7 +182,6 @@ function SignedOut({ durable }: { durable: boolean }) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             dir="ltr"
-            disabled={!durable}
           />
         )}
         <input
@@ -196,11 +191,10 @@ function SignedOut({ durable }: { durable: boolean }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          disabled={!durable}
         />
         <button
           type="submit"
-          disabled={busy || !durable}
+          disabled={busy}
           className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
         >
           {busy ? "لطفاً صبر کنید…" : tabs.find((t) => t.id === mode)?.label}
@@ -233,14 +227,13 @@ function SignedOut({ durable }: { durable: boolean }) {
 
 /* --------------------------------------------------------------- signed in */
 
-function SignedIn({ username, durable }: { username: string; durable: boolean }) {
+function SignedIn({ username, storage }: { username: string; storage: StorageMode }) {
   const qc = useQueryClient();
   const [leaving, setLeaving] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["shared-playlists"],
     queryFn: playlistApi.mine,
-    enabled: durable,
   });
 
   const logout = useMutation({
@@ -290,16 +283,14 @@ function SignedIn({ username, durable }: { username: string; durable: boolean })
         </button>
       </div>
 
-      {!durable && <NotDurable />}
+      {storage === "memory" && <Ephemeral />}
 
       <section>
         <h2 className="text-lg font-black">پلی‌لیست‌های اشتراکی</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {durable
-            ? playlists.length
-              ? "لینک هرکدام روی هر دستگاهی باز می‌شود."
-              : "هنوز چیزی منتشر نکرده‌اید — از صفحه‌ی هر پلی‌لیست، دکمه‌ی «اشتراک‌گذاری» را بزنید."
-            : "برای دیدن این فهرست باید ذخیره‌سازی فعال باشد."}
+          {playlists.length
+            ? "لینک هرکدام روی هر دستگاهی باز می‌شود."
+            : "هنوز چیزی منتشر نکرده‌اید — از صفحه‌ی هر پلی‌لیست، دکمه‌ی «اشتراک‌گذاری» را بزنید."}
         </p>
 
         {playlists.length > 0 && (

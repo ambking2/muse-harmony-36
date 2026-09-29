@@ -7,12 +7,12 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import type { Track } from "./types";
+import type { StorageMode, Track } from "./types";
 
 export interface SessionInfo {
   username: string | null;
-  /** False when the account database is unreachable — see lib/server/db. */
-  durable: boolean;
+  /** Where the account data is being kept. "memory" does not survive a restart. */
+  mode: StorageMode;
 }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {

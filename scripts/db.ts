@@ -2,15 +2,13 @@
  * Maintenance for the account database.
  *
  *   bun run backup                       a snapshot of the whole database
- *   bun run restore <file.sqlite>        put one back
+ *   bun run restore <file.json>          put one back
  *   bun run export                       a plain-text archive, safe to commit
  *
- * The database is one file at `.data/muis.sqlite`, which makes it look like
- * `cp` would do. It would not. The database runs in WAL mode, so the most
- * recent writes can still be sitting in the `-wal` file beside it, and copying
- * only the `.sqlite` would quietly drop exactly the accounts and playlists
- * created in the last few minutes. `VACUUM INTO` writes a checkpointed,
- * self-contained copy of everything actually committed.
+ * The database is one JSON file at `.data/muis.json`, so this is mostly copying
+ * a file around. It goes through `cp`-like moves rather than reading and
+ * rewriting, because the app is writing to that file while you run it, and a
+ * half-copied snapshot is worse than no snapshot.
  */
 import {
   copyFileSync,
@@ -23,13 +21,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 
 import type { Track } from "../src/lib/types";
 
 const DATA_DIR = join(process.cwd(), ".data");
 const BACKUP_DIR = join(DATA_DIR, "backups");
-const DB_FILE = join(DATA_DIR, "muis.sqlite");
+const DB_FILE = join(DATA_DIR, "muis.json");
 /** Tracked by git, unlike everything else in DATA_DIR. */
 const EXPORT_FILE = join(process.cwd(), "data", "muis-data.json");
 
@@ -47,36 +44,23 @@ function kilobytes(path: string): string {
 }
 
 function backup(): void {
-  if (!existsSync(DB_FILE)) {
-    fail("هنوز پایگاه‌داده‌ای ساخته نشده. اول برنامه را یک بار اجرا کن.");
-  }
+  if (!existsSync(DB_FILE)) fail("هنوز پایگاه‌داده‌ای ساخته نشده. اول برنامه را یک بار اجرا کن.");
   mkdirSync(BACKUP_DIR, { recursive: true });
-  const target = join(BACKUP_DIR, `muis-${stamp()}.sqlite`);
-
-  const db = new DatabaseSync(DB_FILE);
-  try {
-    // The path is a SQL string literal. Quoting is the difference between a
-    // snapshot and a syntax error on any machine whose folder name has an
-    // apostrophe in it.
-    db.exec(`VACUUM INTO '${target.replace(/'/g, "''")}'`);
-  } finally {
-    db.close();
-  }
+  const target = join(BACKUP_DIR, `muis-${stamp()}.json`);
+  copyFileSync(DB_FILE, target);
   console.log(`\n  نسخه پشتیبان ساخته شد: ${target} (${kilobytes(target)})\n`);
 }
 
+/**
+ * Whether this is a muis database.
+ *
+ * Checked before anything is overwritten, because restoring the wrong file over
+ * the live one is how a working set of accounts disappears.
+ */
 function isMuisDatabase(path: string): boolean {
   try {
-    const db = new DatabaseSync(path, { readOnly: true });
-    try {
-      return (
-        db
-          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'users'")
-          .get() !== undefined
-      );
-    } finally {
-      db.close();
-    }
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as { users?: unknown };
+    return typeof parsed.users === "object" && parsed.users !== null;
   } catch {
     return false;
   }
@@ -85,9 +69,7 @@ function isMuisDatabase(path: string): boolean {
 function restore(source: string): void {
   const path = resolve(source);
   if (!existsSync(path)) fail(`چنین فایلی نیست: ${path}`);
-  // Restoring over the live database is how an accounts file gets replaced by
-  // the wrong SQLite file. Check it is one of ours first.
-  if (!isMuisDatabase(path)) fail("این فایل نسخه پشتیبان muis نیست — جدول users را ندارد.");
+  if (!isMuisDatabase(path)) fail("این فایل پایگاه‌داده‌ی muis نیست — کلید users را ندارد.");
 
   mkdirSync(DATA_DIR, { recursive: true });
   let replaced: string | null = null;
@@ -95,10 +77,6 @@ function restore(source: string): void {
     replaced = `${DB_FILE}.replaced-${stamp()}`;
     renameSync(DB_FILE, replaced);
   }
-  // These two belong to the database that just moved away. Left in place,
-  // SQLite replays the old write-ahead log on top of the restored file and
-  // corrupts it.
-  for (const sidecar of ["-wal", "-shm"]) rmSync(`${DB_FILE}${sidecar}`, { force: true });
   copyFileSync(path, DB_FILE);
 
   console.log(`\n  بازگردانی شد: ${path}`);
@@ -128,9 +106,9 @@ interface Archive {
  *
  * Three things are left out, and all three are secrets rather than data:
  *
- *   - `password_hash` and `salt` — an offline cracking target. A git history is
+ *   - `passwordHash`, `salt` — an offline cracking target. A git history is
  *     forever; deleting the file later does not take them out of past clones.
- *   - `recovery_hashes` — a recovery code is a full password reset. Whoever
+ *   - `recoveryHashes` — a recovery code is a full password reset. Whoever
  *     holds one does not need the old password at all.
  *   - sessions — a session id is a ready-to-use login token, so it is worse
  *     than a hash: no work is needed to use it.
@@ -143,53 +121,35 @@ interface Archive {
  * what exists, and `bun run backup` remains the way to move a working database.
  */
 function exportArchive(): void {
-  if (!existsSync(DB_FILE)) {
-    fail("هنوز پایگاه‌داده‌ای ساخته نشده. اول برنامه را یک بار اجرا کن.");
-  }
+  if (!existsSync(DB_FILE)) fail("هنوز پایگاه‌داده‌ای ساخته نشده. اول برنامه را یک بار اجرا کن.");
 
-  const db = new DatabaseSync(DB_FILE, { readOnly: true });
-  let archive: Archive;
-  try {
-    const users = db.prepare("SELECT username, created_at FROM users").all() as {
-      username: string;
-      created_at: number;
-    }[];
-    const playlists = db
-      .prepare("SELECT id, owner, name, is_public, created_at, updated_at, tracks FROM playlists")
-      .all() as {
-      id: string;
-      owner: string;
-      name: string;
-      is_public: number;
-      created_at: number;
-      updated_at: number;
-      tracks: string;
-    }[];
+  const db = JSON.parse(readFileSync(DB_FILE, "utf8")) as {
+    users?: Record<string, { createdAt?: number }>;
+    playlists?: Record<
+      string,
+      {
+        id: string;
+        owner: string;
+        name: string;
+        isPublic: boolean;
+        createdAt: number;
+        updatedAt: number;
+        tracks: Track[];
+      }
+    >;
+  };
 
-    archive = {
-      version: 1,
-      note: "Archive of muis accounts and shared playlists. Password hashes, recovery codes and session tokens are deliberately absent, so nothing here can be used to sign in — it is a record, not a credential store.",
-      // Sorted, and with no timestamp inside, so that a git diff shows what
-      // actually changed instead of a wall of noise on every run.
-      users: users
-        .map((u) => ({ username: u.username, createdAt: Number(u.created_at) }))
-        .sort((a, b) => (a.username < b.username ? -1 : a.username > b.username ? 1 : 0)),
-      playlists: playlists
-        .map((p) => ({
-          id: p.id,
-          owner: p.owner,
-          name: p.name,
-          isPublic: Number(p.is_public) === 1,
-          createdAt: Number(p.created_at),
-          updatedAt: Number(p.updated_at),
-          // Track order is meaningful — it is the playlist — so it is kept.
-          tracks: JSON.parse(p.tracks) as Track[],
-        }))
-        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
-    };
-  } finally {
-    db.close();
-  }
+  const byName = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  const archive: Archive = {
+    version: 1,
+    note: "Archive of muis accounts and shared playlists. Password hashes, recovery codes and session tokens are deliberately absent, so nothing here can be used to sign in — it is a record, not a credential store.",
+    // Sorted, and with no timestamp inside, so that a git diff shows what
+    // actually changed instead of a wall of noise on every run.
+    users: Object.entries(db.users ?? {})
+      .map(([username, u]) => ({ username, createdAt: Number(u?.createdAt ?? 0) }))
+      .sort((a, b) => byName(a.username, b.username)),
+    playlists: Object.values(db.playlists ?? {}).sort((a, b) => byName(a.id, b.id)),
+  };
 
   mkdirSync(join(process.cwd(), "data"), { recursive: true });
   const json = `${JSON.stringify(archive, null, 2)}\n`;
@@ -210,7 +170,7 @@ function exportArchive(): void {
 const [command, argument] = process.argv.slice(2);
 if (command === undefined || command === "backup") backup();
 else if (command === "restore") {
-  if (!argument) fail("مسیر فایل لازم است. نمونه: bun run restore .data/backups/muis-....sqlite");
+  if (!argument) fail("مسیر فایل لازم است. نمونه: bun run restore .data/backups/muis-....json");
   restore(argument);
 } else if (command === "export") exportArchive();
 else {

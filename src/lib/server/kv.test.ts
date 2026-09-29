@@ -7,37 +7,34 @@ import {
   deletePlaylist,
   findPlaylist,
   insertPlaylist,
-  isDurable,
   listPlaylistsByOwner,
   resetForTests,
+  storageMode,
 } from "./db";
 import type { KVNamespace } from "./kv";
 import type { StoredPlaylist } from "./types";
 
 /**
- * The JSON backend, exercised without a worker.
+ * The account flow against a KV backend, exercised without a Worker.
  *
- * A Worker has no disk, so without a double the production backend would ship
- * with no test at all. This is a key/value store with the shape of the real
- * binding, holding the same single `muis` key.
+ * A Worker has no disk, so without a double the bound path would ship with no
+ * test at all. This is a key/value store with the shape of the real binding,
+ * holding the same single `muis` key as one JSON document.
  */
 
 const store = new Map<string, string>();
 
-/** Filled in by the registration test, consumed by the recovery one. */
-let recoveryCodes: string[] = [];
-
 const namespace: KVNamespace = {
-  get: async (key) => store.get(key) ?? null,
-  put: async (key, value) => {
+  get: async (key: string) => store.get(key) ?? null,
+  put: async (key: string, value: string) => {
     store.set(key, value);
-  },
-  delete: async (key) => {
-    store.delete(key);
   },
 };
 
-describe("the JSON backend", () => {
+/** Filled in by the registration test, consumed by the recovery one. */
+let recoveryCodes: string[] = [];
+
+describe("the account flow over a KV backend", () => {
   // In here, not at module load: bun evaluates every test file's body before
   // running any test, so a binding installed at load time is overwritten by
   // whichever file loaded last.
@@ -46,11 +43,11 @@ describe("the JSON backend", () => {
     resetForTests();
   });
 
-  /** The whole database, as stored. One key — that is the point. */
   const snapshot = () => JSON.parse(store.get("muis") ?? "{}");
 
-  it("stores everything under one key, and nothing before there is anything to store", async () => {
-    expect(await isDurable()).toBe(true);
+  it("reports the backend it picked", async () => {
+    expect(await storageMode()).toBe("kv");
+    // Nothing is written until there is something to write.
     expect(store.has("muis")).toBe(false);
   });
 
