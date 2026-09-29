@@ -11,9 +11,11 @@ import type { DocumentBackend, Snapshot } from "./document";
  *
  * The row is created on first use rather than demanded as a setup step, because
  * a database that is one `CREATE TABLE` away from working should not need a
- * migration to have been run first — and because a binding pointed at an empty
- * database is a normal state, not a mistake. `migrations/0001_document.sql` is
- * the same statement for anyone who would rather run it up front.
+ * migration to have been run first. It is an attempt and not a promise: a
+ * production D1 is free to refuse schema changes from inside a Worker, and
+ * `migrations/0001_document.sql` is the same statement for anyone who would
+ * rather run it up front. When the create does not happen, the caller hears
+ * about it and keeps accounts in memory rather than serving a SQL error.
  */
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
@@ -30,41 +32,67 @@ export interface D1Database {
 const TABLE = "muis_document";
 const KEY = "muis";
 
-const CREATE = `CREATE TABLE IF NOT EXISTS ${TABLE} (
-  id TEXT PRIMARY KEY,
-  body TEXT NOT NULL,
-  updated_at INTEGER NOT NULL
-)`;
+/**
+ * One line, on purpose.
+ *
+ * `exec()` takes a statement, not a script: given the same CREATE spread over
+ * four lines it answers "incomplete input" and the app carries on believing it
+ * has a table. The readable version of this statement is migrations/0001_document.sql.
+ */
+const CREATE = `CREATE TABLE IF NOT EXISTS ${TABLE} (id TEXT PRIMARY KEY, body TEXT NOT NULL, updated_at INTEGER NOT NULL)`;
 
 const SELECT = `SELECT body FROM ${TABLE} WHERE id = ?`;
 
 const UPSERT = `INSERT INTO ${TABLE} (id, body, updated_at) VALUES (?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at`;
 
-export function openBackend(database: D1Database): DocumentBackend {
+export function openBackend(
+  database: D1Database,
+  onFailure?: (error: unknown) => void,
+): DocumentBackend {
   let created: Promise<unknown> | null = null;
 
   /**
-   * Once per isolate, and never fatally: a database that refuses the statement
-   * will say so properly on the first read or write, which is a far better
-   * error than a silent "no such table" from somewhere else.
+   * Once per isolate, and never fatally.
+   *
+   * D1 in production is happy to refuse schema changes from a Worker, so this
+   * is a convenience and not a guarantee — which is why a refusal is logged
+   * rather than swallowed. When it does not work, the reason is on the console
+   * and the caller falls back to memory instead of serving a SQL error.
    */
   const ensureTable = (): Promise<unknown> => {
     created ??= (database.exec ? database.exec(CREATE) : database.prepare(CREATE).run()).catch(
-      () => null,
+      (error: unknown) => {
+        console.error(
+          "muis: could not create the D1 table from the app; run migrations/0001_document.sql",
+          error,
+        );
+        return null;
+      },
     );
     return created;
   };
 
+  const guard = async <T>(work: () => Promise<T>): Promise<T> => {
+    try {
+      return await work();
+    } catch (error) {
+      onFailure?.(error);
+      throw error;
+    }
+  };
+
   return {
-    read: async () => {
-      await ensureTable();
-      const row = await database.prepare(SELECT).bind(KEY).first<{ body: string }>();
-      return row?.body ? (JSON.parse(row.body) as Snapshot) : null;
-    },
-    write: async (snapshot) => {
-      await ensureTable();
-      await database.prepare(UPSERT).bind(KEY, JSON.stringify(snapshot), Date.now()).run();
-    },
+    read: () =>
+      guard(async () => {
+        await ensureTable();
+        const row = await database.prepare(SELECT).bind(KEY).first<{ body: string }>();
+        return row?.body ? (JSON.parse(row.body) as Snapshot) : null;
+      }),
+    write: (snapshot) =>
+      guard(async () => {
+        await ensureTable();
+        await database.prepare(UPSERT).bind(KEY, JSON.stringify(snapshot), Date.now()).run();
+      }),
   };
 }

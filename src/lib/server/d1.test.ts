@@ -3,7 +3,7 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import { login, register } from "./auth";
-import { resetForTests, storageMode } from "./db";
+import { findUser, resetForTests, storageMode } from "./db";
 import type { D1Database } from "./d1";
 
 /**
@@ -90,6 +90,60 @@ describe("the account flow over a D1 backend", () => {
     const before = created;
     await storageMode();
     await login("ali", "a long enough password");
+    expect(created).toBe(before);
+  });
+});
+
+/**
+ * The same backend pointed at a database it cannot use.
+ *
+ * This is the mistake nobody makes on purpose: the binding is right, the
+ * database exists, and the table was never created — because D1 in production
+ * does not take schema changes from a Worker. Every query fails, and the only
+ * question worth testing is what the app does about it.
+ */
+const broken: D1Database = {
+  prepare() {
+    const statement = {
+      bind: () => statement,
+      first: async () => {
+        throw new Error("D1_ERROR: no such table: muis_document: SQLITE_ERROR");
+      },
+      run: async () => {
+        throw new Error("D1_ERROR: no such table: muis_document: SQLITE_ERROR");
+      },
+    };
+    return statement;
+  },
+  exec: async () => {
+    throw new Error("DDL is not allowed from the Workers runtime");
+  },
+};
+
+describe("a D1 database that is not usable", () => {
+  beforeAll(() => {
+    (globalThis as { __env__?: unknown }).__env__ = { MUIS_DB: broken };
+    resetForTests();
+  });
+
+  it("still registers, and says where the account went", async () => {
+    // A signup that throws over a missing table is a far worse outcome than an
+    // account that is only kept in memory, because it is one that looks like
+    // the app is broken.
+    const result = await register("sara", "a long enough password");
+    expect(result.ok).toBe(true);
+
+    // The account is real, and findable through the same API...
+    expect(await findUser("sara")).not.toBeNull();
+    // ...and `mode` stops claiming D1, so nothing says it is durable.
+    expect(await storageMode()).toBe("memory");
+  });
+
+  it("stops asking D1 after the first failure", async () => {
+    // Once it has fallen back it should not pay for a failing query on every
+    // single request.
+    const before = created;
+    expect((await login("sara", "a long enough password")).ok).toBe(true);
     expect(created).toBe(before);
   });
 });

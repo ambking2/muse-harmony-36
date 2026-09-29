@@ -30,14 +30,67 @@ function binding<T>(name: string): T | undefined {
   return (globalThis as { __env__?: Record<string, unknown> }).__env__?.[name] as T | undefined;
 }
 
+/**
+ * A store that keeps working when the one in front of it stops answering.
+ *
+ * A binding can be misconfigured in ways no amount of local testing shows: the
+ * database exists but the table does not, the account has no access, the
+ * region is having a bad day. Failing every signup on that would be a worse
+ * answer than keeping accounts in memory and saying so — so the first failure
+ * switches for good, and `storageMode()` reports `memory` from then on, which
+ * is the truth: those accounts will not survive a restart.
+ */
+function failover(primary: Store, spare: Store, onFail: (error: unknown) => void): Store {
+  let usingSpare = false;
+
+  const attempt = async <T>(work: (store: Store) => Promise<T>): Promise<T> => {
+    if (usingSpare) return work(spare);
+    try {
+      return await work(primary);
+    } catch (error) {
+      onFail(error);
+      usingSpare = true;
+    }
+    return work(spare);
+  };
+
+  return {
+    findUser: (username) => attempt((s) => s.findUser(username)),
+    createUser: (user) => attempt((s) => s.createUser(user)),
+    updateUser: (username, patch) => attempt((s) => s.updateUser(username, patch)),
+    getSession: (sid) => attempt((s) => s.getSession(sid)),
+    putSession: (sid, username, at) => attempt((s) => s.putSession(sid, username, at)),
+    deleteSession: (sid) => attempt((s) => s.deleteSession(sid)),
+    deleteSessionsFor: (username) => attempt((s) => s.deleteSessionsFor(username)),
+    findPlaylist: (id) => attempt((s) => s.findPlaylist(id)),
+    listPlaylistsByOwner: (owner) => attempt((s) => s.listPlaylistsByOwner(owner)),
+    insertPlaylist: (playlist) => attempt((s) => s.insertPlaylist(playlist)),
+    updatePlaylist: (playlist) => attempt((s) => s.updatePlaylist(playlist)),
+    deletePlaylist: (id, owner) => attempt((s) => s.deletePlaylist(id, owner)),
+    migrate: () => attempt((s) => s.migrate()),
+  };
+}
+
 let handle: Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> | null = null;
 
 async function build(): Promise<{ store: Store; mode: StorageMode; degraded?: () => boolean }> {
   const d1 = binding<D1Database>("MUIS_DB");
   if (d1) {
-    const { documentStore } = await import("./document");
-    const { openBackend } = await import("./d1");
-    return { store: documentStore(openBackend(d1)), mode: "d1" };
+    const [{ documentStore }, { openBackend }, { openBackend: openMemory }] = await Promise.all([
+      import("./document"),
+      import("./d1"),
+      import("./memory"),
+    ]);
+    let failed = false;
+    const store = failover(
+      documentStore(openBackend(d1, () => (failed = true))),
+      documentStore(openMemory()),
+      (error) => {
+        failed = true;
+        console.error("muis: D1 is not answering, keeping accounts in memory until it is", error);
+      },
+    );
+    return { store, mode: "d1", degraded: () => failed };
   }
   const kv = binding<KVNamespace>("MUIS");
   if (kv) {
