@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 
 import { MiniPlayer } from "@/components/ios/MiniPlayer";
 import { TabBar } from "@/components/ios/TabBar";
@@ -8,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
 import { useArtworkAccent } from "@/hooks/use-artwork-accent";
 import { usePointerLight } from "@/hooks/use-pointer-light";
+import { page } from "@/lib/design/motion";
 import { paletteRegistry, queueRegistry } from "@/lib/ui-control";
 import type { OpenerRegistry } from "@/lib/ui-control";
 
@@ -65,7 +67,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       </DeferredOverlay>
 
       <main className={isStandalone ? undefined : "pb-[calc(var(--chrome-inset)+1.5rem)]"}>
-        {children}
+        {/* The page transition. Keyed on the path, so navigating replays a
+            short enter instead of swapping the whole surface at once — eight
+            pixels of travel and a fifth of a second, which reads as turning a
+            page rather than as the app thinking. Only `transform` and `opacity`
+            move, so it never costs a layout pass, and it never delays the
+            route: the new screen is mounted immediately and arrives. */}
+        <motion.div key={pathname} initial="hidden" animate="visible" variants={page}>
+          {children}
+        </motion.div>
       </main>
 
       {!isStandalone && (

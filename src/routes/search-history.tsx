@@ -62,7 +62,7 @@ function SearchHistoryPage() {
                     key={query}
                     plain
                     icon={Clock}
-                    tone="gray"
+                    tone="slate"
                     label={query}
                     to={`/explore?q=${encodeURIComponent(query)}`}
                   />

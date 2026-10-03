@@ -220,7 +220,13 @@ function NowPlaying() {
           transition={{ type: "spring", stiffness: 220, damping: 26 }}
           className="mx-auto mt-8 w-full max-w-sm"
         >
-          <div className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60">
+          <motion.div
+            // Shared with the mini player: the same album is one object in two
+            // places, so when both are on screen it travels between them rather
+            // than being cut from one size to another.
+            layoutId={`artwork-${key}`}
+            className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
+          >
             {art ? (
               <img src={art} alt={track.name} decoding="async" className="size-full object-cover" />
             ) : (
@@ -231,7 +237,7 @@ function NowPlaying() {
                 <Loader2 className="size-8 animate-spin" />
               </div>
             )}
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Meta */}

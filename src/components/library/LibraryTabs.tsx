@@ -5,6 +5,8 @@ import { EmptyState } from "@/components/ios/EmptyState";
 import { Section } from "@/components/ios/Section";
 import { TrackRow } from "@/components/music/TrackRow";
 import { usePlayer } from "@/stores/player";
+import { TILE_CLASS, tileFor } from "@/lib/tile";
+import { cn } from "@/lib/utils";
 import type { Playlist, Track } from "@/lib/types";
 import { trackKey } from "@/lib/types";
 
@@ -68,7 +70,9 @@ export function PlaylistsTab({ playlists }: { playlists: Playlist[] }) {
           params={{ id: playlist.id }}
           className="panel press block overflow-hidden text-right"
         >
-          <div className="media-tile grid place-items-center bg-gradient-to-br from-ios-tint/70 to-ios-indigo/40">
+          <div
+            className={cn("media-tile grid place-items-center", TILE_CLASS[tileFor(playlist.id)])}
+          >
             <Music className="size-8 text-white" strokeWidth={1.5} />
           </div>
           <div className="p-3">

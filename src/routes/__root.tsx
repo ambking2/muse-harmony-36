@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 
 import appCss from "../styles.css?url";
 // Imported through Vite so the content hash lands in the URL. Preloading the
@@ -185,13 +186,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* The refraction filter every glass surface points at. Mounted once. */}
-      <GlassDefs />
-      {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
-      <AudioEngine />
-      <AccountLibrarySync />
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {/* One place that teaches every animation in the app to listen to the OS.
+          `reducedMotion="user"` keeps opacity and colour transitions — so state
+          changes are still legible — and drops the travel, the springs and the
+          shared-element morphs. Doing it here rather than per component means
+          no screen can forget. */}
+      <MotionConfig reducedMotion="user">
+        {/* The refraction filter every glass surface points at. Mounted once. */}
+        <GlassDefs />
+        {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
+        <AudioEngine />
+        <AccountLibrarySync />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

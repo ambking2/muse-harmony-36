@@ -41,7 +41,7 @@ export function IdleScreen({
             <Row
               key={suggestion}
               icon={Search}
-              tone="tint"
+              tone="blue"
               label={suggestion}
               onClick={() => onPick(suggestion)}
             />
@@ -63,14 +63,14 @@ export function IdleScreen({
         }
       >
         {searchHistory.length === 0 ? (
-          <Row icon={Clock} tone="gray" label="هنوز جستجویی نکرده‌اید" />
+          <Row icon={Clock} tone="slate" label="هنوز جستجویی نکرده‌اید" />
         ) : (
           <>
             {recent.map((query) => (
               <Row
                 key={query}
                 icon={Clock}
-                tone="gray"
+                tone="slate"
                 label={query}
                 onClick={() => onPick(query)}
               />
@@ -78,7 +78,7 @@ export function IdleScreen({
             {older > 0 && (
               <Row
                 icon={ArrowUpLeft}
-                tone="tint"
+                tone="blue"
                 label="همه‌ی جستجوها"
                 detail={`${searchHistory.length.toLocaleString("fa-IR")} جستجوی ثبت‌شده`}
                 to="/search-history"
@@ -105,7 +105,7 @@ export function IdleScreen({
           <Row
             key={artist.latin}
             icon={Mic2}
-            tone="purple"
+            tone="sky"
             label={artist.fa}
             detail={artist.latin}
             to={`/artist/${encodeURIComponent(artist.fa)}`}

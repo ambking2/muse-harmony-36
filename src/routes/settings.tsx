@@ -69,7 +69,7 @@ function SettingsPage() {
           >
             <Row
               icon={theme === "dark" ? Moon : Sun}
-              tone="orange"
+              tone="slate"
               label="حالت تاریک"
               detail="روشن به‌صورت پیش‌فرض"
               accessory={
@@ -83,7 +83,7 @@ function SettingsPage() {
             />
             <Row
               icon={Layers}
-              tone="indigo"
+              tone="violet"
               label="حالت شیشه‌ای"
               detail="شفافیت و محوِ پس‌زمینه"
               accessory={
@@ -168,7 +168,7 @@ function SettingsPage() {
           >
             <Row
               icon={HardDriveDownload}
-              tone="teal"
+              tone="cyan"
               label="آهنگ‌های آفلاین"
               value={`${downloads.filter((item) => item.status === "done").length.toLocaleString("fa-IR")} فایل${
                 offlineSize > 0 ? ` · ${formatBytes(offlineSize)}` : ""
@@ -177,21 +177,21 @@ function SettingsPage() {
             />
             <Row
               icon={Database}
-              tone="orange"
+              tone="amber"
               label="آهنگ‌های کتابخانه"
               value={library.length.toLocaleString("fa-IR")}
               to="/library"
             />
             <Row
               icon={Heart}
-              tone="pink"
+              tone="rose"
               label="علاقه‌مندی‌ها"
               value={favorites.length.toLocaleString("fa-IR")}
               to="/favorites"
             />
             <Row
               icon={ListMusic}
-              tone="purple"
+              tone="sky"
               label="پلی‌لیست‌ها"
               value={playlists.length.toLocaleString("fa-IR")}
               to="/library"
@@ -204,7 +204,7 @@ function SettingsPage() {
           >
             <Row
               icon={Search}
-              tone="indigo"
+              tone="violet"
               label="پاک کردن تاریخچه‌ی جستجو"
               onClick={() => {
                 clearSearch();

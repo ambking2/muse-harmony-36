@@ -39,7 +39,7 @@ export function QuickLinks() {
           <Row
             plain
             icon={HardDrive}
-            tone="orange"
+            tone="amber"
             label="آهنگ‌ها"
             to="/library"
             value={library.length.toLocaleString("fa-IR")}
@@ -47,7 +47,7 @@ export function QuickLinks() {
           <Row
             plain
             icon={Heart}
-            tone="pink"
+            tone="rose"
             label="علاقه‌مندی‌ها"
             to="/favorites"
             value={favorites.length.toLocaleString("fa-IR")}
@@ -55,7 +55,7 @@ export function QuickLinks() {
           <Row
             plain
             icon={ListMusic}
-            tone="purple"
+            tone="sky"
             label="پلی‌لیست‌ها"
             to="/library"
             detail="ساخته‌شده توسط شما"
@@ -63,16 +63,16 @@ export function QuickLinks() {
           <Row
             plain
             icon={Download}
-            tone="teal"
+            tone="cyan"
             label="پخش آفلاین"
             to="/downloads"
             value={downloads ? `${downloads.toLocaleString("fa-IR")} فایل` : undefined}
           />
-          <Row plain icon={SettingsIcon} tone="gray" label="تنظیمات" to="/settings" />
+          <Row plain icon={SettingsIcon} tone="slate" label="تنظیمات" to="/settings" />
           <Row
             plain
             icon={UserRound}
-            tone="tint"
+            tone="blue"
             label={session?.username ?? "ورود و ثبت‌نام"}
             detail={
               session

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import type { FeaturedPlaylist } from "@/lib/featured";
+import { TILE_CLASS, tileFor } from "@/lib/tile";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,7 +25,12 @@ export function PlaylistCard({
       params={{ id: playlist.id }}
       className={cn("panel press block overflow-hidden text-right", className)}
     >
-      <div className="media-tile grid place-items-center bg-gradient-to-br from-ios-indigo/70 to-ios-purple/40 text-5xl">
+      <div
+        className={cn(
+          "media-tile grid place-items-center text-5xl",
+          TILE_CLASS[tileFor(playlist.id)],
+        )}
+      >
         <span aria-hidden>{playlist.emoji}</span>
       </div>
       <div className="p-3">

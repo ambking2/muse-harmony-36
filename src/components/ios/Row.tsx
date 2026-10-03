@@ -4,28 +4,34 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
-/** The system colours a row's icon tile can take, named as Apple names them. */
+/** The colours a row's icon tile can take, named after the colour itself —
+ *  the tiles are the palette, not a system, so the name has to be the one a
+ *  designer would say out loud. */
 export type RowTone =
-  | "tint"
-  | "green"
-  | "orange"
+  | "blue"
+  | "cyan"
+  | "sky"
+  | "violet"
+  | "rose"
   | "red"
-  | "indigo"
-  | "purple"
-  | "teal"
-  | "pink"
-  | "gray";
+  | "orange"
+  | "amber"
+  | "green"
+  | "lime"
+  | "slate";
 
 const TONES: Record<RowTone, string> = {
-  tint: "bg-ios-tint",
-  green: "bg-ios-green",
-  orange: "bg-ios-orange",
-  red: "bg-ios-red",
-  indigo: "bg-ios-indigo",
-  purple: "bg-ios-purple",
-  teal: "bg-ios-teal",
-  pink: "bg-ios-pink",
-  gray: "bg-ios-fill-strong",
+  blue: "bg-tile-blue",
+  cyan: "bg-tile-cyan",
+  sky: "bg-tile-sky",
+  violet: "bg-tile-violet",
+  rose: "bg-tile-rose",
+  red: "bg-tile-red",
+  orange: "bg-tile-orange",
+  amber: "bg-tile-amber",
+  green: "bg-tile-green",
+  lime: "bg-tile-lime",
+  slate: "bg-tile-slate",
 };
 
 /**
@@ -46,7 +52,7 @@ export function Row({
   detail,
   value,
   icon: Icon,
-  tone = "tint",
+  tone = "blue",
   to,
   onClick,
   accessory,

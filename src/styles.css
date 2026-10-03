@@ -98,6 +98,19 @@
   --color-ios-purple: var(--ios-purple);
   --color-ios-teal: var(--ios-teal);
   --color-ios-pink: var(--ios-pink);
+  /* The vivid tile palette — see the block in :root for why it is separate
+     from the system colours. */
+  --color-tile-blue: var(--tile-blue);
+  --color-tile-cyan: var(--tile-cyan);
+  --color-tile-sky: var(--tile-sky);
+  --color-tile-violet: var(--tile-violet);
+  --color-tile-rose: var(--tile-rose);
+  --color-tile-red: var(--tile-red);
+  --color-tile-orange: var(--tile-orange);
+  --color-tile-amber: var(--tile-amber);
+  --color-tile-green: var(--tile-green);
+  --color-tile-lime: var(--tile-lime);
+  --color-tile-slate: var(--tile-slate);
 }
 
 :root {
@@ -135,6 +148,30 @@
   --ios-purple: oklch(0.56 0.21 305);
   --ios-teal: oklch(0.65 0.12 195);
   --ios-pink: oklch(0.655 0.235 350);
+
+  /* --- The tiles -------------------------------------------------------
+     The coloured squares a row's icon sits on, and the flat colour a song's
+     artwork falls back to. These are deliberately *not* the system colours
+     above: a tile is a small block of pure colour with a white glyph on it, and
+     Apple's system tints are built to be read as text on a grouped background,
+     not to fill a square — muted enough for a label, too soft for a chip.
+
+     Every value is dark enough that white stays legible on it (3.5:1 or
+     better, the non-text minimum with room to spare). That is why they read
+     deeper than the hex they were picked from: the vivid samples all failed
+     against white until their lightness came down, and the hues are what the
+     eye actually remembers. */
+  --tile-blue: oklch(0.579 0.196 265.2);
+  --tile-cyan: oklch(0.607 0.117 208.6);
+  --tile-sky: oklch(0.619 0.165 245.9);
+  --tile-violet: oklch(0.643 0.19 300);
+  --tile-rose: oklch(0.645 0.17 10);
+  --tile-red: oklch(0.623 0.186 24.6);
+  --tile-orange: oklch(0.639 0.177 50.2);
+  --tile-amber: oklch(0.63 0.151 71.9);
+  --tile-green: oklch(0.602 0.208 143.6);
+  --tile-lime: oklch(0.61 0.17 130);
+  --tile-slate: oklch(0.55 0.02 250);
 
   /* --- Legacy shadcn tokens, now expressed in iOS terms ----------------- */
   --background: var(--ios-grouped);
@@ -319,6 +356,38 @@
   font-weight: 400;
 }
 
+/*
+ * The pointer light, smoothed.
+ *
+ * `--mx` / `--my` are written once per animation frame by `usePointerLight`,
+ * which is as fast as the display but faster than a glass highlight should
+ * move: a specular edge follows the cursor with a little weight to it, and
+ * lands just behind it.
+ *
+ * Registering the two as typed lengths is what makes that possible. A custom
+ * property is otherwise an untyped token and cannot be transitioned at all;
+ * declared as `<length-percentage>` the browser interpolates it, so the
+ * highlight eases into place instead of snapping. The percentage initial value
+ * is the same midpoint the gradient already fell back to before the pointer
+ * had moved anywhere. Where `@property` is unsupported the declaration is
+ * simply ignored and the light still works, just directly.
+ *
+ * These live at the top level, not inside a style rule: `@property` is an
+ * at-rule, and nesting one is a parse error rather than a silently ignored
+ * rule — it takes the whole stylesheet down with it.
+ */
+@property --mx {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --my {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -328,6 +397,17 @@
      reach for a local one — the motion has to feel like a single system. */
   :root {
     --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+
+    /* The pointer light trails the cursor by a couple of frames instead of
+       snapping to it. Reduced Motion turns the trail off rather than leaving
+       the light behind. */
+    transition: --mx 260ms var(--ease-ios), --my 260ms var(--ease-ios);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      transition: none;
+    }
   }
 
   html, body, #root {

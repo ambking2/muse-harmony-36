@@ -107,7 +107,7 @@ function FavoritesPage() {
                   <Row
                     key={artist}
                     icon={Mic2}
-                    tone="pink"
+                    tone="rose"
                     label={artist}
                     to={`/artist/${encodeURIComponent(artist)}`}
                   />

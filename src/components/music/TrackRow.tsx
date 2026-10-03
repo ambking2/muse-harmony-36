@@ -61,7 +61,15 @@ export function TrackRow({
     : `${(index ?? 0) + 1}. ${track.name} — ${track.artist.join("، ")}`;
 
   return (
-    <div className="panel flex items-center gap-1 pr-1 pl-3">
+    <div
+      className={cn(
+        "panel flex items-center gap-1 pr-1 pl-3",
+        // The playing row settles into a faint wash of the app's own tint and
+        // lets go of it when it stops — a state change you can see across the
+        // room, animated by a colour transition rather than a re-render.
+        active && "bg-ios-tint/8",
+      )}
+    >
       <button
         type="button"
         onClick={toggle}
@@ -81,7 +89,14 @@ export function TrackRow({
           <Artwork
             track={track}
             size={96}
-            className={cn("shrink-0", compact ? "size-10" : "size-12")}
+            className={cn(
+              "shrink-0 transition-[transform,box-shadow] duration-300 ease-[var(--ease-ios)]",
+              compact ? "size-10" : "size-12",
+              // The current track's artwork lifts very slightly and takes a ring
+              // in the tint: enough to find it while scrolling, not enough to
+              // make the list look decorated.
+              active && "scale-105 shadow-[0_0_0_2px_var(--color-ios-tint)]",
+            )}
             rounded="rounded-lg"
           />
         )}

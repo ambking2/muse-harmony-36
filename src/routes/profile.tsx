@@ -82,7 +82,7 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={UserRound}
-                  tone="tint"
+                  tone="blue"
                   label={session?.username ?? "ورود و ثبت‌نام"}
                   detail={
                     session
@@ -102,7 +102,7 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={Music}
-                  tone="orange"
+                  tone="amber"
                   label="در کتابخانه"
                   detail="هر چیزی که ذخیره کرده‌اید"
                   to="/library"
@@ -111,7 +111,7 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={Heart}
-                  tone="pink"
+                  tone="rose"
                   label="علاقه‌مندی‌ها"
                   detail="آهنگ‌ها و خواننده‌های دوست‌داشتنی"
                   to="/favorites"
@@ -120,7 +120,7 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={ListMusic}
-                  tone="purple"
+                  tone="sky"
                   label="پلی‌لیست‌ها"
                   detail="مجموعه‌هایی که خودتان ساخته‌اید"
                   to="/library"
@@ -129,7 +129,7 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={HardDrive}
-                  tone="teal"
+                  tone="cyan"
                   label="پخش آفلاین"
                   detail={
                     offlineSize > 0
@@ -150,15 +150,15 @@ function ProfilePage() {
                 <Row
                   plain
                   icon={Sparkles}
-                  tone="indigo"
+                  tone="violet"
                   label="آهنگ پخش‌شده"
                   value={fa(history.length)}
                 />
-                <Row plain icon={Clock} tone="gray" label="روز فعال" value={fa(activeDays)} />
+                <Row plain icon={Clock} tone="slate" label="روز فعال" value={fa(activeDays)} />
                 <Row
                   plain
                   icon={Mic2}
-                  tone="green"
+                  tone="lime"
                   label="خواننده‌های دنبال‌شده"
                   to="/favorites"
                   value={fa(favoriteArtists.length)}
@@ -171,10 +171,10 @@ function ProfilePage() {
             <section className="card">
               <GroupTitle>دسترسی سریع</GroupTitle>
               <div className="inset-divided">
-                <Row plain icon={Search} tone="tint" label="جستجوی آهنگ" to="/explore" />
-                <Row plain icon={Disc3} tone="purple" label="کتابخانه و پلی‌لیست" to="/library" />
-                <Row plain icon={Download} tone="teal" label="پخش آفلاین" to="/downloads" />
-                <Row plain icon={SettingsIcon} tone="gray" label="تنظیمات" to="/settings" />
+                <Row plain icon={Search} tone="blue" label="جستجوی آهنگ" to="/explore" />
+                <Row plain icon={Disc3} tone="sky" label="کتابخانه و پلی‌لیست" to="/library" />
+                <Row plain icon={Download} tone="cyan" label="پخش آفلاین" to="/downloads" />
+                <Row plain icon={SettingsIcon} tone="slate" label="تنظیمات" to="/settings" />
               </div>
             </section>
           </Reveal>
