@@ -73,7 +73,20 @@ function ProfilePage() {
 
   return (
     <AppShell>
-      <Screen\n        title="پروفایل"\n        subtitle={session?.username ?? "مهمان"}\n        actions={\n          <Link\n            to="/settings"\n            className="btn btn-gray h-9 min-h-9 px-3 text-sm"\n            aria-label="تنظیمات"\n          >\n            <SettingsIcon className="size-4" strokeWidth={2} />\n            تنظیمات\n          </Link>\n        }\n      >
+      <Screen
+        title="پروفایل"
+        subtitle={session?.username ?? "مهمان"}
+        actions={
+          <Link
+            to="/settings"
+            className="btn btn-gray h-9 min-h-9 px-3 text-sm"
+            aria-label="تنظیمات"
+          >
+            <SettingsIcon className="size-4" strokeWidth={2} />
+            تنظیمات
+          </Link>
+        }
+      >
         <div className="space-y-4">
           <Reveal index={0}>
             <section className="card">
