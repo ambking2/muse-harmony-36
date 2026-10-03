@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-import { RecognizeSong } from "@/components/home/RecognizeSong";
 import { useMounted } from "@/hooks/use-mounted";
 import { standard } from "@/lib/design/motion";
 
@@ -28,7 +27,6 @@ export function HomeHero() {
           <Search className="size-4 shrink-0" strokeWidth={2.5} />
           <span className="type-body">جستجوی آهنگ، خواننده یا آلبوم</span>
         </Link>
-        <RecognizeSong />
       </div>
     </motion.section>
   );
