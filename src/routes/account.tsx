@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Check, Copy, Globe, Link2, Lock, LogOut, Trash2, UserRound } from "lucide-react";
+import { Check, Copy, Globe, Link2, Lock, LogOut, Settings, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -35,7 +35,7 @@ function AccountPage() {
   if (isPending) {
     return (
       <AppShell>
-        <Screen title="حساب کاربری" back={{ to: "/profile" }}>
+        <Screen\n          title="حساب کاربری"\n          back={{ to: "/profile" }}\n          actions={\n            <Link\n              to="/settings"\n              className="btn btn-gray h-9 min-h-9 px-3 text-sm"\n              aria-label="تنظیمات"\n            >\n              <Settings className="size-4" strokeWidth={2} />\n              تنظیمات\n            </Link>\n          }\n        >
           <p className="type-body py-16 text-center text-ios-label-secondary">در حال بررسی…</p>
         </Screen>
       </AppShell>
