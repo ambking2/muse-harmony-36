@@ -10,6 +10,7 @@ import { Screen } from "@/components/ios/Screen";
 import { SearchField } from "@/components/ios/SearchField";
 import { Section } from "@/components/ios/Section";
 import { CollectionRail, EntityRail, LaneRail } from "@/components/search/Rails";
+import { RecognizeSearchCard } from "@/components/search/RecognizeSearchCard";
 import { IdleScreen } from "@/components/search/IdleScreen";
 import { TrackRow } from "@/components/music/TrackRow";
 import { searchSmart } from "@/lib/gdmusic";
@@ -148,6 +149,8 @@ function Explore() {
             placeholder="نام آهنگ، خواننده یا آلبوم"
           />
         </div>
+
+        <RecognizeSearchCard />
 
         {!debounced.trim() ? (
           <div className="mt-6">
