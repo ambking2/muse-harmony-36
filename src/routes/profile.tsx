@@ -7,6 +7,7 @@ import {
   HardDrive,
   Heart,
   ListMusic,
+  LogOut,
   Mic2,
   Music,
   Search,
@@ -21,8 +22,16 @@ import { Reveal } from "@/components/ios/Reveal";
 import { Row } from "@/components/ios/Row";
 import { Screen } from "@/components/ios/Screen";
 import { useLibrary } from "@/stores/library";
-import { useSession } from "@/lib/account";
+import { accountApi, useSession } from "@/lib/account";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatBytes } from "@/lib/gdmusic";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage });
 
@@ -62,6 +71,16 @@ function ProfilePage() {
   const history = useLibrary((state) => state.history);
   const favoriteArtists = useLibrary((state) => state.favoriteArtists);
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  const handleLogout = async () => {
+    try {
+      await accountApi.logout();
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
+    } catch {
+      // Keep the menu responsive; the session query remains the source of truth.
+    }
+  };
 
   const fa = (value: number) => value.toLocaleString("fa-IR");
   const offline = downloads.filter((item) => item.status === "done");
@@ -73,20 +92,7 @@ function ProfilePage() {
 
   return (
     <AppShell>
-      <Screen
-        title="پروفایل"
-        subtitle={session?.username ?? "مهمان"}
-        actions={
-          <Link
-            to="/settings"
-            className="btn btn-gray h-9 min-h-9 px-3 text-sm"
-            aria-label="تنظیمات"
-          >
-            <SettingsIcon className="size-4" strokeWidth={2} />
-            تنظیمات
-          </Link>
-        }
-      >
+      <Screen title="پروفایل" subtitle={session?.username ?? "مهمان"}>
         <div className="space-y-4">
           <Reveal index={0}>
             <section className="card">
@@ -103,13 +109,47 @@ function ProfilePage() {
                       : "با ورود، پلی‌لیست‌ها و علاقه‌مندی‌ها بین دستگاه‌هایتان می‌آیند"
                   }
                   accessory={
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full text-ios-label-secondary" aria-hidden>
-                      <span className="flex gap-1">
-                        <span className="size-1 rounded-full bg-current" />
-                        <span className="size-1 rounded-full bg-current" />
-                        <span className="size-1 rounded-full bg-current" />
-                      </span>
-                    </span>
+                    <DropdownMenu dir="rtl">
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="grid size-9 shrink-0 place-items-center rounded-full text-ios-label-secondary transition-colors hover:bg-ios-fill active:scale-95"
+                          aria-label="گزینه‌های حساب"
+                        >
+                          <span className="flex gap-1" aria-hidden>
+                            <span className="size-1 rounded-full bg-current" />
+                            <span className="size-1 rounded-full bg-current" />
+                            <span className="size-1 rounded-full bg-current" />
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-48 rounded-2xl p-1.5">
+                        <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                          <Link to="/account">
+                            <UserRound className="size-4" />
+                            حساب کاربری
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                          <Link to="/settings">
+                            <SettingsIcon className="size-4" />
+                            تنظیمات
+                          </Link>
+                        </DropdownMenuItem>
+                        {session && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="rounded-xl py-2.5 text-red-500 focus:text-red-500"
+                              onSelect={() => void handleLogout()}
+                            >
+                              <LogOut className="size-4" />
+                              خروج از حساب
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   }
                 />              </div>
             </section>
