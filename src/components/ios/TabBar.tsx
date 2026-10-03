@@ -60,15 +60,6 @@ function TabLink({ item, active }: { item: (typeof TAB_ITEMS)[number]; active: b
       aria-current={active ? "page" : undefined}
       className="relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1"
     >
-      {active && (
-        <motion.span
-          layoutId="tab-indicator"
-          transition={morph}
-          className="absolute inset-x-0 bottom-1 mx-auto h-1 w-5 rounded-full bg-ios-tint"
-          aria-hidden
-        />
-      )}
-
       <motion.span
         aria-hidden
         animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
