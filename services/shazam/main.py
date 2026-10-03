@@ -1,5 +1,7 @@
 import os
 import logging
+import subprocess
+import tempfile
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
@@ -17,16 +19,13 @@ ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ShazamIO manages its own aiohttp connection pool per recognition request.
     yield
-
 
 app = FastAPI(
     title="Muse Harmony Shazam Recognition",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
     docs_url=None,
     redoc_url=None,
@@ -40,13 +39,11 @@ app.add_middleware(
     allow_headers=["content-type", "x-muse-shazam-key"],
 )
 
-
 def require_api_key(provided: str | None) -> None:
     if not API_KEY:
         raise HTTPException(status_code=503, detail="Recognition service is not configured")
     if not provided or provided != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
-
 
 def normalize_result(payload: dict) -> dict:
     track = payload.get("track") or {}
@@ -80,11 +77,44 @@ def normalize_result(payload: dict) -> dict:
         "genres": track.get("genres", {}).get("primary", ""),
     }
 
+def convert_to_wav(data: bytes) -> bytes:
+    with tempfile.TemporaryDirectory() as tmp:
+        source = os.path.join(tmp, "input.webm")
+        target = os.path.join(tmp, "output.wav")
+
+        with open(source, "wb") as file:
+            file.write(data)
+
+        process = subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                source,
+                "-ac",
+                "1",
+                "-ar",
+                "44100",
+                "-sample_fmt",
+                "s16",
+                target,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=15,
+            check=False,
+        )
+
+        if process.returncode != 0:
+            logger.error("ffmpeg conversion failed: %s", process.stderr.decode(errors="replace"))
+            raise HTTPException(status_code=422, detail="Could not decode audio")
+
+        with open(target, "rb") as file:
+            return file.read()
 
 @app.get("/health")
 async def health():
     return {"ok": True, "service": "muse-shazam"}
-
 
 @app.post("/api/recognize")
 async def recognize(
@@ -104,9 +134,17 @@ async def recognize(
         raise HTTPException(status_code=413, detail="Audio file exceeds the 12 MB limit")
 
     try:
+        wav_data = convert_to_wav(data)
+
         async with Shazam() as shazam:
-            result = await shazam.recognize(data)
+            result = await shazam.recognize(wav_data)
+
         return normalize_result(result)
+    except HTTPException:
+        raise
     except Exception:
         logger.exception("Shazam recognition failed")
-        raise HTTPException(status_code=502, detail="Could not recognize this audio right now") from None
+        raise HTTPException(
+            status_code=502,
+            detail="Could not recognize this audio right now",
+        ) from None
