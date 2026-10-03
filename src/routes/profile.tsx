@@ -102,9 +102,16 @@ function ProfilePage() {
                       ? "پلی‌لیست‌ها و علاقه‌مندی‌ها با حساب شما همگام می‌شوند"
                       : "با ورود، پلی‌لیست‌ها و علاقه‌مندی‌ها بین دستگاه‌هایتان می‌آیند"
                   }
-                  to="/account"
-                />
-              </div>
+                  accessory={
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full text-ios-label-secondary" aria-hidden>
+                      <span className="flex gap-1">
+                        <span className="size-1 rounded-full bg-current" />
+                        <span className="size-1 rounded-full bg-current" />
+                        <span className="size-1 rounded-full bg-current" />
+                      </span>
+                    </span>
+                  }
+                />              </div>
             </section>
           </Reveal>
 
