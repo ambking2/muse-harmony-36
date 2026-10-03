@@ -978,3 +978,38 @@
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 }
+
+
+/* --- Telegram-inspired dark palette -----------------------------------
+   Keep the existing iOS geometry and components; only shift the dark
+   appearance toward Telegram's deep blue-gray surfaces and bright blue
+   accent. */
+.dark {
+  --ios-label: oklch(0.98 0.005 250);
+  --ios-label-secondary: oklch(0.70 0.025 250);
+  --ios-label-tertiary: oklch(0.52 0.025 250);
+
+  /* Telegram-style deep navy page + blue-gray grouped surfaces. */
+  --ios-grouped: oklch(0.20 0.025 250);
+  --ios-surface: oklch(0.245 0.03 250);
+  --ios-surface-raised: oklch(0.285 0.035 250);
+  --ios-material: oklch(0.20 0.025 250 / 0.88);
+
+  --ios-separator: oklch(1 0 0 / 0.085);
+  --ios-fill: oklch(1 0 0 / 0.075);
+  --ios-fill-soft: oklch(1 0 0 / 0.045);
+  --ios-fill-strong: oklch(1 0 0 / 0.13);
+
+  /* Telegram blue accent. */
+  --ios-tint: oklch(0.68 0.17 235);
+  --accent: oklch(0.68 0.17 235 / 0.17);
+  --ring: oklch(0.68 0.17 235 / 0.58);
+  --sidebar-ring: oklch(0.68 0.17 235 / 0.58);
+  --primary: var(--ios-tint);
+  --accent-foreground: var(--ios-tint);
+
+  --popover: oklch(0.245 0.03 250 / 0.96);
+
+  --panel-shadow: 0 8px 24px oklch(0.05 0.02 250 / 0.30);
+  --floating-shadow: 0 12px 36px oklch(0.04 0.02 250 / 0.46);
+}
