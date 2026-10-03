@@ -136,13 +136,18 @@ function Explore() {
   return (
     <AppShell>
       <Screen title="جستجو" subtitle="نام فارسی، لاتین یا بخشی از ترانه">
-        <SearchField
-          value={query}
-          onChange={setQuery}
-          inputRef={inputRef}
-          placeholder="نام آهنگ، خواننده یا آلبوم"
-          className="mt-4"
-        />
+        {/* The field follows the user down the page. Results are long, and the
+            one control worth having in the hand while reading them is the one
+            that changes them — so it rides above the list on a frosted bar
+            that lets rows pass under it, rather than scrolling away. */}
+        <div className="sticky top-2 z-30 -mx-4 mt-4 bg-ios-grouped/80 px-4 py-2 backdrop-blur-xl">
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            inputRef={inputRef}
+            placeholder="نام آهنگ، خواننده یا آلبوم"
+          />
+        </div>
 
         {!debounced.trim() ? (
           <div className="mt-6">

@@ -1,4 +1,4 @@
-import { Clock, Mic2, Search, Sparkles } from "lucide-react";
+import { ArrowUpLeft, Clock, Mic2, Search, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { Row } from "@/components/ios/Row";
@@ -12,7 +12,14 @@ import { featuredIranianArtists } from "@/lib/aliases";
  * Three ways in, in the order a listener reaches for them: a voice they already
  * follow, something they searched for recently, and a term to try. Everything
  * here is a shortcut — one tap starts a search.
+ *
+ * Recent searches are capped at five. The list is a doorway, not an archive:
+ * the sixth search down is a coincidence, and a page that grows without bound
+ * pushes the suggestions that still matter off the screen. Whatever is behind
+ * the cap is one tap away on its own page.
  */
+const RECENT_LIMIT = 5;
+
 export function IdleScreen({
   suggestions,
   onPick,
@@ -22,8 +29,9 @@ export function IdleScreen({
   onPick: (query: string) => void;
 }) {
   const searchHistory = useLibrary((state) => state.searchHistory);
-  const clearSearchHistory = useLibrary((state) => state.clearSearchHistory);
   const artists = featuredIranianArtists(12);
+  const recent = searchHistory.slice(0, RECENT_LIMIT);
+  const older = searchHistory.length - recent.length;
 
   return (
     <>
@@ -45,22 +53,38 @@ export function IdleScreen({
         title="جستجوهای اخیر"
         action={
           searchHistory.length > 0 ? (
-            <button
-              type="button"
-              onClick={clearSearchHistory}
+            <Link
+              to="/search-history"
               className="press type-footnote rounded-lg px-2 py-2 text-ios-tint"
             >
-              پاک کردن همه
-            </button>
+              همه
+            </Link>
           ) : undefined
         }
       >
         {searchHistory.length === 0 ? (
           <Row icon={Clock} tone="gray" label="هنوز جستجویی نکرده‌اید" />
         ) : (
-          searchHistory.map((query) => (
-            <Row key={query} icon={Clock} tone="gray" label={query} onClick={() => onPick(query)} />
-          ))
+          <>
+            {recent.map((query) => (
+              <Row
+                key={query}
+                icon={Clock}
+                tone="gray"
+                label={query}
+                onClick={() => onPick(query)}
+              />
+            ))}
+            {older > 0 && (
+              <Row
+                icon={ArrowUpLeft}
+                tone="tint"
+                label="همه‌ی جستجوها"
+                detail={`${searchHistory.length.toLocaleString("fa-IR")} جستجوی ثبت‌شده`}
+                to="/search-history"
+              />
+            )}
+          </>
         )}
       </Section>
 

@@ -159,7 +159,10 @@ export function LoadingButton({
       data-status={status}
       className={cn(
         loadingButtonVariants({ variant }),
-        "data-[status=success]:bg-success data-[status=success]:text-primary-foreground",
+        // The confirmation is the app's own tint, not the system green: one
+        // accent for "it worked", so a finished action never reads as a
+        // different kind of state from the one that started it.
+        "data-[status=success]:bg-ios-tint data-[status=success]:text-white",
         className,
       )}
       {...props}

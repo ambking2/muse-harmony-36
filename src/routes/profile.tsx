@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { GroupTitle } from "@/components/ios/GroupTitle";
 import { Reveal } from "@/components/ios/Reveal";
 import { Row } from "@/components/ios/Row";
 import { Screen } from "@/components/ios/Screen";
@@ -204,18 +205,5 @@ function ProfilePage() {
         </div>
       </Screen>
     </AppShell>
-  );
-}
-
-/** A group's name at the top of its card — small, tinted, with an optional
- *  value on the far edge. The only thing that names the rows below it. */
-function GroupTitle({ children, value }: { children: ReactNode; value?: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 px-4 pb-1 pt-4">
-      <h2 className="type-footnote font-semibold text-ios-tint">{children}</h2>
-      {value !== undefined && (
-        <span className="type-footnote shrink-0 text-ios-label-secondary">{value}</span>
-      )}
-    </div>
   );
 }
