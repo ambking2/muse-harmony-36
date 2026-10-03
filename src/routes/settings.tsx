@@ -77,7 +77,7 @@ function SettingsPage() {
                   checked={theme === "dark"}
                   onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                   aria-label="حالت تاریک"
-                  className="relative h-8 w-14 border-0 bg-ios-fill data-[state=checked]:bg-ios-green after:absolute after:-inset-1 after:content-[''] [&>span]:h-7 [&>span]:w-7 [&>span]:bg-white data-[state=checked]:[&>span]:translate-x-6"
+                  className="relative h-8 w-14 border-0 bg-ios-fill data-[state=checked]:bg-ios-green after:absolute after:-inset-1 after:content-[''] [&>span]:h-7 [&>span]:w-7 [&>span]:bg-white data-[state=checked]:[&>span]:-translate-x-6"
                 />
               }
             />
@@ -91,7 +91,7 @@ function SettingsPage() {
                   checked={glass === "on"}
                   onCheckedChange={(checked) => setGlassMode(checked ? "on" : "off")}
                   aria-label="حالت شیشه‌ای"
-                  className="relative h-8 w-14 border-0 bg-ios-fill data-[state=checked]:bg-ios-green after:absolute after:-inset-1 after:content-[''] [&>span]:h-7 [&>span]:w-7 [&>span]:bg-white data-[state=checked]:[&>span]:translate-x-6"
+                  className="relative h-8 w-14 border-0 bg-ios-fill data-[state=checked]:bg-ios-green after:absolute after:-inset-1 after:content-[''] [&>span]:h-7 [&>span]:w-7 [&>span]:bg-white data-[state=checked]:[&>span]:-translate-x-6"
                 />
               }
             />
