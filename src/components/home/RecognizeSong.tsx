@@ -32,7 +32,16 @@ export function RecognizeSong() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "";
+
+      const recorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined,
+      );
       chunksRef.current = [];
 
       recorder.ondataavailable = (event) => {
@@ -55,7 +64,7 @@ export function RecognizeSong() {
 
       window.setTimeout(() => {
         if (recorder.state === "recording") recorder.stop();
-      }, 7000);
+      }, 10000);
     } catch {
       setError("دسترسی به میکروفون داده نشد.");
     }
@@ -73,19 +82,36 @@ export function RecognizeSong() {
     setBusy(true);
     try {
       const form = new FormData();
-      form.append("audio", blob, "recognition.webm");
+      const extension = blob.type.includes("webm") ? "webm" : "audio";
+      form.append("audio", blob, `recognition.${extension}`);
 
       const response = await fetch("/api/shazam", {
         method: "POST",
         body: form,
       });
+
       const data = (await response.json()) as {
         matched?: boolean;
         title?: string;
         artist?: string;
+        error?: string;
+        detail?: string;
       };
 
-      if (!response.ok || !data.matched || !data.title) {
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError("سرویس تشخیص آهنگ به‌درستی تنظیم نشده است.");
+        } else if (response.status === 503) {
+          setError("سرویس تشخیص آهنگ موقتاً در دسترس نیست.");
+        } else if (response.status === 502) {
+          setError("ارتباط با سرویس تشخیص آهنگ برقرار نشد.");
+        } else {
+          setError(data.detail || data.error || "تشخیص آهنگ انجام نشد.");
+        }
+        return;
+      }
+
+      if (!data.matched || !data.title) {
         setError("نتونستم آهنگ رو تشخیص بدم.");
         return;
       }
@@ -105,7 +131,7 @@ export function RecognizeSong() {
 
       setResult({ title, artist, track });
     } catch {
-      setError("تشخیص آهنگ انجام نشد. دوباره امتحان کنید.");
+      setError("ارتباط با سرویس تشخیص آهنگ برقرار نشد.");
     } finally {
       setBusy(false);
       setRecording(false);
