@@ -35,7 +35,20 @@ function AccountPage() {
   if (isPending) {
     return (
       <AppShell>
-        <Screen\n          title="حساب کاربری"\n          back={{ to: "/profile" }}\n          actions={\n            <Link\n              to="/settings"\n              className="btn btn-gray h-9 min-h-9 px-3 text-sm"\n              aria-label="تنظیمات"\n            >\n              <Settings className="size-4" strokeWidth={2} />\n              تنظیمات\n            </Link>\n          }\n        >
+        <Screen
+          title="حساب کاربری"
+          back={{ to: "/profile" }}
+          actions={
+            <Link
+              to="/settings"
+              className="btn btn-gray h-9 min-h-9 px-3 text-sm"
+              aria-label="تنظیمات"
+            >
+              <Settings className="size-4" strokeWidth={2} />
+              تنظیمات
+            </Link>
+          }
+        >
           <p className="type-body py-16 text-center text-ios-label-secondary">در حال بررسی…</p>
         </Screen>
       </AppShell>
