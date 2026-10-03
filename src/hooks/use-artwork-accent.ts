@@ -5,11 +5,13 @@ import { usePlayer } from "@/stores/player";
 /**
  * Derives a dominant colour from the current track's artwork and publishes it
  * as `--track-accent` so the UI can tint itself per-song (ambient glow,
- * now-playing gradient, progress bars). Falls back to the theme pink whenever
- * the artwork is missing, CORS-blocked, or fails to decode.
+ * now-playing gradient, progress bars). The artwork URL itself is published as
+ * `--track-art`, which is what the blurred background layer behind the glass
+ * panels is made of. Falls back to the theme indigo whenever the artwork is
+ * missing, CORS-blocked, or fails to decode.
  */
 
-const FALLBACK = "oklch(0.78 0.17 320)";
+const FALLBACK = "oklch(0.55 0.17 280)";
 
 const cache = new Map<string, string>();
 
@@ -127,15 +129,20 @@ export function useArtworkAccent() {
 
   useEffect(() => {
     let cancelled = false;
+    const root = document.documentElement;
     if (!url) {
-      document.documentElement.style.setProperty("--track-accent", FALLBACK);
+      root.style.setProperty("--track-accent", FALLBACK);
+      root.style.setProperty("--track-art", "none");
       setAccent(null);
       return;
     }
     dominantColor(url).then((color) => {
       if (cancelled) return;
       const value = color ?? FALLBACK;
-      document.documentElement.style.setProperty("--track-accent", value);
+      root.style.setProperty("--track-accent", value);
+      // Quoted url() so a path with spaces or parentheses in it cannot break
+      // the declaration.
+      root.style.setProperty("--track-art", `url("${url}")`);
       setAccent(color);
     });
     return () => {

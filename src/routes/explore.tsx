@@ -1,101 +1,91 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { AppShell, PageHeader } from "@/components/layout/AppShell";
-import { getPicUrl, picKey, searchSmart } from "@/lib/gdmusic";
+import { Loader2, Play, Search, Shuffle, WifiOff } from "lucide-react";
+
+import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
+import { Screen } from "@/components/ios/Screen";
+import { SearchField } from "@/components/ios/SearchField";
+import { Section } from "@/components/ios/Section";
+import { CollectionRail, EntityRail, LaneRail } from "@/components/search/Rails";
+import { IdleScreen } from "@/components/search/IdleScreen";
+import { TrackRow } from "@/components/music/TrackRow";
+import { searchSmart } from "@/lib/gdmusic";
 import { isIranianTrack } from "@/lib/search";
 import { hasPersianScript } from "@/lib/text";
-import { featuredIranianArtists, suggestAliases } from "@/lib/aliases";
-import { FEATURED_PLAYLISTS } from "@/lib/featured";
+import { suggestAliases } from "@/lib/aliases";
 import type { Track } from "@/lib/types";
-import { TrackRow } from "@/components/music/TrackRow";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
-import {
-  Search,
-  X,
-  Clock,
-  Loader2,
-  Mic2,
-  ListMusic,
-  Sparkles,
-  Play,
-  Shuffle,
-  TrendingUp,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const searchSchema = z.object({
-  q: z.string().optional(),
-});
+const searchSchema = z.object({ q: z.string().optional() });
 
 export const Route = createFileRoute("/explore")({
   validateSearch: (s) => searchSchema.parse(s),
   component: Explore,
 });
 
-/** Seed content for the idle state — Iranian first, then a few global lanes. */
-const LANES: { title: string; query: string; emoji: string }[] = [
+/** Seed content for the idle screen — Iranian first, then a few global lanes. */
+const LANES = [
   { title: "پاپ ایرانی", query: "پاپ ایرانی", emoji: "🎵" },
   { title: "سینمایی ایرانی", query: "موسیقی سینمایی ایرانی", emoji: "🎬" },
   { title: "رپ فارسی", query: "رپ فارسی", emoji: "🎤" },
   { title: "موسیقی بی‌کلام", query: "موسیقی بی کلام", emoji: "🎹" },
   { title: "ترانه‌های قدیمی", query: "ترانه های قدیمی", emoji: "📻" },
-  { title: "دسته‌بندی ملایران", query: "علیرضا طلیسچی", emoji: "🌟" },
-];
+  { title: "ملایران", query: "علیرضا طلیسچی", emoji: "🌟" },
+] as const;
 
-/** Number of lane cards fetched on the idle screen — each one is a network call. */
-const LANE_COUNT = 4;
-
-const QUICK = [
-  "محسن یگانه",
-  "بنیامین بهزاد",
-  "گوگوش",
-  "همایون شجری پور",
-  "امیر تتلو",
-  "علیرضا طلیسچی",
-  "The Weeknd",
-  "Taylor Swift",
-];
-
+/**
+ * Search.
+ *
+ * A search field that owns the page, an idle screen full of shortcuts, and
+ * results as one list with the artists and albums found above it. The query
+ * lives in the URL, so a result page can be linked to and the back gesture
+ * returns to the same results.
+ */
 function Explore() {
   const { q: initialQ } = Route.useSearch();
   const navigate = useNavigate({ from: "/explore" });
   const [query, setQuery] = useState(initialQ ?? "");
   const [debounced, setDebounced] = useState(initialQ ?? "");
-
-  const searchHistory = useLibrary((s) => s.searchHistory);
-  const pushSearch = useLibrary((s) => s.pushSearch);
-  const clearSearchHistory = useLibrary((s) => s.clearSearchHistory);
+  const playQueue = usePlayer((state) => state.playQueue);
+  const toggleShuffle = usePlayer((state) => state.toggleShuffle);
+  const pushSearch = useLibrary((state) => state.pushSearch);
 
   // Persian type-ahead. Only shown when the typed text is Persian and the
   // user hasn't already landed on an exact alias, so it never nags.
   const suggestions = useMemo(() => {
     const q = query.trim();
     if (!hasPersianScript(q)) return [];
-    return suggestAliases(q).filter((s) => s.fa.trim() !== q);
+    return suggestAliases(q).filter((alias) => alias.fa.trim() !== q);
   }, [query]);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(query), 320);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebounced(query), 320);
+    return () => clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
     if (!debounced.trim()) return;
     pushSearch(debounced);
-    navigate({ search: (p) => ({ ...p, q: debounced }), replace: true });
+    navigate({ search: (previous) => ({ ...previous, q: debounced }), replace: true });
   }, [debounced, navigate, pushSearch]);
 
   // "/" focuses the search box from anywhere, like every other music app.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      if (e.key === "/") {
-        e.preventDefault();
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+      )
+        return;
+      if (event.key === "/") {
+        event.preventDefault();
         inputRef.current?.focus();
       }
     };
@@ -103,7 +93,7 @@ function Explore() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const infinite = useInfiniteQuery({
+  const results = useInfiniteQuery({
     queryKey: ["explore", debounced],
     enabled: !!debounced.trim(),
     initialPageParam: 1,
@@ -112,28 +102,30 @@ function Explore() {
     staleTime: 5 * 60_000,
   });
 
-  const items = useMemo(() => (infinite.data?.pages ?? []).flat(), [infinite.data]);
+  const items = useMemo(() => (results.data?.pages ?? []).flat(), [results.data]);
   const iranianCount = useMemo(() => items.filter(isIranianTrack).length, [items]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!sentinelRef.current) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && infinite.hasNextPage && !infinite.isFetchingNextPage) {
-        infinite.fetchNextPage();
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && results.hasNextPage && !results.isFetchingNextPage) {
+        results.fetchNextPage();
       }
     });
-    io.observe(sentinelRef.current);
-    return () => io.disconnect();
-  }, [infinite.hasNextPage, infinite.isFetchingNextPage, infinite.fetchNextPage]); // eslint-disable-line
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [results.hasNextPage, results.isFetchingNextPage, results.fetchNextPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Derive artist/album groupings for the "jump to" rail.
+  // Artists and albums worth jumping to, derived once per result set rather
+  // than on every render of the page.
   const groups = useMemo(() => {
     const artists = new Map<string, Track>();
     const albums = new Map<string, Track>();
-    for (const t of items) {
-      for (const a of t.artist ?? []) if (a && !artists.has(a)) artists.set(a, t);
-      if (t.album && !albums.has(t.album)) albums.set(t.album, t);
+    for (const track of items) {
+      for (const artist of track.artist)
+        if (artist && !artists.has(artist)) artists.set(artist, track);
+      if (track.album && !albums.has(track.album)) albums.set(track.album, track);
     }
     return {
       artists: [...artists.entries()].slice(0, 8),
@@ -143,175 +135,110 @@ function Explore() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <PageHeader eyebrow="جستجو" title="کشف موسیقی" />
-
-        <SearchBar
+      <Screen title="جستجو" subtitle="نام فارسی، لاتین یا بخشی از ترانه">
+        <SearchField
+          value={query}
+          onChange={setQuery}
           inputRef={inputRef}
-          query={query}
-          setQuery={setQuery}
-          isLoading={infinite.isLoading}
+          placeholder="نام آهنگ، خواننده یا آلبوم"
+          className="mt-4"
         />
 
-        {suggestions.length > 0 && (
-          <div className="glass -mt-2 flex flex-wrap gap-2 rounded-2xl p-3">
-            <span className="w-full text-[11px] uppercase tracking-widest text-muted-foreground">
-              منظورتان این بود؟
-            </span>
-            {suggestions.map((s) => (
-              <button
-                key={s.latin}
-                onClick={() => setQuery(s.fa)}
-                className="rounded-full bg-white/5 px-3 py-1.5 text-sm transition hover:bg-white/10"
-              >
-                {s.fa}
-              </button>
-            ))}
-          </div>
-        )}
-
         {!debounced.trim() ? (
-          <IdleState
-            history={searchHistory}
-            onPick={setQuery}
-            onClearHistory={clearSearchHistory}
-          />
+          <div className="mt-6">
+            <IdleScreen suggestions={suggestions.map((alias) => alias.fa)} onPick={setQuery} />
+            <LaneRail lanes={LANES} onPick={setQuery} />
+            <CollectionRail />
+          </div>
         ) : (
-          <>
-            <ResultSummary
-              query={debounced}
-              count={items.length}
-              iranianCount={iranianCount}
-              onPlayAll={() => usePlayer.getState().playQueue(items, 0)}
-              onShuffle={() => {
-                usePlayer.getState().playQueue(items, 0);
-                usePlayer.getState().toggleShuffle();
-              }}
-            />
-
-            {infinite.isError && (
+          <div className="mt-6">
+            {results.isError ? (
               <EmptyState
+                icon={WifiOff}
                 title="جستجو انجام نشد"
-                body="ارتباط با سرویس موسیقی برقرار نشد. چند لحظه بعد دوباره تلاش کنید."
+                description="ارتباط با سرویس موسیقی برقرار نشد. چند لحظه بعد دوباره تلاش کنید."
                 action={
                   <button
-                    onClick={() => infinite.refetch()}
-                    className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                    type="button"
+                    onClick={() => results.refetch()}
+                    className="btn btn-filled"
                   >
                     تلاش دوباره
                   </button>
                 }
               />
-            )}
+            ) : (
+              <>
+                <ResultSummary
+                  query={debounced}
+                  count={items.length}
+                  iranianCount={iranianCount}
+                  onPlayAll={() => playQueue(items, 0)}
+                  onShuffle={() => {
+                    playQueue(items, 0);
+                    toggleShuffle();
+                  }}
+                />
 
-            {!infinite.isError && (groups.artists.length > 0 || groups.albums.length > 0) && (
-              <div className="grid gap-4 sm:grid-cols-2">
                 {groups.artists.length > 0 && (
-                  <EntityRail title="خواننده‌ها" icon={Mic2}>
-                    {groups.artists.map(([name, track]) => (
-                      <RailItem
-                        key={name}
-                        href={`/artist/${encodeURIComponent(name)}`}
-                        title={name}
-                        subtitle={`${items.filter((t) => t.artist.includes(name)).length} آهنگ`}
-                        track={track}
-                      />
-                    ))}
-                  </EntityRail>
+                  <EntityRail title="خواننده‌ها" base="/artist" items={groups.artists} />
                 )}
                 {groups.albums.length > 0 && (
-                  <EntityRail title="آلبوم‌ها" icon={ListMusic}>
-                    {groups.albums.map(([name, track]) => (
-                      <RailItem
-                        key={name}
-                        href={`/album/${encodeURIComponent(name)}`}
-                        title={name}
-                        subtitle={track.artist.join("، ")}
-                        track={track}
-                      />
-                    ))}
-                  </EntityRail>
+                  <EntityRail title="آلبوم‌ها" base="/album" items={groups.albums} />
                 )}
-              </div>
-            )}
 
-            <section className="space-y-1">
-              <h3 className="mb-2 text-sm font-semibold text-muted-foreground">آهنگ‌ها</h3>
-              {infinite.isLoading &&
-                Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2">
-                    <div className="skeleton size-12 rounded-lg" />
-                    <div className="flex-1 space-y-2">
-                      <div className="skeleton h-3 w-2/3 rounded" />
-                      <div className="skeleton h-2 w-1/3 rounded" />
-                    </div>
+                <Section title="آهنگ‌ها">
+                  {results.isLoading &&
+                    Array.from({ length: 8 }).map((_, index) => <TrackSkeleton key={index} />)}
+
+                  {items.map((track, index) => (
+                    <TrackRow
+                      key={`${track.source}:${track.id}-${index}`}
+                      track={track}
+                      list={items}
+                      index={index}
+                    />
+                  ))}
+
+                  {!results.isLoading && items.length === 0 && (
+                    <EmptyState
+                      icon={Search}
+                      title="نتیجه‌ای پیدا نشد"
+                      description="املای عبارت را بررسی کنید یا نام خواننده را جداگانه جستجو کنید."
+                    />
+                  )}
+
+                  <div ref={sentinelRef} className="grid h-14 place-items-center">
+                    {results.isFetchingNextPage && (
+                      <Loader2 className="size-5 animate-spin text-ios-label-secondary" />
+                    )}
                   </div>
-                ))}
-              {items.map((t, i) => (
-                <TrackRow key={`${t.source}:${t.id}-${i}`} track={t} list={items} index={i} />
-              ))}
-              {!infinite.isLoading && items.length === 0 && (
-                <EmptyState
-                  title="نتیجه‌ای پیدا نشد"
-                  body="املای عبارت را بررسی کنید یا نام خواننده را جداگانه جستجو کنید."
-                />
-              )}
-              <div ref={sentinelRef} className="flex justify-center py-6">
-                {infinite.isFetchingNextPage && (
-                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                )}
-              </div>
-            </section>
-          </>
+                </Section>
+              </>
+            )}
+          </div>
         )}
-      </div>
+      </Screen>
     </AppShell>
   );
 }
 
-function SearchBar({
-  inputRef,
-  query,
-  setQuery,
-  isLoading,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  query: string;
-  setQuery: (v: string) => void;
-  isLoading: boolean;
-}) {
-  const isFa = hasPersianScript(query);
+/** A placeholder shaped like a real row, so the list does not jump when the
+ *  results land. */
+function TrackSkeleton() {
   return (
-    <div className="glass sticky top-2 z-20 flex items-center gap-2 rounded-2xl border border-white/10 p-2">
-      {isLoading ? (
-        <Loader2 className="ms-2 size-5 shrink-0 animate-spin text-muted-foreground" />
-      ) : (
-        <Search className="ms-2 size-5 shrink-0 text-muted-foreground" />
-      )}
-      <input
-        ref={inputRef}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="نام آهنگ، خواننده یا آلبوم…"
-        enterKeyHint="search"
-        autoComplete="off"
-        autoCorrect="off"
-        spellCheck={false}
-        className="flex-1 bg-transparent px-1 py-2.5 text-base outline-none placeholder:text-muted-foreground"
-      />
-      {query && (
-        <button
-          onClick={() => setQuery("")}
-          className="rounded-full p-2 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
-          aria-label="پاک کردن"
-        >
-          <X className="size-4" />
-        </button>
-      )}
+    <div className="panel flex min-h-14 items-center gap-3 px-3">
+      <div className="skeleton size-12 shrink-0 rounded-lg" />
+      <div className="flex-1 space-y-2">
+        <div className="skeleton h-3 w-2/3 rounded" />
+        <div className="skeleton h-3 w-1/3 rounded" />
+      </div>
     </div>
   );
 }
 
+/** How many results, how many of them Iranian, and the two controls that start
+ *  playing them. */
 function ResultSummary({
   query,
   count,
@@ -326,301 +253,36 @@ function ResultSummary({
   onShuffle: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">
-        <span className="font-semibold text-foreground ltr-nums">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 px-4">
+      <p className="type-subheadline text-ios-label-secondary">
+        <span className="font-semibold text-ios-label ltr-nums">
           {count.toLocaleString("fa-IR")}
         </span>{" "}
         نتیجه برای «{query}»
         {iranianCount > 0 && (
           <>
             {" · "}
-            <span className="text-primary ltr-nums">
-              {iranianCount.toLocaleString("fa-IR")}
-            </span>{" "}
-            اثر ایرانی
+            <span className="ltr-nums text-ios-tint">{iranianCount.toLocaleString("fa-IR")}</span>
+            {" اثر ایرانی"}
           </>
         )}
       </p>
       {count > 0 && (
         <div className="flex gap-2">
-          <button
-            onClick={onPlayAll}
-            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25"
-          >
-            <Play className="size-4" /> پخش همه
+          <button type="button" onClick={onPlayAll} className="btn btn-filled">
+            <Play className="size-4 fill-current" strokeWidth={0} />
+            پخش همه
           </button>
           <button
+            type="button"
             onClick={onShuffle}
-            className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm"
+            className="btn btn-gray"
+            aria-label="پخش تصادفی"
           >
-            <Shuffle className="size-4" /> تصادفی
+            <Shuffle className="size-4" strokeWidth={2} />
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-function EntityRail({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: typeof Mic2;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-2">
-      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-        <Icon className="size-3.5" /> {title}
-      </h3>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">{children}</div>
-    </section>
-  );
-}
-
-function RailItem({
-  href,
-  title,
-  subtitle,
-  track,
-}: {
-  href: string;
-  title: string;
-  subtitle: string;
-  track: Track;
-}) {
-  return (
-    <Link
-      to={href}
-      className="glass flex w-40 shrink-0 items-center gap-3 rounded-2xl p-2 transition hover:bg-white/10"
-    >
-      <TrackThumb track={track} />
-      <div className="min-w-0">
-        <div className="truncate text-sm font-medium">{title}</div>
-        <div className="truncate text-[11px] text-muted-foreground">{subtitle}</div>
-      </div>
-    </Link>
-  );
-}
-
-function TrackThumb({
-  track,
-  className = "size-11 rounded-xl",
-}: {
-  track: Track;
-  className?: string;
-}) {
-  const { data } = useQuery({
-    queryKey: picKey(track.source, track.pic_id, 150),
-    enabled: !!track.pic_id,
-    staleTime: 30 * 60_000,
-    queryFn: () => getPicUrl(track.source, track.pic_id, 150),
-  });
-  return data ? (
-    // A results page can show dozens of these at once; without lazy loading the
-    // browser starts every thumbnail the moment the markup arrives, competing
-    // with the JS and fonts for the same connection.
-    <img
-      src={data}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      className={cn("shrink-0 object-cover", className)}
-    />
-  ) : (
-    <div className={cn("skeleton shrink-0", className)} />
-  );
-}
-
-function IdleState({
-  history,
-  onPick,
-  onClearHistory,
-}: {
-  history: string[];
-  onPick: (q: string) => void;
-  onClearHistory: () => void;
-}) {
-  const artists = featuredIranianArtists(12);
-  return (
-    <div className="space-y-8">
-      <section>
-        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-          <Mic2 className="size-3.5" /> خواننده‌های ایرانی
-        </h3>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {artists.map((a) => (
-            <Link
-              key={a.latin}
-              to="/artist/$name"
-              params={{ name: a.fa }}
-              className="glass flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-white/10"
-            >
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                {a.fa.slice(0, 1)}
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{a.fa}</span>
-                <span className="block truncate text-[11px] text-muted-foreground ltr-nums">
-                  {a.latin}
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-      {history.length > 0 && (
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-muted-foreground">جستجوهای اخیر</h2>
-            <button
-              onClick={onClearHistory}
-              className="text-xs text-muted-foreground transition hover:text-foreground"
-            >
-              پاک کردن
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {history.map((h) => (
-              <button
-                key={h}
-                onClick={() => onPick(h)}
-                className="glass flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
-              >
-                <Clock className="size-3.5 text-muted-foreground" /> {h}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-          <Sparkles className="size-3.5" /> جستجوهای محبوب
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {QUICK.map((p) => (
-            <button
-              key={p}
-              onClick={() => onPick(p)}
-              className="glass rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <Lanes onPick={onPick} />
-      <FeaturedMixes />
-    </div>
-  );
-}
-
-function Lanes({ onPick }: { onPick: (q: string) => void }) {
-  return (
-    <section className="space-y-3">
-      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-        <TrendingUp className="size-3.5" /> حالا این‌ها را گوش کنید
-      </h3>
-      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
-        {LANES.slice(0, LANE_COUNT).map((lane) => (
-          <LaneCard key={lane.title} {...lane} onPick={onPick} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * Hand-curated Iranian collections. Search can find an artist but never the
- * album or playlist around them, so this is the only rail on the page that
- * surfaces music the user did not have to think to ask for.
- */
-function FeaturedMixes() {
-  return (
-    <section className="space-y-3">
-      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-        <ListMusic className="size-3.5" /> پلی‌لیست‌های ایرانی
-      </h3>
-      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
-        {FEATURED_PLAYLISTS.map((p) => (
-          <Link
-            key={p.id}
-            to="/mix/$id"
-            params={{ id: p.id }}
-            className="glass w-52 shrink-0 rounded-2xl p-3 transition hover:bg-white/10"
-          >
-            <div className="relative mb-3 grid aspect-square w-full place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-transparent text-5xl">
-              {p.emoji}
-            </div>
-            <div className="truncate text-sm font-semibold">{p.title}</div>
-            <div className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
-              {p.blurb}
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function LaneCard({
-  title,
-  query,
-  emoji,
-  onPick,
-}: {
-  title: string;
-  query: string;
-  emoji: string;
-  onPick: (q: string) => void;
-}) {
-  const { data } = useQuery({
-    queryKey: ["lane", query],
-    staleTime: 30 * 60_000,
-    queryFn: () => searchSmart(query, { count: 6 }),
-  });
-  const first = data?.[0];
-  return (
-    <button
-      onClick={() => onPick(query)}
-      className="glass group relative w-44 shrink-0 overflow-hidden rounded-2xl p-3 text-right transition hover:bg-white/10"
-    >
-      <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-xl bg-muted">
-        {first ? (
-          <TrackThumb track={first} className="size-full rounded-none" />
-        ) : (
-          <div className="skeleton size-full" />
-        )}
-        <span className="absolute bottom-2 right-2 text-2xl drop-shadow">{emoji}</span>
-      </div>
-      <div className="truncate text-sm font-semibold">{title}</div>
-      <div className="truncate text-[11px] text-muted-foreground">
-        {data?.length ? `${data.length} آهنگ` : "در حال بارگذاری…"}
-      </div>
-    </button>
-  );
-}
-
-function EmptyState({
-  title,
-  body,
-  action,
-}: {
-  title: string;
-  body: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="glass rounded-2xl p-10 text-center">
-      <Search className="mx-auto size-8 text-muted-foreground" />
-      <h3 className="mt-3 font-semibold">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-      {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );
 }

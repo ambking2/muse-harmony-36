@@ -38,8 +38,8 @@ export function QueueSheet() {
 
   return (
     <Drawer open={open} onOpenChange={setOpen} direction="bottom">
-      <DrawerContent className="max-h-[78vh] border-white/10 bg-card/95 backdrop-blur-2xl">
-        <DrawerTitle className="flex items-center justify-between px-5 text-base">
+      <DrawerContent className="material-thick max-h-[78vh] border-ios-separator rounded-b-none">
+        <DrawerTitle className="type-headline flex items-center justify-between px-5">
           <span className="flex items-center gap-2">
             <ListMusic className="size-4 text-primary" />
             صف پخش
@@ -120,7 +120,7 @@ export function QueueSheet() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <h3 className="type-footnote px-2 pb-1 pt-2 font-semibold text-ios-label-secondary">
       {children}
     </h3>
   );

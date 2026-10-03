@@ -1,22 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import {
-  Check,
-  Copy,
-  Globe,
-  Link2,
-  Lock,
-  LogIn,
-  LogOut,
-  ShieldAlert,
-  Trash2,
-  UserPlus,
-  UserRound,
-} from "lucide-react";
+import { Check, Copy, Globe, Link2, Lock, LogOut, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell, BackLink } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
+import { Screen } from "@/components/ios/Screen";
+import { Section } from "@/components/ios/Section";
+import { Segmented } from "@/components/ios/Segmented";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { accountApi, playlistApi, useSession } from "@/lib/account";
 import { cn } from "@/lib/utils";
 
@@ -33,17 +35,20 @@ function AccountPage() {
   if (isPending) {
     return (
       <AppShell>
-        <p className="py-16 text-center text-muted-foreground">در حال بررسی…</p>
+        <Screen title="حساب کاربری" back={{ to: "/profile" }}>
+          <p className="type-body py-16 text-center text-ios-label-secondary">در حال بررسی…</p>
+        </Screen>
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <BackLink />
-        {session?.username ? <SignedIn username={session.username} /> : <SignedOut />}
-      </div>
+      <Screen title="حساب کاربری" back={{ to: "/profile" }}>
+        <div className="pt-4">
+          {session?.username ? <SignedIn username={session.username} /> : <SignedOut />}
+        </div>
+      </Screen>
     </AppShell>
   );
 }
@@ -103,38 +108,27 @@ function SignedOut() {
   };
 
   const field =
-    "w-full rounded-full border border-input bg-background px-5 py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50";
-  const tabs: { id: Mode; label: string; icon: typeof LogIn }[] = [
-    { id: "signin", label: "ورود", icon: LogIn },
-    { id: "signup", label: "ساخت حساب", icon: UserPlus },
-    { id: "recover", label: "رمز را فراموش کرده‌ام", icon: ShieldAlert },
+    "type-body min-h-11 w-full rounded-xl bg-ios-fill px-4 outline-none placeholder:text-ios-label-tertiary focus-visible:ring-2 focus-visible:ring-ios-tint disabled:opacity-50";
+  const tabs: readonly { value: Mode; label: string }[] = [
+    { value: "signin", label: "ورود" },
+    { value: "signup", label: "ساخت حساب" },
+    { value: "recover", label: "بازیابی" },
   ];
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="text-3xl font-black tracking-tight">حساب کاربری</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
+      <p className="type-subheadline text-ios-label-secondary">
         برای همگام‌سازی پلی‌لیست‌ها بین دستگاه‌ها و اشتراک‌گذاری عمومی، حساب بسازید.
       </p>
 
-      <div className="mt-6 grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-xs">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setMode(t.id)}
-            aria-pressed={mode === t.id}
-            className={cn(
-              "rounded-full px-2 py-2 font-medium transition-colors",
-              mode === t.id ? "bg-primary text-primary-foreground" : "hover:bg-accent",
-            )}
-          >
-            <t.icon className="mx-auto mb-1 size-4" />
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        className="mt-4"
+        value={mode}
+        onChange={(value) => setMode(value)}
+        options={tabs}
+      />
 
-      <form onSubmit={submit} className="mt-6 space-y-3">
+      <form onSubmit={submit} className="mt-4 space-y-3">
         <input
           className={field}
           placeholder="نام کاربری"
@@ -160,31 +154,27 @@ function SignedOut() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
         />
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-        >
-          {busy ? "لطفاً صبر کنید…" : tabs.find((t) => t.id === mode)?.label}
+        <button type="submit" disabled={busy} className="btn btn-filled w-full">
+          {busy ? "لطفاً صبر کنید…" : tabs.find((t) => t.value === mode)?.label}
         </button>
       </form>
 
       {mode === "signup" && (
-        <p className="mt-4 rounded-2xl bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="type-footnote panel mt-4 p-4 leading-relaxed text-ios-label-secondary">
           این حساب ایمیل ندارد. اگر رمز را فراموش کنید، تنها راه بازگشت یکی از کدهای بازیابی است که
           در پایان ثبت‌نام نشان داده می‌شود. آن‌ها را جایی امن نگه دارید — هر کد فقط یک بار کار
           می‌کند.
         </p>
       )}
       {mode === "recover" && (
-        <p className="mt-4 rounded-2xl bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="type-footnote panel mt-4 p-4 leading-relaxed text-ios-label-secondary">
           با هر بازیابی، همه‌ی کدهای بازیابی باطل و همه‌ی نشست‌های فعال بسته می‌شوند.
         </p>
       )}
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
+      <p className="type-footnote mt-6 text-center text-ios-label-secondary">
         بدون حساب هم می‌توانید{" "}
-        <Link to="/explore" className="text-primary underline">
+        <Link to="/explore" className="text-ios-tint underline">
           جستجو کنید
         </Link>
         .
@@ -231,90 +221,79 @@ function SignedIn({ username }: { username: string }) {
   const playlists = data?.playlists ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="glass flex flex-wrap items-center gap-4 rounded-3xl p-6">
-        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
-          <UserRound className="size-8" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">وارد شده‌اید به‌عنوان</p>
-          <h1 className="truncate text-2xl font-black tracking-tight" dir="ltr">
-            {username}
-          </h1>
-        </div>
-        <button
-          onClick={() => setLeaving(true)}
-          className="flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-medium transition hover:bg-accent"
-        >
-          <LogOut className="size-4" />
-          خروج
-        </button>
-      </div>
-
-      <section>
-        <h2 className="text-lg font-black">پلی‌لیست‌های اشتراکی</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {playlists.length
-            ? "لینک هرکدام روی هر دستگاهی باز می‌شود."
-            : "هنوز چیزی منتشر نکرده‌اید — از صفحه‌ی هر پلی‌لیست، دکمه‌ی «اشتراک‌گذاری» را بزنید."}
-        </p>
-
-        {playlists.length > 0 && (
-          <ul className="mt-4 space-y-2">
-            {playlists.map((p) => (
-              <SharedRow
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                count={p.count}
-                isPublic={p.isPublic}
-                busy={setVisibility.isPending || unshare.isPending}
-                onToggle={() => setVisibility.mutate({ id: p.id, isPublic: !p.isPublic })}
-                onUnshare={() => {
-                  if (confirm(`«${p.name}» از سرور حذف شود؟ لینک آن از کار می‌افتد.`)) {
-                    unshare.mutate(p.id);
-                  }
-                }}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {leaving && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setLeaving(false)}
-        >
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-label="خروج از حساب"
-            onClick={(e) => e.stopPropagation()}
-            className="glass-strong w-full max-w-sm rounded-3xl p-6"
-          >
-            <h2 className="text-lg font-black">خروج از حساب؟</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              پلی‌لیست‌های اشتراکی‌تان روی سرور می‌مانند و بعداً با همین حساب برمی‌گردند.
+    <div className="mx-auto max-w-2xl">
+      <Section>
+        <div className="card flex flex-wrap items-center gap-4 p-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-tile bg-ios-tint text-white">
+            <UserRound className="size-7" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="type-footnote text-ios-label-secondary">وارد شده‌اید به‌عنوان</p>
+            <p className="type-title-3 truncate" dir="ltr">
+              {username}
             </p>
-            <div className="mt-6 flex gap-2">
-              <button
-                onClick={() => logout.mutate()}
-                disabled={logout.isPending}
-                className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-              >
-                بله، خارج شو
-              </button>
-              <button
-                onClick={() => setLeaving(false)}
-                className="flex-1 rounded-full border border-input px-4 py-2.5 text-sm font-medium"
-              >
-                انصراف
-              </button>
-            </div>
           </div>
+
+          <AlertDialog onOpenChange={setLeaving}>
+            <AlertDialogTrigger asChild>
+              <button type="button" className="btn btn-gray">
+                <LogOut className="size-4" strokeWidth={2} />
+                خروج
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="material-thick max-w-sm gap-4 rounded-sheet border-ios-separator p-5">
+              <AlertDialogHeader className="space-y-1 text-right">
+                <AlertDialogTitle className="type-title-3">خروج از حساب؟</AlertDialogTitle>
+                <AlertDialogDescription className="type-subheadline">
+                  پلی‌لیست‌های اشتراکی‌تان روی سرور می‌مانند و بعداً با همین حساب برمی‌گردند.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex-row-reverse gap-2 sm:justify-start">
+                <AlertDialogCancel className="btn btn-gray flex-1">انصراف</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => logout.mutate()}
+                  disabled={logout.isPending}
+                  className="btn btn-filled flex-1"
+                >
+                  بله، خارج شو
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-      )}
+      </Section>
+
+      <Section
+        title="پلی‌لیست‌های اشتراکی"
+        footer={
+          playlists.length
+            ? "لینک هرکدام روی هر دستگاهی باز می‌شود."
+            : "هنوز چیزی منتشر نکرده‌اید — از صفحه‌ی هر پلی‌لیست، دکمه‌ی «اشتراک‌گذاری» را بزنید."
+        }
+      >
+        {playlists.length === 0 ? (
+          <p className="type-subheadline px-4 py-6 text-center text-ios-label-secondary">
+            هنوز پلی‌لیستی منتشر نکرده‌اید.
+          </p>
+        ) : (
+          playlists.map((p) => (
+            <SharedRow
+              key={p.id}
+              id={p.id}
+              name={p.name}
+              count={p.count}
+              isPublic={p.isPublic}
+              busy={setVisibility.isPending || unshare.isPending}
+              onToggle={() => setVisibility.mutate({ id: p.id, isPublic: !p.isPublic })}
+              onUnshare={() => {
+                if (confirm(`«${p.name}» از سرور حذف شود؟ لینک آن از کار می‌افتد.`)) {
+                  unshare.mutate(p.id);
+                }
+              }}
+            />
+          ))
+        )}
+      </Section>
     </div>
   );
 }
@@ -340,13 +319,13 @@ function SharedRow({
   const url = `${typeof window === "undefined" ? "" : window.location.origin}/p/${id}`;
 
   return (
-    <li className="glass flex flex-wrap items-center gap-3 rounded-2xl p-4">
+    <div className="panel flex flex-wrap items-center gap-2 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{name}</p>
-        <p className="text-xs text-muted-foreground">
-          {count.toLocaleString("fa-IR")} آهنگ ·{" "}
+        <p className="type-body truncate">{name}</p>
+        <p className="type-footnote flex items-center gap-1 text-ios-label-secondary">
+          {count.toLocaleString("fa-IR")} آهنگ ·
           {isPublic ? (
-            <span className="inline-flex items-center gap-1 text-primary">
+            <span className="inline-flex items-center gap-1 text-ios-tint">
               <Globe className="size-3" /> عمومی
             </span>
           ) : (
@@ -357,44 +336,43 @@ function SharedRow({
         </p>
       </div>
 
-      <Link
-        to="/p/$id"
-        params={{ id }}
-        className="rounded-full border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"
-      >
+      <Link to="/p/$id" params={{ id }} className="btn btn-gray h-9 min-h-9 px-3">
         باز کردن
       </Link>
 
       <button
+        type="button"
         onClick={async () => {
           await navigator.clipboard.writeText(url);
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
         }}
         aria-label="کپی لینک"
-        className="rounded-full border border-input p-2 transition hover:bg-accent"
+        className="press grid size-9 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary"
       >
-        {copied ? <Check className="size-4 text-primary" /> : <Link2 className="size-4" />}
+        {copied ? <Check className="size-4 text-ios-tint" /> : <Link2 className="size-4" />}
       </button>
 
       <button
+        type="button"
         onClick={onToggle}
         disabled={busy}
         aria-label={isPublic ? "کردن خصوصی" : "کردن عمومی"}
-        className="rounded-full border border-input p-2 transition hover:bg-accent disabled:opacity-50"
+        className="press grid size-9 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary disabled:opacity-50"
       >
         {isPublic ? <Lock className="size-4" /> : <Globe className="size-4" />}
       </button>
 
       <button
+        type="button"
         onClick={onUnshare}
         disabled={busy}
         aria-label="حذف از سرور"
-        className="rounded-full border border-destructive/40 p-2 text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
+        className="press grid size-9 place-items-center rounded-lg bg-ios-fill text-ios-red disabled:opacity-50"
       >
         <Trash2 className="size-4" />
       </button>
-    </li>
+    </div>
   );
 }
 
@@ -406,42 +384,43 @@ function RecoveryCodes({ codes, onDone }: { codes: string[]; onDone: () => void 
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="glass rounded-3xl p-6">
-        <h1 className="flex items-center gap-2 text-xl font-black">
-          <Check className="size-5 text-primary" />
+    <div className="mx-auto max-w-md space-y-4">
+      <div className="panel p-5">
+        <h1 className="type-title-3 flex items-center gap-2">
+          <Check className="size-5 text-ios-tint" strokeWidth={2.2} />
           کدهای بازیابی شما
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="type-subheadline mt-2 leading-relaxed text-ios-label-secondary">
           حساب شما ایمیل ندارد، پس این کدها تنها راه بازگشت‌اند. همین حالا ذخیره‌شان کنید — دوباره
           نشان داده نمی‌شوند و هر کد فقط یک بار مصرف می‌شود.
         </p>
 
-        <ul className="mt-5 grid grid-cols-2 gap-2 font-mono text-sm" dir="ltr">
-          {codes.map((c) => (
-            <li key={c} className="rounded-xl bg-muted px-3 py-2 text-center tracking-wider">
-              {c}
+        <ul className="mt-5 grid grid-cols-2 gap-2 font-mono text-body" dir="ltr">
+          {codes.map((code) => (
+            <li key={code} className="rounded-xl bg-ios-fill px-3 py-2 text-center">
+              {code}
             </li>
           ))}
         </ul>
 
         <button
+          type="button"
           onClick={async () => {
             await navigator.clipboard.writeText(codes.join("\n"));
             setCopied(true);
           }}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-input px-5 py-2.5 text-sm font-medium hover:bg-accent"
+          className="btn btn-gray mt-5 w-full"
         >
-          <Copy className={cn("size-4", copied && "text-primary")} />
+          <Copy className={cn("size-4", copied && "text-ios-tint")} strokeWidth={2} />
           {copied ? "کپی شد" : "کپی همه"}
         </button>
 
-        <label className="mt-4 flex cursor-pointer items-start gap-2 text-sm text-muted-foreground">
+        <label className="type-subheadline mt-4 flex cursor-pointer items-start gap-3 text-ios-label-secondary">
           <input
             type="checkbox"
             checked={saved}
-            onChange={(e) => setSaved(e.target.checked)}
-            className="mt-0.5"
+            onChange={(event) => setSaved(event.target.checked)}
+            className="mt-0.5 size-5 accent-[var(--color-ios-tint)]"
           />
           کدها را جایی امن ذخیره کردم
         </label>
@@ -449,11 +428,7 @@ function RecoveryCodes({ codes, onDone }: { codes: string[]; onDone: () => void 
 
       {/* Not merely a "continue" link: leaving before confirming the codes is
           the one way to lose the account for good. */}
-      <button
-        onClick={onDone}
-        disabled={!saved}
-        className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
-      >
+      <button type="button" onClick={onDone} disabled={!saved} className="btn btn-filled w-full">
         ادامه به کتابخانه
       </button>
     </div>

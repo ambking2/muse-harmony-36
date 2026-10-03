@@ -31,6 +31,11 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /* Grouped-list geometry. Separate from the shadcn --radius-* scale so
+     restyling a card never silently moves every button in the app. */
+  --radius-tile: 0.625rem;
+  --radius-card: 1.125rem;
+  --radius-sheet: 1.75rem;
   --font-sans: "Vazirmatn Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif;
   --color-background: var(--background);
@@ -70,65 +75,259 @@
   --color-accent-a: var(--accent-a);
   --color-glass: var(--glass);
   --color-glass-strong: var(--glass-strong);
+
+  /* Apple's semantic palette, named after the HIG colours they mirror so the
+     mapping stays obvious: label, grouped background, separators, fills, and
+     the system colours used for settings tiles. */
+  --color-ios-label: var(--ios-label);
+  --color-ios-label-secondary: var(--ios-label-secondary);
+  --color-ios-label-tertiary: var(--ios-label-tertiary);
+  --color-ios-grouped: var(--ios-grouped);
+  --color-ios-surface: var(--ios-surface);
+  --color-ios-surface-raised: var(--ios-surface-raised);
+  --color-ios-separator: var(--ios-separator);
+  --color-ios-fill: var(--ios-fill);
+  --color-ios-fill-soft: var(--ios-fill-soft);
+  --color-ios-fill-strong: var(--ios-fill-strong);
+  --color-ios-material: var(--ios-material);
+  --color-ios-tint: var(--ios-tint);
+  --color-ios-green: var(--ios-green);
+  --color-ios-orange: var(--ios-orange);
+  --color-ios-red: var(--ios-red);
+  --color-ios-indigo: var(--ios-indigo);
+  --color-ios-purple: var(--ios-purple);
+  --color-ios-teal: var(--ios-teal);
+  --color-ios-pink: var(--ios-pink);
 }
 
 :root {
-  /* Dark by default — iOS 18 inspired */
+  /* Light is the default: the app opens in the appearance it is read in most
+     often. The dark palette is the same set of names under `.dark` further
+     down — one palette swap, no component changes. */
   --radius: 1rem;
-  --background: oklch(0.14 0.012 270);
-  --foreground: oklch(0.98 0.005 260);
-  --card: oklch(0.19 0.015 270);
-  --card-foreground: oklch(0.98 0.005 260);
-  --popover: oklch(0.18 0.018 270 / 0.92);
-  --popover-foreground: oklch(0.98 0.005 260);
-  --primary: oklch(0.78 0.17 320);
-  --primary-foreground: oklch(0.14 0.012 270);
-  --secondary: oklch(0.24 0.02 270);
-  --secondary-foreground: oklch(0.98 0.005 260);
-  --muted: oklch(0.22 0.015 270);
-  --muted-foreground: oklch(0.68 0.02 260);
-  --accent: oklch(0.78 0.17 320);
-  --accent-foreground: oklch(0.14 0.012 270);
-  --accent-a: 320 80% 65%;
-  --destructive: oklch(0.68 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 260);
-  /* Confirms a completed action (link copied, file saved). Deliberately far
-     from the primary magenta so the two states never read as the same thing. */
-  --success: oklch(0.72 0.17 155);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
-  --ring: oklch(0.78 0.17 320 / 0.6);
-  --glass: oklch(1 0 0 / 0.06);
-  --glass-strong: oklch(1 0 0 / 0.12);
-  --chart-1: oklch(0.78 0.17 320);
-  --chart-2: oklch(0.7 0.18 200);
-  --chart-3: oklch(0.75 0.18 30);
-  --chart-4: oklch(0.8 0.18 150);
-  --chart-5: oklch(0.72 0.2 280);
-  --sidebar: oklch(0.16 0.012 270);
-  --sidebar-foreground: oklch(0.98 0.005 260);
-  --sidebar-primary: oklch(0.78 0.17 320);
-  --sidebar-primary-foreground: oklch(0.14 0.012 270);
-  --sidebar-accent: oklch(0.22 0.02 270);
-  --sidebar-accent-foreground: oklch(0.98 0.005 260);
-  --sidebar-border: oklch(1 0 0 / 0.08);
-  --sidebar-ring: oklch(0.78 0.17 320 / 0.6);
 
-  /* Set per-track from the artwork; drives the now-playing gradient. */
-  --track-accent: oklch(0.78 0.17 320);
-  /* Height of the dock tray. The mini player anchors to this so the two
-     never overlap. Keep in sync with the tray's p-2 (8px) + button p-3
-     (12px) + 20px icon, plus the 8px page inset. */
-  --dock-inset: 68px;
+  /* --- The iOS layer ---------------------------------------------------
+     Every value here is part of the shared design system (see
+     src/lib/design for the JS half). Components in src/components/ios read
+     these instead of hard-coding colours, so the whole app moves together
+     when one of them changes. */
+  --ios-label: oklch(0.19 0.008 268);
+  --ios-label-secondary: oklch(0.44 0.008 268);
+  --ios-label-tertiary: oklch(0.6 0.01 268);
+  /* systemGroupedBackground — the page behind the cards. */
+  --ios-grouped: oklch(0.962 0.003 268);
+  /* secondarySystemGroupedBackground — one step up, the card itself. */
+  --ios-surface: oklch(1 0 0);
+  --ios-surface-raised: oklch(0.945 0.004 268);
+  /* On light, a separator is a line of *less* light, not more. */
+  --ios-separator: oklch(0 0 0 / 0.11);
+  --ios-fill: oklch(0 0 0 / 0.055);
+  --ios-fill-soft: oklch(0 0 0 / 0.03);
+  --ios-fill-strong: oklch(0 0 0 / 0.11);
+  --ios-material: oklch(0.985 0.002 268 / 0.72);
+  /* System colours, the light set. Dark needs them a full step brighter to
+     hold the same contrast against a black background. */
+  --ios-tint: oklch(0.545 0.215 256);
+  --ios-green: oklch(0.6 0.17 150);
+  --ios-orange: oklch(0.68 0.18 58);
+  --ios-red: oklch(0.585 0.215 27);
+  --ios-indigo: oklch(0.51 0.21 275);
+  --ios-purple: oklch(0.56 0.21 305);
+  --ios-teal: oklch(0.65 0.12 195);
+  --ios-pink: oklch(0.655 0.235 350);
+
+  /* --- Legacy shadcn tokens, now expressed in iOS terms ----------------- */
+  --background: var(--ios-grouped);
+  --foreground: var(--ios-label);
+  --card: var(--ios-surface);
+  --card-foreground: var(--ios-label);
+  --popover: oklch(1 0 0 / 0.94);
+  --popover-foreground: var(--ios-label);
+  --primary: var(--ios-tint);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--ios-surface-raised);
+  --secondary-foreground: var(--ios-label);
+  --muted: var(--ios-fill);
+  --muted-foreground: var(--ios-label-secondary);
+  --accent: oklch(0.545 0.215 256 / 0.14);
+  --accent-foreground: var(--ios-tint);
+  --accent-a: 256 90% 58%;
+  --destructive: var(--ios-red);
+  --destructive-foreground: oklch(1 0 0);
+  /* Confirms a completed action (link copied, file saved). Deliberately far
+     from the system tint so the two states never read as the same thing. */
+  --success: var(--ios-green);
+  --border: var(--ios-separator);
+  --input: var(--ios-fill-strong);
+  --ring: oklch(0.545 0.215 256 / 0.55);
+  --glass: var(--ios-fill-soft);
+  --glass-strong: oklch(1 0 0 / 0.1);
+  --chart-1: var(--ios-tint);
+  --chart-2: var(--ios-teal);
+  --chart-3: var(--ios-orange);
+  --chart-4: var(--ios-green);
+  --chart-5: var(--ios-purple);
+  --sidebar: var(--ios-grouped);
+  --sidebar-foreground: var(--ios-label);
+  --sidebar-primary: var(--ios-tint);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--ios-surface-raised);
+  --sidebar-accent-foreground: var(--ios-label);
+  --sidebar-border: var(--ios-separator);
+  --sidebar-ring: oklch(0.545 0.215 256 / 0.55);
+
+  /* Set per-track from the artwork; drives the now-playing gradient. The
+     default is a deep indigo so the ambient glow never reads as the app's
+     own tint — the tint is for controls, this is for atmosphere. */
+  --track-accent: oklch(0.55 0.17 280);
+  /* Room the fixed bottom chrome needs: the mini player, the floating tab bar
+     and the home-indicator inset. Pages pad by this so content never hides
+     under it. Keep in sync with the tab bar (56px) + its own margin (12px) +
+     the mini player (60px). */
+  --tabbar-inset: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  --chrome-inset: calc(var(--tabbar-inset) + 4.75rem);
+
+  /* Glass mode. Every translucent surface reads its alpha and its blur from
+     here, so switching the mode is one attribute on the root element and no
+     component changes. Turned off, the layout is identical and the surfaces go
+     solid — cheaper to draw, and easier to read on a dim screen. */
+  --surface-alpha: 62%;
+  --material-alpha: 60%;
+  --panel-blur: 16px;
+  --material-blur: 30px;
+  /* The frost under the lens. Softer than the plain material on purpose: the
+     bend lands on top of it, and a heavy blur smears the break away. */
+  --lens-blur: 14px;
+  --glass-sat: 180%;
+  /* A shadow on a light surface is a soft grey, never a black one — the same
+     alpha that reads as depth at night reads as dirt at noon. */
+  --panel-shadow: 0 8px 24px oklch(0.3 0.02 268 / 0.1);
+  --floating-shadow: 0 12px 36px oklch(0.3 0.02 268 / 0.16);
 }
 
+/* Glass off: solid surfaces, no blur anywhere, no floating shadows. The tint
+   colour is unchanged so nothing reflows and no contrast rule is broken. */
+:root[data-glass="off"] {
+  --surface-alpha: 100%;
+  --material-alpha: 100%;
+  --panel-blur: 0px;
+  --material-blur: 0px;
+  --lens-blur: 0px;
+  --glass-sat: 100%;
+  --panel-shadow: none;
+  --floating-shadow: none;
+}
+
+/*
+ * Dark appearance.
+ *
+ * Only the colours change — every name, size, radius and blur is shared, which
+ * is the whole point of putting them in custom properties. A class on the root
+ * element (written by `src/lib/theme.ts`, and by a small inline script in
+ * `head` before the first paint) is enough to move the entire interface.
+ */
 .dark {
-  /* alias — app is always dark */
+  --ios-label: oklch(0.985 0 0);
+  --ios-label-secondary: oklch(0.675 0.005 266);
+  --ios-label-tertiary: oklch(0.512 0.008 266);
+  --ios-grouped: oklch(0.107 0.008 268);
+  --ios-surface: oklch(0.176 0.008 268);
+  --ios-surface-raised: oklch(0.225 0.009 268);
+  --ios-separator: oklch(1 0 0 / 0.1);
+  --ios-fill: oklch(1 0 0 / 0.09);
+  --ios-fill-soft: oklch(1 0 0 / 0.05);
+  --ios-fill-strong: oklch(1 0 0 / 0.16);
+  --ios-material: oklch(0.128 0.01 268 / 0.72);
+  --ios-tint: oklch(0.645 0.185 256);
+  --ios-green: oklch(0.735 0.17 150);
+  --ios-orange: oklch(0.79 0.16 65);
+  --ios-red: oklch(0.678 0.208 24);
+  --ios-indigo: oklch(0.6 0.19 275);
+  --ios-purple: oklch(0.68 0.19 305);
+  --ios-teal: oklch(0.74 0.12 195);
+  --ios-pink: oklch(0.72 0.18 350);
+
+  --popover: oklch(0.176 0.008 268 / 0.94);
+  --accent: oklch(0.645 0.185 256 / 0.16);
+  --ring: oklch(0.645 0.185 256 / 0.6);
+  --sidebar-ring: oklch(0.645 0.185 256 / 0.6);
+
+  --panel-shadow: 0 8px 24px oklch(0 0 0 / 0.28);
+  --floating-shadow: 0 12px 36px oklch(0 0 0 / 0.42);
+}
+
+/*
+ * Type scale.
+ *
+ * The nine styles below are the whole typographic vocabulary, mirroring Apple's
+ * text styles. Views pick one instead of inventing a size, which is what keeps
+ * the app looking like one system rather than a pile of components.
+ *
+ * No letter-spacing anywhere: Vazirmatn is a cursive, joined script, and
+ * tracking breaks the joins the way it would on Arabic type. Sizes are in rem
+ * so the browser's own text-size setting still scales them, the closest the web
+ * gets to Dynamic Type.
+ */
+@utility type-large-title {
+  font-size: 2.125rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+}
+@utility type-title-1 {
+  font-size: 1.75rem;
+  line-height: 2.125rem;
+  font-weight: 700;
+}
+@utility type-title-2 {
+  font-size: 1.375rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+}
+@utility type-title-3 {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@utility type-headline {
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@utility type-body {
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+@utility type-callout {
+  font-size: 1rem;
+  line-height: 1.375rem;
+  font-weight: 400;
+}
+@utility type-subheadline {
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+@utility type-footnote {
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  font-weight: 400;
+}
+@utility type-caption {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 400;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+
+  /* The one easing curve for the whole app. Declared here so components never
+     reach for a local one — the motion has to feel like a single system. */
+  :root {
+    --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   html, body, #root {
@@ -225,5 +424,392 @@
   background:
     radial-gradient(120% 60% at 50% -10%, color-mix(in oklch, var(--track-accent) 35%, transparent) 0%, transparent 70%),
     var(--color-background);
-  transition: background 900ms ease;
+  /* Short enough to smooth a change of track, quick enough that switching
+     appearance does not leave the page fading behind the text that already
+     switched. */
+  transition: background 450ms ease;
+}
+
+/*
+ * The blurred cover behind everything.
+ *
+ * Glass only reads as glass when there is something behind it to smear, so the
+ * current artwork is laid over the page, pushed back and softened to a wash of
+ * colour, then faded out toward the bottom so text near the end of a long list
+ * still sits on a quiet background.
+ */
+@utility ambient-art {
+  position: fixed;
+  inset: -15%;
+  z-index: -1;
+  background-image: var(--track-art, none);
+  background-size: cover;
+  background-position: center 20%;
+  opacity: 0.5;
+  filter: blur(72px) saturate(150%);
+  transform: scale(1.2);
+  transition: background-image 900ms ease, opacity 900ms ease;
+  mask-image: linear-gradient(to bottom, black 0%, oklch(0 0 0 / 0.55) 45%, transparent 92%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    oklch(0 0 0 / 0.55) 45%,
+    transparent 92%
+  );
+}
+
+/* Glass off: no artwork smear either — the wash is what made the blur look
+   expensive, and without it there is nothing to pay for. */
+:root[data-glass="off"] .ambient-art {
+  display: none;
+}
+
+/*
+ * The living background.
+ *
+ * Three slow blobs of colour drifting across each other, the whole thing tinted
+ * by the current artwork. It is the one thing on the page that is never still,
+ * and it is what the glass has to refract — a static backdrop would make every
+ * panel look like frosted plastic.
+ *
+ * The animation is long enough (70s+) that no one can watch a cycle, and it
+ * stops completely under Reduce Motion.
+ */
+@utility mesh {
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 38rem at 18% 22%, oklch(0.45 0.19 285 / 0.5), transparent 60%),
+    radial-gradient(34rem 34rem at 82% 18%, oklch(0.45 0.17 205 / 0.42), transparent 62%),
+    radial-gradient(40rem 40rem at 62% 88%, oklch(0.45 0.19 330 / 0.34), transparent 64%);
+  filter: blur(60px) saturate(140%);
+  opacity: 0.55;
+  animation: mesh-drift 78s ease-in-out infinite alternate;
+}
+
+/* The artwork's own hue, layered over the mesh so the page still belongs to
+   whatever is playing. */
+@utility mesh-accent {
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(
+    46rem 46rem at 50% 10%,
+    color-mix(in oklch, var(--track-accent) 55%, transparent),
+    transparent 65%
+  );
+  filter: blur(70px);
+  opacity: 0.5;
+  animation: mesh-drift 96s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-2%, 5%, 0) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh,
+  .mesh-accent {
+    animation: none;
+  }
+}
+
+:root[data-glass="off"] .mesh,
+:root[data-glass="off"] .mesh-accent {
+  animation: none;
+  opacity: 0.3;
+}
+
+/* In light the mesh is an atmosphere, not a stain. The same alpha that reads as
+   a coloured room at night reads as a smudge on paper at noon, so the blobs are
+   pulled well back and the artwork wash follows them. */
+:root:not(.dark) .mesh {
+  opacity: 0.4;
+}
+:root:not(.dark) .mesh-accent {
+  opacity: 0.28;
+}
+:root:not(.dark) .ambient-art {
+  opacity: 0.34;
+}
+
+/* --- Interaction ------------------------------------------------------- */
+
+/*
+ * The three layers of real glass.
+ *
+ * Frosting alone is only one of them, and it is the quietest:
+ *
+ *   1. REFRACTION — a copy of the scene, bent by an SVG displacement map, so
+ *      what sits behind a surface bends as it passes under it.
+ *   2. SPECULAR — the thin bright rim where a lens catches light, plus the
+ *      sheen across its top face. Without it the surface reads as a flat
+ *      rectangle of blur, not as an object with a curved edge.
+ *   3. SPOTLIGHT — the highlight that slides along the rim with the cursor.
+ *
+ * Layers 1 and 3 are only applied to the viewport-fixed chrome. Refraction
+ * costs a filtered copy of the background per surface, so a list of a hundred
+ * glass rows would cost a hundred of them; the chrome is where the eye is
+ * anyway.
+ */
+
+/*
+ * The lens.
+ *
+ * Frosted glass blurs what is behind it. Liquid glass *bends* it: a title
+ * scrolling under the tab bar should bow as it crosses the edge, not merely go
+ * soft. No filter function can do that — only an SVG displacement map fed in
+ * through `backdrop-filter: url()`.
+ *
+ * Three things about that are worth knowing, because each one cost a silent
+ * no-op before it was measured in a real browser:
+ *
+ * 1. Ask for it with the **standard** property. Chromium paints the
+ *    displacement through `backdrop-filter: url(…)` and renders nothing at
+ *    all through the `-webkit-` alias, so writing both is worse than writing
+ *    neither: the build collapses two identical declarations down to the
+ *    prefixed one and the bend disappears while the CSS still looks right.
+ * 2. Put the bend on a **child layer** and keep the frost on the surface. A
+ *    value the engine refuses to paint is dropped when it parses, so the
+ *    surface falls back to its own blur instead of losing it — and the frost
+ *    is applied first, which is the order a real slab works in anyway: the
+ *    light is scattered, and then it is bent.
+ * 3. The stand-in for engines that cannot filter a backdrop at all is the
+ *    `refract` layer below, a bent copy of the scene painted inside the
+ *    panel. Where the live version exists it is hidden, because it would
+ *    paint over the very backdrop it is standing in for.
+ */
+@utility lens {
+  position: relative;
+  backdrop-filter: blur(var(--lens-blur)) saturate(var(--glass-sat)) brightness(1.06);
+}
+
+/* Layer 1a. The bend itself: empty, so it only ever paints the backdrop. */
+@utility lens-bend {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@supports (backdrop-filter: url(#muis-lens)) {
+  .lens > .lens-bend {
+    backdrop-filter: url(#muis-lens);
+  }
+
+  .lens > .refract {
+    display: none;
+  }
+}
+
+/* Layer 1b. Paints the same background as the page, then bends it. */
+@utility refract {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  background-image:
+    var(--track-art, none),
+    radial-gradient(
+      140% 160% at 50% 130%,
+      color-mix(in oklch, var(--track-accent) 55%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(var(--ios-grouped), var(--ios-grouped));
+  background-size: cover, auto, auto;
+  background-position: center 30%, center, center;
+  opacity: var(--refract-opacity, 0.5);
+  transform: scale(1.06);
+  filter: url(#muis-refract);
+}
+
+/* Glass off: no bending at all, only a flat tint. `--lens-blur` is what
+   zeroes the frost here; the two bend layers go with it. */
+:root[data-glass="off"] .lens > .lens-bend,
+:root[data-glass="off"] .lens > .refract {
+  display: none;
+}
+
+/* Layer 2. A hairline of light along the top and sides — the edge of a lens
+   catches the light long before the middle of it does. */
+@utility specular {
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.28),
+    inset 0 0 0 1px oklch(1 0 0 / 0.06),
+    var(--panel-shadow);
+}
+
+/* Layer 3. A soft light at the pointer, in client pixels, which is what the
+   viewport-fixed chrome needs. */
+@utility spotlight {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      22rem circle at var(--mx, 50%) var(--my, 50%),
+      oklch(1 0 0 / 0.1),
+      transparent 45%
+    );
+    opacity: var(--spotlight-on, 1);
+    transition: opacity 240ms var(--ease-ios);
+  }
+}
+
+/* The faint colour fringing a real lens throws at its edge. Two hairline
+   pseudo-elements, screened over each other, read as red on one side and cyan
+   on the other — without the fringing the rim just looks like a border. */
+@utility chromatic {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background: linear-gradient(
+      120deg,
+      oklch(0.7 0.22 25 / 0.14),
+      transparent 38%,
+      transparent 62%,
+      oklch(0.78 0.2 215 / 0.12)
+    );
+  }
+}
+
+/* Frosted chrome for the nav bar, tab bar and mini player. The blur is what
+   sells the layered look; the tint keeps text legible over any artwork. */
+@utility material {
+  background: color-mix(
+    in oklch,
+    var(--color-ios-surface) var(--material-alpha),
+    transparent
+  );
+  backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
+}
+
+@utility material-thick {
+  background: color-mix(in oklch, var(--color-ios-surface) 86%, transparent);
+  backdrop-filter: blur(calc(var(--material-blur) * 1.3)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--material-blur) * 1.3)) saturate(var(--glass-sat));
+}
+
+/*
+ * The floating element.
+ *
+ * Every part of the interface is its own rounded panel with a gap around it,
+ * instead of one continuous list with hairline rules — the shape of the current
+ * iOS and of the newer Telegram: nothing is welded to its neighbour, so
+ * everything can sit on glass and still read as its own object.
+ */
+@utility panel {
+  background: color-mix(in oklch, var(--color-ios-surface) var(--surface-alpha), transparent);
+  backdrop-filter: blur(var(--panel-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(var(--glass-sat));
+  border: 1px solid var(--color-ios-separator);
+  border-radius: var(--radius-card);
+  box-shadow: var(--panel-shadow);
+}
+
+/* A panel that groups several controls — the one case where a single floating
+   element is the right answer rather than several small ones. */
+@utility card {
+  background: color-mix(in oklch, var(--color-ios-surface) var(--surface-alpha), transparent);
+  backdrop-filter: blur(var(--panel-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(var(--glass-sat));
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* Apple's press response: a small, quick scale-down under the finger. Paired
+   with a background change by whatever control uses it. Disabled entirely
+   when Reduce Motion is on, where motion is replaced by the colour change. */
+@utility press {
+  transition: transform 160ms var(--ease-ios), background-color 160ms var(--ease-ios),
+    opacity 160ms var(--ease-ios);
+  &:active {
+    transform: scale(0.965);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+/* 44pt is Apple's minimum tap target. Anything interactive uses it, including
+   the icon-only buttons that would otherwise be 32px. */
+
+/* --- Buttons ------------------------------------------------------------
+   Three roles, matching the HIG: filled for the one primary action on a
+   screen, tinted for secondary, gray for everything else. All three are at
+   least 44pt tall and use the shared press response. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1.125rem;
+  border-radius: 0.875rem;
+  font-size: 1rem;
+  line-height: 1.125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: transform 160ms var(--ease-ios), background-color 160ms var(--ease-ios),
+    opacity 160ms var(--ease-ios);
+  &:active {
+    transform: scale(0.965);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:active {
+      transform: none;
+    }
+  }
+  &:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+@utility btn-filled {
+  background: var(--color-ios-tint);
+  color: oklch(1 0 0);
+}
+
+@utility btn-tinted {
+  background: oklch(0.645 0.185 256 / 0.18);
+  color: var(--color-ios-tint);
+}
+
+@utility btn-gray {
+  background: var(--color-ios-fill);
+  color: var(--color-ios-label);
+}
+
+/* Capsule used for filters, chips and quick picks. */
+/* The square artwork tile used by albums, artists and playlists. */
+@utility media-tile {
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+  background: var(--color-ios-fill);
+  aspect-ratio: 1 / 1;
 }

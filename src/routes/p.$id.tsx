@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, EyeOff, Globe, Play, Shuffle } from "lucide-react";
+import { EyeOff, Globe, Play, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
+import { Screen } from "@/components/ios/Screen";
+import { Section } from "@/components/ios/Section";
 import { Artwork } from "@/components/music/Artwork";
+import { TrackRow } from "@/components/music/TrackRow";
 import { fetchSharedPlaylist } from "@/lib/shared-playlist";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
@@ -48,17 +52,17 @@ function SharedPlaylistPage() {
   if (!data) {
     return (
       <AppShell>
-        <div className="py-16 text-center">
-          <EyeOff className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-4 text-muted-foreground">این پلی‌لیست پیدا نشد، یا خصوصی است.</p>
-          <Link
-            to="/"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            بازگشت به خانه
-          </Link>
-        </div>
+        <EmptyState
+          icon={EyeOff}
+          title="این پلی‌لیست پیدا نشد"
+          description="شاید حذف شده باشد یا به‌صورت خصوصی منتشر شده باشد."
+          className="py-16"
+          action={
+            <Link to="/" className="btn btn-filled">
+              بازگشت به خانه
+            </Link>
+          }
+        />
       </AppShell>
     );
   }
@@ -68,80 +72,75 @@ function SharedPlaylistPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-end gap-6">
-          <div className="glass flex aspect-square w-36 shrink-0 items-center justify-center rounded-3xl sm:w-40">
-            {tracks[0]?.pic_id ? (
-              <Artwork track={tracks[0]} size={400} rounded="rounded-3xl" className="size-full" />
-            ) : (
-              <Play className="size-14 text-primary" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
-              <Globe className="size-3.5" />
-              پلی‌لیست عمومی
-            </p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight break-words">{playlist.name}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              از {playlist.owner} · {tracks.length.toLocaleString("fa-IR")} آهنگ
-            </p>
-          </div>
-        </div>
-
-        {tracks.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => playQueue(tracks)}
-              className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-            >
-              <Play className="size-4" />
-              پخش
-            </button>
-            <button
-              onClick={() => {
-                toggleShuffle();
-                playQueue(tracks);
-              }}
-              className="glass flex items-center gap-2 rounded-full px-5 py-3 text-sm font-medium"
-            >
-              <Shuffle className="size-4" />
-              تصادفی
-            </button>
-            <button
-              onClick={() => {
-                tracks.forEach(addToLibrary);
-                toast.success(`${tracks.length.toLocaleString("fa-IR")} آهنگ به کتابخانه اضافه شد`);
-              }}
-              className="glass rounded-full px-5 py-3 text-sm font-medium"
-            >
-              افزودن همه به کتابخانه
-            </button>
-          </div>
-        )}
-
-        <ul className="divide-y divide-border overflow-hidden rounded-3xl">
-          {tracks.map((t, i) => (
-            <li key={`${t.source}:${t.id}:${i}`}>
-              <button
-                onClick={() => playQueue(tracks, i)}
-                className="flex w-full items-center gap-4 px-4 py-3 text-right transition hover:bg-accent"
-              >
-                <span className="w-6 shrink-0 text-center text-xs tabular-nums text-muted-foreground">
-                  {(i + 1).toLocaleString("fa-IR")}
+      <Screen title="پلی‌لیست عمومی" back={{ to: "/explore" }} largeTitle={false}>
+        <div className="space-y-5 pt-2">
+          <div className="flex flex-wrap items-end gap-5">
+            <div className="media-tile w-36 shrink-0 bg-ios-surface sm:w-40">
+              {tracks[0]?.pic_id ? (
+                <Artwork track={tracks[0]} size={400} rounded="media-tile" className="size-full" />
+              ) : (
+                <span className="grid size-full place-items-center">
+                  <Play className="size-14 text-ios-tint" strokeWidth={1.5} />
                 </span>
-                {t.pic_id && <Artwork track={t} size={96} className="size-11 shrink-0" />}
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">{t.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {t.artist.join("، ")}
-                  </span>
-                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="type-footnote flex items-center gap-1.5 text-ios-tint">
+                <Globe className="size-3.5" />
+                پلی‌لیست عمومی
+              </p>
+              <h1 className="type-title-1 mt-1 break-words">{playlist.name}</h1>
+              <p className="type-subheadline mt-1 text-ios-label-secondary">
+                از {playlist.owner} · {tracks.length.toLocaleString("fa-IR")} آهنگ
+              </p>
+            </div>
+          </div>
+
+          {tracks.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => playQueue(tracks)} className="btn btn-filled">
+                <Play className="size-4 fill-current" strokeWidth={0} />
+                پخش
               </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+              <button
+                type="button"
+                onClick={() => {
+                  toggleShuffle();
+                  playQueue(tracks);
+                }}
+                className="btn btn-gray"
+              >
+                <Shuffle className="size-4" strokeWidth={2} />
+                تصادفی
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  tracks.forEach(addToLibrary);
+                  toast.success(
+                    `${tracks.length.toLocaleString("fa-IR")} آهنگ به کتابخانه اضافه شد`,
+                  );
+                }}
+                className="btn btn-gray"
+              >
+                افزودن همه به کتابخانه
+              </button>
+            </div>
+          )}
+
+          <Section title={`${tracks.length.toLocaleString("fa-IR")} آهنگ`}>
+            {tracks.map((track, index) => (
+              <TrackRow
+                key={`${track.source}:${track.id}:${index}`}
+                track={track}
+                list={tracks}
+                index={index}
+                showIndex
+              />
+            ))}
+          </Section>
+        </div>
+      </Screen>
     </AppShell>
   );
 }

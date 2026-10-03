@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Play, Pause, Search } from "lucide-react";
+import { Link2 as LinkIcon, Loader2, Play, Pause, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
 import { Artwork } from "@/components/music/Artwork";
 import { decodeTrackShareKey } from "@/lib/share-link";
 import { trackKey } from "@/lib/types";
@@ -54,18 +55,17 @@ function SharedTrackPage() {
   if (!resolved) {
     return (
       <AppShell>
-        <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-          <h1 className="text-2xl font-black">این لینک معتبر نیست</h1>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            بخشی از لینک کپی نشده یا تغییر کرده است. لطفاً دوباره از دکمه‌ی اشتراک استفاده کنید.
-          </p>
-          <Link
-            to="/explore"
-            className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            رفتن به جستجو
-          </Link>
-        </div>
+        <EmptyState
+          icon={LinkIcon}
+          title="این لینک معتبر نیست"
+          description="بخشی از لینک کپی نشده یا تغییر کرده است. لطفاً دوباره از دکمه‌ی اشتراک استفاده کنید."
+          className="min-h-[60vh] justify-center"
+          action={
+            <Link to="/explore" className="btn btn-filled">
+              رفتن به جستجو
+            </Link>
+          }
+        />
       </AppShell>
     );
   }
@@ -74,7 +74,7 @@ function SharedTrackPage() {
     return (
       <AppShell>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          <Loader2 className="size-6 animate-spin text-ios-label-secondary" />
         </div>
       </AppShell>
     );
@@ -89,20 +89,18 @@ function SharedTrackPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
         >
-          <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            به اشتراک گذاشته شده
-          </p>
+          <p className="type-footnote text-ios-label-secondary">به اشتراک گذاشته شده</p>
 
-          <div className="mt-4 overflow-hidden rounded-3xl shadow-2xl shadow-black/60">
+          <div className="mt-4 overflow-hidden rounded-sheet shadow-2xl shadow-black/60">
             <Artwork
               track={shown}
               size={600}
               className="aspect-square w-full"
-              rounded="rounded-3xl"
+              rounded="rounded-sheet"
             />
           </div>
 
-          <h1 className="mt-6 text-balance text-3xl font-black tracking-tight">{shown.name}</h1>
+          <h1 className="type-title-1 mt-6 text-balance">{shown.name}</h1>
           {shown.artist.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
               {shown.artist.map((a) => (
@@ -110,7 +108,7 @@ function SharedTrackPage() {
                   key={a}
                   to="/artist/$name"
                   params={{ name: a }}
-                  className="text-base text-muted-foreground transition hover:text-primary"
+                  className="type-callout text-ios-tint"
                 >
                   {a}
                 </Link>
@@ -121,7 +119,7 @@ function SharedTrackPage() {
             <Link
               to="/album/$name"
               params={{ name: shown.album }}
-              className="mt-1 block truncate text-sm text-muted-foreground/70 transition hover:text-primary"
+              className="type-footnote mt-1 block truncate text-ios-label-secondary"
             >
               {shown.album}
             </Link>
@@ -129,39 +127,45 @@ function SharedTrackPage() {
 
           <div className="mt-8 flex items-center gap-3">
             <button
+              type="button"
               onClick={() => (isCurrent ? togglePlay() : playTrack(shown, [shown]))}
-              className="flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 transition active:scale-95"
+              className="press grid size-16 shrink-0 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
               aria-label={isCurrent && isPlaying ? "توقف" : "پخش"}
             >
-              {isCurrent && isPlaying ? <Pause className="size-7" /> : <Play className="size-7" />}
+              {isCurrent && isPlaying ? (
+                <Pause className="size-7 fill-current" strokeWidth={0} />
+              ) : (
+                <Play className="size-7 translate-x-px fill-current" strokeWidth={0} />
+              )}
             </button>
             <button
+              type="button"
               onClick={() => navigate({ to: "/now-playing" })}
-              className="glass flex-1 rounded-full py-3.5 text-sm font-semibold transition hover:bg-white/10"
+              className="btn btn-gray flex-1"
             >
               صفحه‌ی پخش
             </button>
           </div>
 
           <button
+            type="button"
             onClick={() => {
               void navigator.clipboard
                 ?.writeText(window.location.href)
                 .then(() => toast.success("لینک کپی شد"))
                 .catch(() => toast.error("کپی نشد"));
             }}
-            className="mt-3 w-full rounded-full py-3 text-xs text-muted-foreground transition hover:text-foreground"
+            className="press type-footnote mt-3 w-full rounded-xl px-3 py-3 text-ios-label-secondary"
           >
             کپی لینک این آهنگ
           </button>
 
           <Link
             to="/explore"
-            className="mt-6 flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground transition hover:text-foreground"
+            className="press type-subheadline mt-6 flex items-center justify-center gap-2 py-2 text-ios-label-secondary"
           >
-            <Search className="size-4" />
+            <Search className="size-4" strokeWidth={2} />
             جستجوی آهنگ‌های دیگر
-            <ArrowLeft className="size-4 rotate-180" />
           </Link>
         </motion.div>
       </div>

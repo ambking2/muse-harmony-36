@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { AppShell, PageHeader } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
+import { Screen } from "@/components/ios/Screen";
+import { Section } from "@/components/ios/Section";
 import { searchSmart } from "@/lib/gdmusic";
 import { matchesEntity } from "@/lib/search";
 import { TrackRow } from "@/components/music/TrackRow";
@@ -51,86 +54,95 @@ function AlbumPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        {hero ? (
-          <header className="flex flex-col items-start gap-6 sm:flex-row">
-            <Artwork
-              track={hero}
-              size={500}
-              className="aspect-square w-full max-w-xs"
-              rounded="rounded-3xl"
-            />
-            <div className="flex-1 space-y-3">
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">آلبوم</p>
-              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{decoded}</h1>
-              {hero.artist[0] && (
-                <Link
-                  to="/artist/$name"
-                  params={{ name: hero.artist[0] }}
-                  className="block text-sm text-muted-foreground transition hover:text-foreground"
-                >
-                  {hero.artist.join("، ")}
-                </Link>
-              )}
-              <p className="text-sm text-muted-foreground ltr-nums">
-                {tracks.length.toLocaleString("fa-IR")} آهنگ
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  onClick={() => tracks.length && playQueue(tracks, 0)}
-                  disabled={!tracks.length}
-                  className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition active:scale-95 disabled:opacity-40"
-                >
-                  <Play className="size-4" /> پخش
-                </button>
-                <button
-                  onClick={() => {
-                    playQueue(tracks, 0);
-                    toggleShuffle();
-                  }}
-                  disabled={!tracks.length}
-                  className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm transition active:scale-95 disabled:opacity-40"
-                >
-                  <Shuffle className="size-4" /> تصادفی
-                </button>
+      <Screen title={decoded} back={{ to: "/explore" }} largeTitle={false}>
+        <div className="space-y-6 pt-2">
+          {hero ? (
+            <header className="flex flex-col items-start gap-5 sm:flex-row">
+              <Artwork
+                track={hero}
+                size={500}
+                className="aspect-square w-full max-w-xs"
+                rounded="rounded-card"
+              />
+              <div className="flex-1 space-y-2">
+                <p className="type-footnote text-ios-label-secondary">آلبوم</p>
+                <h1 className="type-title-1">{decoded}</h1>
+                {hero.artist[0] && (
+                  <Link
+                    to="/artist/$name"
+                    params={{ name: hero.artist[0] }}
+                    className="type-subheadline block text-ios-tint"
+                  >
+                    {hero.artist.join("، ")}
+                  </Link>
+                )}
+                <p className="type-footnote text-ios-label-secondary ltr-nums">
+                  {tracks.length.toLocaleString("fa-IR")} آهنگ
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => tracks.length && playQueue(tracks, 0)}
+                    disabled={!tracks.length}
+                    className="btn btn-filled"
+                  >
+                    <Play className="size-4 fill-current" strokeWidth={0} />
+                    پخش
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playQueue(tracks, 0);
+                      toggleShuffle();
+                    }}
+                    disabled={!tracks.length}
+                    className="btn btn-gray"
+                  >
+                    <Shuffle className="size-4" strokeWidth={2} />
+                    تصادفی
+                  </button>
+                </div>
               </div>
+            </header>
+          ) : null}
+
+          {isFuzzy && (
+            <div className="panel flex items-start gap-2 p-3">
+              <AlertCircle className="mt-0.5 size-4 shrink-0 text-ios-orange" />
+              <p className="type-footnote text-ios-label-secondary">
+                آلبومی با این نام پیدا نشد؛ نتایج زیر از جستجوی نزدیک‌ترین عنوان‌هاست.
+              </p>
             </div>
-          </header>
-        ) : (
-          <PageHeader eyebrow="آلبوم" title={decoded} />
-        )}
+          )}
 
-        {isFuzzy && (
-          <div className="glass flex items-start gap-2 rounded-2xl p-3 text-xs text-muted-foreground">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <p>آلبومی با این نام پیدا نشد؛ نتایج زیر از جستجوی نزدیک‌ترین عنوان‌هاست.</p>
-          </div>
-        )}
+          {isLoading && (
+            <div className="flex justify-center py-12">
+              <Loader2 className="size-6 animate-spin text-ios-label-secondary" />
+            </div>
+          )}
 
-        {isLoading && (
-          <div className="flex justify-center py-12">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
-          </div>
-        )}
+          {!isLoading && tracks.length === 0 && (
+            <EmptyState
+              icon={Disc3}
+              title="آهنگی برای این آلبوم پیدا نشد"
+              description="شاید نام دیگری را امتحان کنید."
+              action={
+                <Link to="/explore" className="btn btn-filled">
+                  جستجوی دیگر
+                </Link>
+              }
+            />
+          )}
 
-        {!isLoading && tracks.length === 0 && (
-          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-            <Disc3 className="mx-auto size-8" />
-            <p className="mt-3 text-sm">آهنگی برای این آلبوم پیدا نشد.</p>
-            <Link to="/explore" className="mt-2 inline-block text-sm text-primary underline">
-              جستجوی دیگر
-            </Link>
-          </div>
-        )}
-
-        {tracks.length > 0 && (
-          <div className="space-y-1">
-            {tracks.map((t, i) => (
-              <TrackRow key={trackKey(t)} track={t} list={tracks} index={i} showIndex />
-            ))}
-          </div>
-        )}
-      </div>
+          {tracks.length > 0 && (
+            <Section title={`${tracks.length.toLocaleString("fa-IR")} آهنگ`}>
+              {tracks.map((t, i) => (
+                <TrackRow key={trackKey(t)} track={t} list={tracks} index={i} showIndex />
+              ))}
+            </Section>
+          )}
+        </div>
+      </Screen>
     </AppShell>
   );
 }

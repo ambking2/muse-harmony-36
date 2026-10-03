@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AppShell, PageHeader } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
+import { Screen } from "@/components/ios/Screen";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import { Artwork } from "@/components/music/Artwork";
@@ -27,135 +29,129 @@ function DownloadsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="آفلاین"
-          title="دانلودها"
-          action={
-            downloadable.length > 1 && (
-              <button
-                onClick={() => {
-                  playTrack(downloadable[0], downloadable);
-                  navigate({ to: "/now-playing" });
-                }}
-                className="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25"
-              >
-                <Play className="size-4" /> پخش آفلاین
-              </button>
-            )
-          }
-        />
-
-        {downloads.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            <span className="ltr-nums">{done.length.toLocaleString("fa-IR")}</span> آهنگ آفلاین
-            {totalSize > 0 && (
-              <>
-                {" · "}
-                <span className="ltr-nums">{formatBytes(totalSize)}</span>
-              </>
-            )}
-          </p>
-        )}
-
-        {downloads.length === 0 && (
-          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-            <DownloadIcon className="mx-auto size-10" />
-            <p className="mt-3 text-sm">هنوز آهنگی دانلود نکرده‌اید.</p>
-            <p className="mt-1 text-xs opacity-70">
-              از منوی هر آهنگ گزینه‌ی «دانلود» را بزنید تا برای پخش آفلاین ذخیره شود.
-            </p>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {downloads.map((d) => (
-            <div key={d.id} className="glass flex items-center gap-3 rounded-2xl p-3">
-              <Artwork track={d.track} size={100} className="size-14" rounded="rounded-xl" />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{d.track.name}</div>
-                <div className="truncate text-xs text-muted-foreground">
-                  {d.track.artist.join("، ")} ·{" "}
-                  <span className="ltr-nums">{d.br === 999 ? "FLAC" : `${d.br} kbps`}</span>
-                  {d.size > 0 && (
-                    <>
-                      {" · "}
-                      <span className="ltr-nums">{formatBytes(d.size)}</span>
-                    </>
-                  )}
-                </div>
-                {d.status === "downloading" && (
-                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/5">
-                    <div
-                      className="h-full bg-primary transition-[width]"
-                      style={{ width: `${Math.min(100, Math.round(d.progress * 100))}%` }}
-                    />
+      <Screen
+        title="دانلودها"
+        subtitle={
+          done.length
+            ? `${done.length.toLocaleString("fa-IR")} آهنگ${totalSize > 0 ? ` · ${formatBytes(totalSize)}` : ""}`
+            : "برای پخش بدون اینترنت"
+        }
+        actions={
+          downloadable.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => {
+                playTrack(downloadable[0], downloadable);
+                navigate({ to: "/now-playing" });
+              }}
+              className="press type-footnote text-ios-tint"
+            >
+              پخش
+            </button>
+          ) : undefined
+        }
+      >
+        <div className="mt-4 space-y-2">
+          {downloads.length === 0 ? (
+            <EmptyState
+              icon={DownloadIcon}
+              title="هنوز آهنگی دانلود نکرده‌اید"
+              description="از منوی هر آهنگ گزینه‌ی «دانلود» را بزنید تا برای پخش آفلاین ذخیره شود."
+            />
+          ) : (
+            downloads.map((d) => (
+              <div key={d.id} className="panel flex items-center gap-2 p-2">
+                <Artwork
+                  track={d.track}
+                  size={100}
+                  className="size-12 shrink-0"
+                  rounded="rounded-lg"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="type-body truncate">{d.track.name}</div>
+                  <div className="type-footnote truncate text-ios-label-secondary">
+                    {d.track.artist.join("، ")} ·{" "}
+                    <span className="ltr-nums">{d.br === 999 ? "FLAC" : `${d.br} kbps`}</span>
+                    {d.size > 0 && (
+                      <>
+                        {" · "}
+                        <span className="ltr-nums">{formatBytes(d.size)}</span>
+                      </>
+                    )}
                   </div>
-                )}
-                <div className="mt-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <StatusIcon status={d.status} />
-                  {statusLabel(d.status, d.progress)}
+                  {d.status === "downloading" && (
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-ios-fill">
+                      <div
+                        className="h-full rounded-full bg-ios-tint transition-[width]"
+                        style={{ width: `${Math.min(100, Math.round(d.progress * 100))}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="type-footnote mt-1 flex items-center gap-1.5 text-ios-label-secondary">
+                    <StatusIcon status={d.status} />
+                    {statusLabel(d.status, d.progress)}
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex shrink-0 items-center gap-1">
-                {d.status === "downloading" && (
-                  <IconBtn onClick={() => cancelDownload(d.id)} label="لغو">
-                    <X className="size-4" />
-                  </IconBtn>
-                )}
-                {(d.status === "error" || d.status === "paused") && (
-                  <IconBtn onClick={() => void retryDownload(d)} label="تلاش دوباره">
-                    <RefreshCw className="size-4" />
-                  </IconBtn>
-                )}
-                {d.status === "done" && (
+                <div className="flex shrink-0 items-center">
+                  {d.status === "downloading" && (
+                    <IconBtn onClick={() => cancelDownload(d.id)} label="لغو">
+                      <X className="size-4" />
+                    </IconBtn>
+                  )}
+                  {(d.status === "error" || d.status === "paused") && (
+                    <IconBtn onClick={() => void retryDownload(d)} label="تلاش دوباره">
+                      <RefreshCw className="size-4" />
+                    </IconBtn>
+                  )}
+                  {d.status === "done" && (
+                    <IconBtn
+                      onClick={() => {
+                        const local = playDownload(d);
+                        if (local) {
+                          playTrack(local, [local]);
+                          navigate({ to: "/now-playing" });
+                        }
+                      }}
+                      label="پخش آفلاین"
+                      primary
+                    >
+                      <Play className="size-4" fill="current" strokeWidth={0} />
+                    </IconBtn>
+                  )}
+                  {d.status === "done" && d.blobUrl && (
+                    <a
+                      href={d.blobUrl}
+                      download
+                      className="press grid size-9 place-items-center rounded-lg text-ios-label-secondary"
+                      aria-label="ذخیره در دستگاه"
+                      title="ذخیره در دستگاه"
+                    >
+                      <DownloadIcon className="size-4" />
+                    </a>
+                  )}
                   <IconBtn
                     onClick={() => {
-                      const local = playDownload(d);
-                      if (local) {
-                        playTrack(local, [local]);
-                        navigate({ to: "/now-playing" });
-                      }
+                      remove(d.id);
+                      toast.success("دانلود حذف شد");
                     }}
-                    label="پخش آفلاین"
-                    primary
+                    label="حذف"
+                    danger
                   >
-                    <Play className="size-4" />
+                    <Trash2 className="size-4" />
                   </IconBtn>
-                )}
-                {d.status === "done" && d.blobUrl && (
-                  <a
-                    href={d.blobUrl}
-                    download
-                    className="grid size-9 place-items-center rounded-full text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
-                    aria-label="ذخیره در دستگاه"
-                    title="ذخیره در دستگاه"
-                  >
-                    <DownloadIcon className="size-4" />
-                  </a>
-                )}
-                <IconBtn
-                  onClick={() => {
-                    remove(d.id);
-                    toast.success("دانلود حذف شد");
-                  }}
-                  label="حذف"
-                  danger
-                >
-                  <Trash2 className="size-4" />
-                </IconBtn>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))
+          )}
 
-        {downloads.length > 0 && (
-          <p className="text-center text-xs text-muted-foreground">
-            فایل‌ها روی همین دستگاه ذخیره می‌شوند. برای پاک‌کردن همه، از تنظیمات استفاده کنید.
-          </p>
-        )}
-      </div>
+          {downloads.length > 0 && (
+            <p className="type-footnote pb-2 text-center text-ios-label-secondary">
+              فایل‌ها روی همین دستگاه ذخیره می‌شوند. برای پاک‌کردن همه، از تنظیمات استفاده کنید.
+            </p>
+          )}
+        </div>
+      </Screen>
     </AppShell>
   );
 }
@@ -165,8 +161,8 @@ function StatusIcon({
 }: {
   status: "queued" | "downloading" | "paused" | "done" | "error";
 }) {
-  if (status === "done") return <Check className="size-3 text-emerald-400" />;
-  if (status === "error") return <X className="size-3 text-destructive" />;
+  if (status === "done") return <Check className="size-3 text-ios-green" strokeWidth={2.5} />;
+  if (status === "error") return <X className="size-3 text-ios-red" strokeWidth={2.5} />;
   return null;
 }
 
@@ -200,16 +196,17 @@ function IconBtn({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-label={label}
       title={label}
       className={cn(
-        "grid size-9 place-items-center rounded-full transition active:scale-90",
+        "press grid size-9 place-items-center rounded-lg",
         primary
-          ? "bg-primary text-primary-foreground"
+          ? "bg-ios-tint text-white"
           : danger
-            ? "text-muted-foreground hover:bg-white/10 hover:text-destructive"
-            : "text-muted-foreground hover:bg-white/10 hover:text-foreground",
+            ? "text-ios-label-secondary hover:bg-ios-fill hover:text-ios-red"
+            : "text-ios-label-secondary hover:bg-ios-fill hover:text-ios-label",
       )}
     >
       {children}

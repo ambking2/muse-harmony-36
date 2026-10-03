@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell, BackLink } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
+import { Screen } from "@/components/ios/Screen";
 import { useLibrary } from "@/stores/library";
 import { TrackRow } from "@/components/music/TrackRow";
 import { usePlayer } from "@/stores/player";
@@ -51,135 +52,144 @@ function PlaylistPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <BackLink />
-
-        <div className="flex flex-wrap items-end gap-6">
-          <div className="glass flex aspect-square w-36 shrink-0 items-center justify-center rounded-3xl sm:w-40">
-            <Music className="size-14 text-primary" />
+      <Screen title="پلی‌لیست" back={{ to: "/library" }} largeTitle={false}>
+        <div className="space-y-5 pt-2">
+          <div className="flex flex-wrap items-end gap-5">
+            <div className="media-tile grid w-36 shrink-0 place-items-center bg-gradient-to-br from-ios-tint/70 to-ios-indigo/40 sm:w-40">
+              <Music className="size-14 text-white" strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="type-footnote text-ios-label-secondary">پلی‌لیست</p>
+              {renaming ? (
+                <input
+                  autoFocus
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={submitRename}
+                  onKeyDown={(e) => e.key === "Enter" && submitRename()}
+                  className="type-title-1 mt-1 w-full rounded-xl bg-ios-fill px-3 py-1.5 outline-none ring-1 ring-ios-separator focus:ring-2 focus:ring-ios-tint"
+                />
+              ) : (
+                <h1 className="type-title-1 mt-1">{playlist.name}</h1>
+              )}
+              <p className="type-footnote mt-1 text-ios-label-secondary ltr-nums">
+                {tracks.length.toLocaleString("fa-IR")} آهنگ
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">پلی‌لیست</p>
-            {renaming ? (
-              <input
-                autoFocus
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onBlur={submitRename}
-                onKeyDown={(e) => e.key === "Enter" && submitRename()}
-                className="mt-1 w-full rounded-xl bg-white/5 px-3 py-1.5 text-2xl font-black tracking-tight outline-none ring-1 ring-white/10 focus:ring-primary/60 sm:text-4xl"
-              />
-            ) : (
-              <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">
-                {playlist.name}
-              </h1>
-            )}
-            <p className="mt-1 text-sm text-muted-foreground ltr-nums">
-              {tracks.length.toLocaleString("fa-IR")} آهنگ
-            </p>
-          </div>
-        </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => tracks.length && playQueue(tracks, 0)}
-            disabled={!tracks.length}
-            className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition active:scale-95 disabled:opacity-40"
-          >
-            <Play className="size-4" /> پخش
-          </button>
-          <button
-            onClick={() => {
-              playQueue(tracks, 0);
-              toggleShuffle();
-            }}
-            disabled={!tracks.length}
-            className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm transition active:scale-95 disabled:opacity-40"
-          >
-            <Shuffle className="size-4" /> تصادفی
-          </button>
-          <button
-            onClick={() => {
-              setName(playlist.name);
-              setRenaming(true);
-            }}
-            className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm"
-          >
-            <Pencil className="size-4" /> تغییر نام
-          </button>
-          <SharePlaylist playlistId={playlist.id} name={playlist.name} tracks={tracks} />
-          <button
-            onClick={() => {
-              if (confirm(`پلی‌لیست «${playlist.name}» حذف شود؟`)) {
-                del(playlist.id);
-                toast.success("پلی‌لیست حذف شد");
-              }
-            }}
-            className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-destructive"
-          >
-            <Trash2 className="size-4" /> حذف
-          </button>
-        </div>
-
-        <div className="space-y-1">
-          {tracks.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
-              این پلی‌لیست خالی است. از صفحه‌ی جستجو یا منوی هر آهنگ اضافه کنید.
-            </p>
-          )}
-          {tracks.map((t, i) => (
-            <div
-              key={playlist.trackKeys[i]}
-              draggable
-              onDragStart={() => setDragIdx(i)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (dragIdx !== null && dragIdx !== i) reorder(playlist.id, dragIdx, i);
-                setDragIdx(null);
-              }}
-              onDragEnd={() => setDragIdx(null)}
-              className={cn("group relative rounded-xl transition", dragIdx === i && "opacity-40")}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => tracks.length && playQueue(tracks, 0)}
+              disabled={!tracks.length}
+              className="btn btn-filled"
             >
-              <TrackRow track={t} list={tracks} index={i} showIndex />
-              {/* Drag works on desktop; these buttons are the touch equivalent. */}
-              <div className="absolute left-2 top-1/2 flex -translate-y-1/2 flex-col gap-0.5 opacity-0 transition group-hover:opacity-100 max-md:opacity-100">
+              <Play className="size-4 fill-current" strokeWidth={0} />
+              پخش
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                playQueue(tracks, 0);
+                toggleShuffle();
+              }}
+              disabled={!tracks.length}
+              className="btn btn-gray"
+            >
+              <Shuffle className="size-4" strokeWidth={2} />
+              تصادفی
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setName(playlist.name);
+                setRenaming(true);
+              }}
+              className="btn btn-gray"
+            >
+              <Pencil className="size-4" strokeWidth={2} />
+              تغییر نام
+            </button>
+            <SharePlaylist playlistId={playlist.id} name={playlist.name} tracks={tracks} />
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`پلی‌لیست «${playlist.name}» حذف شود؟`)) {
+                  del(playlist.id);
+                  toast.success("پلی‌لیست حذف شد");
+                }
+              }}
+              className="btn btn-gray text-ios-red"
+            >
+              <Trash2 className="size-4" strokeWidth={2} />
+              حذف
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            {tracks.length === 0 && (
+              <p className="type-subheadline rounded-card border border-dashed border-ios-separator p-8 text-center text-ios-label-secondary">
+                این پلی‌لیست خالی است. از صفحه‌ی جستجو یا منوی هر آهنگ اضافه کنید.
+              </p>
+            )}
+            {tracks.map((t, i) => (
+              <div
+                key={playlist.trackKeys[i]}
+                draggable
+                onDragStart={() => setDragIdx(i)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  if (dragIdx !== null && dragIdx !== i) reorder(playlist.id, dragIdx, i);
+                  setDragIdx(null);
+                }}
+                onDragEnd={() => setDragIdx(null)}
+                className={cn(
+                  "group relative rounded-xl transition",
+                  dragIdx === i && "opacity-40",
+                )}
+              >
+                <TrackRow track={t} list={tracks} index={i} showIndex />
+                {/* Drag works on desktop; these buttons are the touch equivalent. */}
+                <div className="absolute left-2 top-1/2 flex -translate-y-1/2 flex-col gap-0.5 opacity-0 transition group-hover:opacity-100 max-md:opacity-100">
+                  <button
+                    onClick={() => reorder(playlist.id, i, i - 1)}
+                    disabled={i === 0}
+                    aria-label="بالا"
+                    className="rounded-full p-0.5 text-muted-foreground hover:bg-white/10 disabled:opacity-30"
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </button>
+                  <button
+                    onClick={() => reorder(playlist.id, i, i + 1)}
+                    disabled={i === tracks.length - 1}
+                    aria-label="پایین"
+                    className="rounded-full p-0.5 text-muted-foreground hover:bg-white/10 disabled:opacity-30"
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </button>
+                </div>
                 <button
-                  onClick={() => reorder(playlist.id, i, i - 1)}
-                  disabled={i === 0}
-                  aria-label="بالا"
-                  className="rounded-full p-0.5 text-muted-foreground hover:bg-white/10 disabled:opacity-30"
+                  onClick={() => {
+                    remove(playlist.id, playlist.trackKeys[i]);
+                    toast.success("آهنگ حذف شد");
+                  }}
+                  className="absolute left-12 top-1/2 hidden -translate-y-1/2 rounded-full p-2 text-muted-foreground transition hover:text-destructive group-hover:block"
+                  aria-label="حذف از پلی‌لیست"
                 >
-                  <ArrowUp className="size-3.5" />
-                </button>
-                <button
-                  onClick={() => reorder(playlist.id, i, i + 1)}
-                  disabled={i === tracks.length - 1}
-                  aria-label="پایین"
-                  className="rounded-full p-0.5 text-muted-foreground hover:bg-white/10 disabled:opacity-30"
-                >
-                  <ArrowDown className="size-3.5" />
+                  <Trash2 className="size-4" />
                 </button>
               </div>
-              <button
-                onClick={() => {
-                  remove(playlist.id, playlist.trackKeys[i]);
-                  toast.success("آهنگ حذف شد");
-                }}
-                className="absolute left-12 top-1/2 hidden -translate-y-1/2 rounded-full p-2 text-muted-foreground transition hover:text-destructive group-hover:block"
-                aria-label="حذف از پلی‌لیست"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {tracks.length > 0 && (
-          <p className="text-center text-xs text-muted-foreground">
-            برای جابه‌جایی آهنگ‌ها، کارت‌ها را بکشید یا از فلش‌های کنار هر ردیف استفاده کنید.
-          </p>
-        )}
-      </div>
+          {tracks.length > 0 && (
+            <p className="type-footnote text-center text-ios-label-secondary">
+              برای جابه‌جایی آهنگ‌ها، کارت‌ها را بکشید یا از فلش‌های کنار هر ردیف استفاده کنید.
+            </p>
+          )}
+        </div>
+      </Screen>
     </AppShell>
   );
 }

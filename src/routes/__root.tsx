@@ -18,7 +18,10 @@ import appCss from "../styles.css?url";
 // rarely needed and would only compete for bandwidth.
 import vazirmatnArabic from "@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { GlassDefs } from "@/components/ios/GlassDefs";
 import { useSession } from "@/lib/account";
+import { initGlassMode } from "@/lib/glass";
+import { initTheme } from "@/lib/theme";
 import { useAccountLibrary } from "@/lib/library-sync";
 import { AudioEngine } from "@/hooks/use-audio-engine";
 import { useLibrary } from "@/stores/library";
@@ -118,6 +121,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/favicon.ico" },
     ],
+    // Applies the saved glass preference before the first paint. Doing it in
+    // an effect would paint one frame of the wrong appearance on every load.
+    // Only the "off" case is written: no attribute means the default, which is
+    // glass on — so the server-rendered HTML already matches the common case.
+    scripts: [
+      {
+        children: `try{if(localStorage.getItem("muis-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`,
+      },
+      {
+        children: `try{if(localStorage.getItem("muis-glass")==="off")document.documentElement.dataset.glass="off"}catch(e){}`,
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -157,6 +172,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const hydrateDownloads = useLibrary((s) => s.hydrateDownloads);
 
+  // The inline head script has already put the saved glass mode on the root
+  // element; this syncs the module store that the settings switch reads, so the
+  // toggle never shows the wrong position on first paint.
+  useEffect(initGlassMode, []);
+  useEffect(initTheme, []);
+
   // Rebuild offline object URLs from IndexedDB once, on first paint.
   useEffect(() => {
     void hydrateDownloads();
@@ -164,6 +185,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* The refraction filter every glass surface points at. Mounted once. */}
+      <GlassDefs />
       {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
       <AudioEngine />
       <AccountLibrarySync />

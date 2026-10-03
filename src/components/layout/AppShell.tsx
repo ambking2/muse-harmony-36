@@ -1,14 +1,15 @@
-import type { ComponentType, LazyExoticComponent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
-import { DockNav } from "./Dock";
+import { useRouterState } from "@tanstack/react-router";
+
+import { MiniPlayer } from "@/components/ios/MiniPlayer";
+import { TabBar } from "@/components/ios/TabBar";
 import { Toaster } from "@/components/ui/sonner";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
 import { useArtworkAccent } from "@/hooks/use-artwork-accent";
+import { usePointerLight } from "@/hooks/use-pointer-light";
 import { paletteRegistry, queueRegistry } from "@/lib/ui-control";
 import type { OpenerRegistry } from "@/lib/ui-control";
-import { cn } from "@/lib/utils";
 
 const QueueSheet = lazy(() =>
   import("../player/QueueSheet").then((m) => ({ default: m.QueueSheet })),
@@ -17,15 +18,26 @@ const CommandPalette = lazy(() =>
   import("../CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
 
-/** Pages that own their own large title — the shell skips its page chrome for them. */
+/** Full-screen routes that own the whole viewport, so no tab bar over them. */
 const STANDALONE = new Set(["/now-playing"]);
 
+/**
+ * The app's frame: overlays, the page, and the two pieces of chrome that sit
+ * over it.
+ *
+ * Pages bring their own title bar (`Screen`); the shell only owns the parts
+ * that must survive navigation — the tab bar, the mini player and the deferred
+ * sheets. Bottom padding comes from a CSS token sized to that chrome, so the
+ * two can never drift apart the way a hard-coded `pb-44` did.
+ */
 export function AppShell({ children }: { children: ReactNode }) {
   useKeyboardShortcuts();
   // Tints the whole app with the current artwork colour.
   useArtworkAccent();
+  // Publishes the pointer position so the chrome's highlights can track it.
+  usePointerLight();
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isStandalone = STANDALONE.has(pathname);
 
   // Move the page to the top on navigation (single-page app behaviour).
@@ -38,6 +50,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     // rail) from turning into a page-wide horizontal scrollbar, while rails
     // that really do scroll keep their own `overflow-x-auto`.
     <div className="ambient relative min-h-screen overflow-x-clip text-foreground">
+      {/* The living background, then the smeared cover on top of it. Together
+          they are the scene every glass surface refracts. Decorative only — the
+          artwork is already announced by the player. */}
+      <div className="mesh" aria-hidden />
+      <div className="mesh-accent" aria-hidden />
+      <div className="ambient-art" aria-hidden />
+
       <DeferredOverlay registry={paletteRegistry} load={COMMAND_PALETTE_CHUNK}>
         <CommandPalette />
       </DeferredOverlay>
@@ -45,11 +64,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         <QueueSheet />
       </DeferredOverlay>
 
-      <main className={cn("mx-auto max-w-6xl px-4 pb-44 pt-6 sm:px-6", isStandalone && "pb-40")}>
+      <main className={isStandalone ? undefined : "pb-[calc(var(--chrome-inset)+1.5rem)]"}>
         {children}
       </main>
 
-      <DockNav />
+      {!isStandalone && (
+        <>
+          <MiniPlayer />
+          <TabBar />
+        </>
+      )}
       <Toaster position="top-center" theme="dark" richColors closeButton />
     </div>
   );
@@ -91,41 +115,3 @@ function DeferredOverlay({
 
 const COMMAND_PALETTE_CHUNK = () => import("../CommandPalette");
 const QUEUE_SHEET_CHUNK = () => import("../player/QueueSheet");
-
-/** Section header used across the app's library-style pages. */
-export function PageHeader({
-  eyebrow,
-  title,
-  action,
-}: {
-  eyebrow?: string;
-  title: string;
-  action?: ReactNode;
-}) {
-  return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        {eyebrow && (
-          <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-/** Back link for the deep pages (artist/album/playlist). */
-export function BackLink({ to = "/explore" }: { to?: string }) {
-  return (
-    <Link
-      to={to}
-      className="glass mb-4 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground"
-    >
-      <ChevronLeft className="size-4" />
-      بازگشت
-    </Link>
-  );
-}

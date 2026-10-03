@@ -1,117 +1,122 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell, PageHeader } from "@/components/layout/AppShell";
-import { useLibrary } from "@/stores/library";
-import { TrackRow } from "@/components/music/TrackRow";
-import { trackKey } from "@/lib/types";
-import { usePlayer } from "@/stores/player";
-import { Heart, Play, Shuffle, Mic2, Music } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Heart, Mic2, Play, Shuffle } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
-const TABS = [
-  { id: "songs", label: "آهنگ‌ها", icon: Music },
-  { id: "artists", label: "خواننده‌ها", icon: Mic2 },
-] as const;
+import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
+import { Row } from "@/components/ios/Row";
+import { Screen } from "@/components/ios/Screen";
+import { Section } from "@/components/ios/Section";
+import { Segmented } from "@/components/ios/Segmented";
+import { TrackRow } from "@/components/music/TrackRow";
+import { useLibrary } from "@/stores/library";
+import { usePlayer } from "@/stores/player";
+import { trackKey } from "@/lib/types";
 
 export const Route = createFileRoute("/favorites")({ component: FavoritesPage });
 
-function FavoritesPage() {
-  const favorites = useLibrary((s) => s.favorites);
-  const tracksById = useLibrary((s) => s.tracksById);
-  const favArtists = useLibrary((s) => s.favoriteArtists);
-  const playQueue = usePlayer((s) => s.playQueue);
-  const toggleShuffle = usePlayer((s) => s.toggleShuffle);
-  const [tab, setTab] = useState<"songs" | "artists">("songs");
+const TABS = [
+  { value: "songs", label: "آهنگ‌ها" },
+  { value: "artists", label: "خواننده‌ها" },
+] as const;
 
-  const tracks = favorites.map((k) => tracksById[k]).filter(Boolean);
+type Tab = (typeof TABS)[number]["value"];
+
+/** Everything the listener has hearted — the songs, and the voices behind them. */
+function FavoritesPage() {
+  const favorites = useLibrary((state) => state.favorites);
+  const tracksById = useLibrary((state) => state.tracksById);
+  const favoriteArtists = useLibrary((state) => state.favoriteArtists);
+  const playQueue = usePlayer((state) => state.playQueue);
+  const toggleShuffle = usePlayer((state) => state.toggleShuffle);
+
+  const [tab, setTab] = useState<Tab>("songs");
+  const tracks = favorites.map((key) => tracksById[key]).filter(Boolean);
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="دوست‌داشتنی‌ها"
-          title="علاقه‌مندی‌ها"
-          action={
-            tracks.length > 0 && (
-              <div className="flex gap-2">
+      <Screen
+        title="علاقه‌مندی‌ها"
+        subtitle={
+          favorites.length
+            ? `${favorites.length.toLocaleString("fa-IR")} آهنگ و ${favoriteArtists.length.toLocaleString("fa-IR")} خواننده`
+            : "هنوز چیزی را نشان نکرده‌اید"
+        }
+      >
+        <Segmented value={tab} onChange={setTab} options={TABS} className="mt-4" />
+
+        {tab === "songs" ? (
+          <>
+            {tracks.length > 0 && (
+              <div className="mt-4 flex gap-2">
                 <button
+                  type="button"
+                  onClick={() => playQueue(tracks, 0)}
+                  className="btn btn-filled flex-1"
+                >
+                  <Play className="size-4 fill-current" strokeWidth={0} />
+                  پخش همه
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     playQueue(tracks, 0);
                     toggleShuffle();
                   }}
-                  className="glass flex items-center gap-2 rounded-full px-4 py-2 text-sm"
+                  className="btn btn-gray"
                 >
-                  <Shuffle className="size-4" /> تصادفی
-                </button>
-                <button
-                  onClick={() => playQueue(tracks, 0)}
-                  className="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25"
-                >
-                  <Play className="size-4" /> پخش همه
+                  <Shuffle className="size-4" strokeWidth={2} />
+                  تصادفی
                 </button>
               </div>
-            )
-          }
-        />
+            )}
 
-        <div className="glass inline-flex rounded-full p-1">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm transition",
-                tab === t.id
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+            <div className="mt-4">
+              {tracks.length === 0 ? (
+                <EmptyState
+                  icon={Heart}
+                  title="هنوز آهنگی را نشان نکرده‌اید"
+                  description="روی قلب هر آهنگ بزنید تا اینجا جمع شود — و با حسابتان همگام بماند."
+                />
+              ) : (
+                <Section title="آهنگ‌ها">
+                  {tracks.map((track, index) => (
+                    <TrackRow
+                      key={trackKey(track)}
+                      track={track}
+                      list={tracks}
+                      index={index}
+                      showIndex
+                    />
+                  ))}
+                </Section>
               )}
-            >
-              <t.icon className="size-3.5" />
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === "songs" &&
-          (tracks.length === 0 ? (
-            <div className="glass rounded-2xl p-10 text-center">
-              <Heart className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                هنوز آهنگی را نشان نکرده‌اید — روی قلب هر آهنگ بزنید.
-              </p>
             </div>
-          ) : (
-            <div className="space-y-1">
-              {tracks.map((t, i) => (
-                <TrackRow key={trackKey(t)} track={t} list={tracks} index={i} showIndex />
-              ))}
-            </div>
-          ))}
-
-        {tab === "artists" &&
-          (favArtists.length === 0 ? (
-            <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-              <Mic2 className="mx-auto size-10" />
-              <p className="mt-3 text-sm">هنوز خواننده‌ی محبوبی انتخاب نکرده‌اید.</p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {favArtists.map((a) => (
-                <Link
-                  key={a}
-                  to="/artist/$name"
-                  params={{ name: a }}
-                  className="glass flex items-center gap-3 rounded-2xl p-4 transition hover:bg-white/10"
-                >
-                  <div className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                    <Mic2 className="size-5" />
-                  </div>
-                  <div className="truncate font-medium">{a}</div>
-                </Link>
-              ))}
-            </div>
-          ))}
-      </div>
+          </>
+        ) : (
+          <div className="mt-4">
+            {favoriteArtists.length === 0 ? (
+              <EmptyState
+                icon={Mic2}
+                title="هنوز خواننده‌ای را دنبال نکرده‌اید"
+                description="از صفحه‌ی هر خواننده، او را به این فهرست اضافه کنید."
+              />
+            ) : (
+              <Section title="خواننده‌ها">
+                {favoriteArtists.map((artist) => (
+                  <Row
+                    key={artist}
+                    icon={Mic2}
+                    tone="pink"
+                    label={artist}
+                    to={`/artist/${encodeURIComponent(artist)}`}
+                  />
+                ))}
+              </Section>
+            )}
+          </div>
+        )}
+      </Screen>
     </AppShell>
   );
 }

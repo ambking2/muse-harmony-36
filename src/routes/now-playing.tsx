@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
+import { EmptyState } from "@/components/ios/EmptyState";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
 import {
@@ -33,6 +34,7 @@ import {
   SkipForward,
   Timer,
   Download,
+  Music,
   Type,
   WifiOff,
   Loader2,
@@ -132,12 +134,21 @@ function NowPlaying() {
   if (!track) {
     return (
       <AppShell>
-        <div className="py-24 text-center">
-          <p className="text-muted-foreground">در حال حاضر چیزی پخش نمی‌شود.</p>
-          <RippleButton className="mt-4" onClick={() => router.navigate({ to: "/explore" })}>
-            رفتن به جستجو
-          </RippleButton>
-        </div>
+        <EmptyState
+          icon={Music}
+          title="در حال حاضر چیزی پخش نمی‌شود"
+          description="یک آهنگ از جستجو یا کتابخانه انتخاب کنید تا اینجا پخش شود."
+          className="py-24"
+          action={
+            <button
+              type="button"
+              onClick={() => router.navigate({ to: "/explore" })}
+              className="btn btn-filled"
+            >
+              رفتن به جستجو
+            </button>
+          }
+        />
       </AppShell>
     );
   }
@@ -178,26 +189,26 @@ function NowPlaying() {
       <div className="mx-auto flex min-h-screen max-w-lg flex-col px-6 pb-44 pt-5">
         <header className="flex items-center justify-between">
           <button
+            type="button"
             onClick={() => router.history.back()}
-            className="glass flex size-10 items-center justify-center rounded-full transition active:scale-95"
+            className="press grid size-11 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary"
             aria-label="بازگشت"
           >
-            <ChevronDown className="size-5 rotate-180" />
+            <ChevronDown className="size-5 rotate-180" strokeWidth={2} />
           </button>
           <div className="text-center">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              در حال پخش
-            </p>
-            <p className="text-xs text-muted-foreground/70">
+            <p className="type-footnote text-ios-label-secondary">در حال پخش</p>
+            <p className="type-caption text-ios-label-tertiary">
               {isOffline ? "آفلاین" : isBuffering ? "در حال بافر…" : track.album || "muis"}
             </p>
           </div>
           <button
+            type="button"
             onClick={() => queueRegistry.openAll()}
-            className="glass flex size-10 items-center justify-center rounded-full transition active:scale-95"
+            className="press grid size-11 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary"
             aria-label="صف پخش"
           >
-            <ListMusic className="size-5" />
+            <ListMusic className="size-5" strokeWidth={2} />
           </button>
         </header>
 
@@ -209,7 +220,7 @@ function NowPlaying() {
           transition={{ type: "spring", stiffness: 220, damping: 26 }}
           className="mx-auto mt-8 w-full max-w-sm"
         >
-          <div className="relative aspect-square overflow-hidden rounded-3xl shadow-2xl shadow-black/60">
+          <div className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60">
             {art ? (
               <img src={art} alt={track.name} decoding="async" className="size-full object-cover" />
             ) : (
@@ -226,7 +237,7 @@ function NowPlaying() {
         {/* Meta */}
         <div className="mt-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-black">{track.name}</h1>
+            <h1 className="type-title-2 truncate">{track.name}</h1>
             <div className="flex flex-wrap gap-x-2">
               {track.artist.map((a) => (
                 <Link
@@ -272,7 +283,7 @@ function NowPlaying() {
             className="mt-2"
             aria-label="موقعیت پخش"
           />
-          <div className="mt-1 flex justify-between text-xs tabular-nums text-muted-foreground ltr-nums">
+          <div className="type-footnote mt-1 flex justify-between tabular-nums text-ios-label-secondary ltr-nums">
             <span>{formatTime(currentTime)}</span>
             <span>-{formatTime(remaining)}</span>
           </div>
@@ -281,42 +292,51 @@ function NowPlaying() {
         {/* Transport */}
         <div className="mt-5 flex items-center justify-between">
           <button
+            type="button"
             onClick={toggleShuffle}
             aria-pressed={shuffle}
             className={cn(
-              "p-2 transition active:scale-90",
-              shuffle ? "text-primary" : "text-muted-foreground",
+              "press grid size-11 place-items-center rounded-lg",
+              shuffle ? "text-ios-tint" : "text-ios-label-secondary",
             )}
             aria-label="پخش تصادفی"
           >
             <Shuffle className="size-5" />
           </button>
           <button
+            type="button"
             onClick={prev}
-            className="p-2 text-foreground transition active:scale-90"
+            className="press grid size-12 place-items-center rounded-lg text-ios-label"
             aria-label="قبلی"
           >
-            <SkipBack className="size-8" />
+            <SkipBack className="size-8" strokeWidth={1.8} />
           </button>
           <button
+            type="button"
             onClick={togglePlay}
-            className="flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 transition active:scale-95"
+            className="press grid size-16 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
             aria-label={isPlaying ? "توقف" : "پخش"}
           >
-            {isPlaying ? <Pause className="size-7" /> : <Play className="size-7" />}
+            {isPlaying ? (
+              <Pause className="size-7 fill-current" strokeWidth={0} />
+            ) : (
+              <Play className="size-7 translate-x-px fill-current" strokeWidth={0} />
+            )}
           </button>
           <button
+            type="button"
             onClick={next}
-            className="p-2 text-foreground transition active:scale-90"
+            className="press grid size-12 place-items-center rounded-lg text-ios-label"
             aria-label="بعدی"
           >
-            <SkipForward className="size-8" />
+            <SkipForward className="size-8" strokeWidth={1.8} />
           </button>
           <button
+            type="button"
             onClick={cycleRepeat}
             className={cn(
-              "p-2 transition active:scale-90",
-              repeat !== "off" ? "text-primary" : "text-muted-foreground",
+              "press grid size-11 place-items-center rounded-lg",
+              repeat !== "off" ? "text-ios-tint" : "text-ios-label-secondary",
             )}
             aria-label="تکرار"
           >
@@ -327,13 +347,12 @@ function NowPlaying() {
         {/* Secondary actions */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <button
+            type="button"
             onClick={() => setShowLyrics((v) => !v)}
-            className={cn(
-              "glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm",
-              showLyrics && "text-primary",
-            )}
+            className={cn("btn btn-gray", showLyrics && "text-ios-tint")}
           >
-            <Type className="size-4" /> {showLyrics ? "پنهان‌کردن متن" : "متن ترانه"}
+            <Type className="size-4" strokeWidth={2} />{" "}
+            {showLyrics ? "پنهان‌کردن متن" : "متن ترانه"}
           </button>
           <QualityMenu quality={quality} onChange={setQuality} />
           <LoadingButton
@@ -358,8 +377,8 @@ function NowPlaying() {
             <Share2 /> اشتراک
           </LoadingButton>
           <TrackMenu track={track}>
-            <button className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm">
-              <Plus className="size-4" /> بیشتر
+            <button type="button" className="btn btn-gray">
+              <Plus className="size-4" strokeWidth={2} /> بیشتر
             </button>
           </TrackMenu>
           <SleepButton />
@@ -411,7 +430,7 @@ function Waveform({ current, duration }: { current: number; duration: number }) 
             key={i}
             className={cn(
               "flex-1 rounded-sm transition-colors",
-              filled ? "bg-primary" : "bg-white/15",
+              filled ? "bg-ios-tint" : "bg-ios-label/20",
             )}
             style={{ height: `${Math.round(h * 100)}%` }}
           />
@@ -448,10 +467,10 @@ function Lyrics({
     el?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [activeIdx]);
 
-  if (loading) return <div className="skeleton h-40 w-full rounded-2xl" />;
+  if (loading) return <div className="skeleton h-40 w-full rounded-card" />;
   if (!lines.length) {
     return (
-      <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">
+      <div className="type-subheadline rounded-card border border-ios-separator bg-ios-surface/70 p-6 text-center text-ios-label-secondary backdrop-blur-2xl">
         متنی برای این آهنگ پیدا نشد.
       </div>
     );

@@ -1,4 +1,5 @@
-import { MoreHorizontal, Play, Pause, Download } from "lucide-react";
+import { Download, MoreHorizontal } from "lucide-react";
+
 import type { Track } from "@/lib/types";
 import { trackKey } from "@/lib/types";
 import { Artwork } from "./Artwork";
@@ -8,6 +9,20 @@ import { TrackMenuLazy } from "./TrackMenuLazy";
 import { Equalizer } from "../player/QueueSheet";
 import { useLibrary } from "@/stores/library";
 
+/**
+ * One track in a list.
+ *
+ * Shaped like a native music list row: 48pt artwork, the title over the artist,
+ * and a trailing control — the position number while nothing is playing, the
+ * playing indicator on the current track, and the overflow menu beside it.
+ *
+ * Each track floats on its own, so a long queue reads as a stack of cards and
+ * the blurred artwork shows between them rather than through one long slab.
+ *
+ * The row itself is the tap target and the overflow menu is a sibling, never a
+ * button inside one: nested interactive elements cannot be focused or reached
+ * by assistive tech, and the inner one swallows the outer's press.
+ */
 export function TrackRow({
   track,
   list,
@@ -16,98 +31,98 @@ export function TrackRow({
   compact = false,
 }: {
   track: Track;
+  /** The full queue to hand the player, so next/prev work from this list. */
   list?: Track[];
   index?: number;
+  /** Replace the artwork with a position number until the row is current. */
   showIndex?: boolean;
   compact?: boolean;
 }) {
-  const current = usePlayer((s) => s.queue[s.index]);
-  const isPlaying = usePlayer((s) => s.isPlaying);
-  const playTrack = usePlayer((s) => s.playTrack);
-  const togglePlay = usePlayer((s) => s.togglePlay);
-  const downloads = useLibrary((s) => s.downloads);
+  const current = usePlayer((state) => state.queue[state.index]);
+  const isPlaying = usePlayer((state) => state.isPlaying);
+  const playTrack = usePlayer((state) => state.playTrack);
+  const togglePlay = usePlayer((state) => state.togglePlay);
+  const downloads = useLibrary((state) => state.downloads);
 
   const active = !!current && trackKey(current) === trackKey(track);
   const downloaded = downloads.some(
-    (d) => d.id.startsWith(`${trackKey(track)}:`) && d.status === "done",
+    (entry) => entry.id.startsWith(`${trackKey(track)}:`) && entry.status === "done",
   );
 
+  const toggle = () => {
+    if (active) togglePlay();
+    else playTrack(track, list ?? [track]);
+  };
+
+  const label = active
+    ? isPlaying
+      ? `توقف ${track.name}`
+      : `پخش ${track.name}`
+    : `${(index ?? 0) + 1}. ${track.name} — ${track.artist.join("، ")}`;
+
   return (
-    <div
-      className={cn(
-        "group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5",
-        active && "bg-white/5",
-      )}
-    >
+    <div className="panel flex items-center gap-1 pr-1 pl-3">
       <button
         type="button"
-        onClick={() => (active ? togglePlay() : playTrack(track, list ?? [track]))}
-        className="relative shrink-0"
-        aria-label={active ? "توقف" : "پخش"}
+        onClick={toggle}
+        aria-label={label}
+        className="press flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-card ps-1 text-right hover:bg-ios-fill-soft active:bg-ios-fill"
       >
         {showIndex && !active ? (
-          <div
+          <span
             className={cn(
-              "flex items-center justify-center text-sm tabular-nums text-muted-foreground",
+              "type-body grid shrink-0 place-items-center tabular-nums text-ios-label-tertiary",
               compact ? "size-10" : "size-12",
             )}
           >
             {(index ?? 0) + 1}
-          </div>
+          </span>
         ) : (
           <Artwork
             track={track}
-            size={100}
-            className={compact ? "size-10" : "size-12"}
+            size={96}
+            className={cn("shrink-0", compact ? "size-10" : "size-12")}
             rounded="rounded-lg"
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition group-hover:opacity-100">
-          {active && isPlaying ? (
-            <Pause className="size-4 text-white" />
-          ) : (
-            <Play className="size-4 text-white" />
-          )}
-        </div>
-        {active && isPlaying && (
-          <div className="absolute -bottom-1 -left-1 rounded-full bg-background/80 p-0.5">
-            <Equalizer playing />
-          </div>
-        )}
-      </button>
 
-      <button
-        type="button"
-        onClick={() => (active ? togglePlay() : playTrack(track, list ?? [track]))}
-        className="min-w-0 flex-1 text-right"
-      >
-        <div
-          className={cn(
-            "flex items-center gap-1.5 truncate text-sm font-medium",
-            active ? "text-primary" : "text-foreground",
-          )}
-        >
-          <span className="truncate">{track.name}</span>
-          {downloaded && <Download className="size-3 shrink-0 text-muted-foreground" />}
-        </div>
-        <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-          <span className="truncate">{track.artist.join("، ")}</span>
-          {track.album && (
-            <>
-              <span aria-hidden>·</span>
-              <span className="truncate opacity-70">{track.album}</span>
-            </>
-          )}
-        </div>
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "type-body flex items-center gap-1.5 truncate",
+              active ? "font-semibold text-ios-tint" : "text-ios-label",
+            )}
+          >
+            <span className="truncate">{track.name}</span>
+            {downloaded && (
+              <Download className="size-3.5 shrink-0 text-ios-label-tertiary" aria-hidden />
+            )}
+          </span>
+          <span className="type-subheadline flex items-center gap-1.5 truncate text-ios-label-secondary">
+            <span className="truncate">{track.artist.join("، ")}</span>
+            {track.album && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="truncate">{track.album}</span>
+              </>
+            )}
+          </span>
+        </span>
+
+        {active && (
+          <span className="shrink-0 text-ios-tint [&_span]:bg-current" aria-hidden>
+            <Equalizer playing={isPlaying} />
+          </span>
+        )}
       </button>
 
       <TrackMenuLazy track={track}>
         <button
           type="button"
-          className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/10 hover:text-foreground md:opacity-0 md:group-hover:opacity-100"
-          aria-label="گزینه‌های بیشتر"
+          className="press grid size-11 shrink-0 place-items-center rounded-card text-ios-label-secondary hover:bg-ios-fill-soft"
+          aria-label={`گزینه‌های بیشتر برای ${track.name}`}
         >
-          <MoreHorizontal className="size-5" />
+          <MoreHorizontal className="size-5" strokeWidth={2} />
         </button>
       </TrackMenuLazy>
     </div>
