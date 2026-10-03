@@ -739,6 +739,29 @@
   overflow: hidden;
 }
 
+/*
+ * The hairline between two rows of one card.
+ *
+ * Same idea as `divide-y`, except the rule stops short of both edges. A line
+ * that spans the whole rectangle turns a group of rows into a table and
+ * competes with the card's own edge; inset to the text it separates — the way
+ * iOS draws grouped lists — it stays a line between two rows and nothing more.
+ * Drawn with a pseudo-element because a border can only ever span the box.
+ */
+@utility inset-divided {
+  > * + * {
+    position: relative;
+  }
+  > * + *::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 1rem;
+    height: 1px;
+    background: var(--color-ios-separator);
+  }
+}
+
 /* Apple's press response: a small, quick scale-down under the finger. Paired
    with a background change by whatever control uses it. Disabled entirely
    when Reduce Motion is on, where motion is replaced by the colour change. */

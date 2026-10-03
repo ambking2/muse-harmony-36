@@ -41,18 +41,17 @@ const SHORTCUTS: readonly (readonly [string, string])[] = [
 /**
  * Profile.
  *
- * One square, then one list.
+ * Five cards, each one a group of its own: the account at the top, then the
+ * collection, then what you have done with it, then the way into the rest of
+ * the app, then the keys. The shape is the iOS settings screen read from the
+ * top — a heading, a card, a gap — so each group says what it is before it
+ * says what is in it.
  *
- * The square is the collection. It is a single floating object and every
- * window onto what you own lives inside it — the tracks, what you loved, the
- * playlists you made, the files you took offline — each row a coloured tile, a
- * name, a line that says what it really is, and a count on the far edge. Four
- * separate panels would say "these are different things"; they are four views of
- * one shelf. One panel says so, and spends the space on the counts.
- *
- * Below it, everything that is not the collection is one continuous card —
- * account, activity, the way into the rest of the app, the keys. Same iOS
- * grouped-list shape, hairline between the groups and none inside them.
+ * The groups stay separate on purpose. Welded into one panel they would be a
+ * single object with five headings, and nothing would say which rows belong
+ * together; separated, each card is one thing you could lift out on its own.
+ * Inside a card, the rows run together with only a hairline between them,
+ * because they are one list.
  */
 function ProfilePage() {
   const library = useLibrary((state) => state.library);
@@ -74,20 +73,33 @@ function ProfilePage() {
   return (
     <AppShell>
       <Screen title="پروفایل" subtitle={session?.username ?? "مهمان"}>
-        <div className="space-y-5">
+        <div className="space-y-4">
           <Reveal index={0}>
-            <section className="card flex aspect-square flex-col">
-              <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-4">
-                <h2 className="type-footnote font-semibold text-ios-tint">کتابخانه‌ی شما</h2>
-                <span className="type-footnote ltr-nums text-ios-label-secondary">
-                  {fa(library.length)} آهنگ
-                </span>
-              </header>
-
-              <div className="flex flex-1 flex-col divide-y divide-ios-separator">
+            <section className="card">
+              <GroupTitle>حساب شما</GroupTitle>
+              <div className="inset-divided">
                 <Row
                   plain
-                  className="flex-1"
+                  icon={UserRound}
+                  tone="tint"
+                  label={session?.username ?? "ورود و ثبت‌نام"}
+                  detail={
+                    session
+                      ? "پلی‌لیست‌ها و علاقه‌مندی‌ها با حساب شما همگام می‌شوند"
+                      : "با ورود، پلی‌لیست‌ها و علاقه‌مندی‌ها بین دستگاه‌هایتان می‌آیند"
+                  }
+                  to="/account"
+                />
+              </div>
+            </section>
+          </Reveal>
+
+          <Reveal index={1}>
+            <section className="card">
+              <GroupTitle value={`${fa(library.length)} آهنگ`}>کتابخانه‌ی شما</GroupTitle>
+              <div className="inset-divided">
+                <Row
+                  plain
                   icon={Music}
                   tone="orange"
                   label="در کتابخانه"
@@ -97,7 +109,6 @@ function ProfilePage() {
                 />
                 <Row
                   plain
-                  className="flex-1"
                   icon={Heart}
                   tone="pink"
                   label="علاقه‌مندی‌ها"
@@ -107,7 +118,6 @@ function ProfilePage() {
                 />
                 <Row
                   plain
-                  className="flex-1"
                   icon={ListMusic}
                   tone="purple"
                   label="پلی‌لیست‌ها"
@@ -117,7 +127,6 @@ function ProfilePage() {
                 />
                 <Row
                   plain
-                  className="flex-1"
                   icon={HardDrive}
                   tone="teal"
                   label="پخش آفلاین"
@@ -133,62 +142,63 @@ function ProfilePage() {
             </section>
           </Reveal>
 
-          <Reveal index={1}>
-            <section className="card divide-y divide-ios-separator">
-              <Row
-                plain
-                icon={UserRound}
-                tone="tint"
-                label={session?.username ?? "ورود و ثبت‌نام"}
-                detail={
-                  session
-                    ? "پلی‌لیست‌ها و علاقه‌مندی‌ها با حساب شما همگام می‌شوند"
-                    : "با ورود، پلی‌لیست‌ها و علاقه‌مندی‌ها بین دستگاه‌هایتان می‌آیند"
-                }
-                to="/account"
-              />
-
+          <Reveal index={2}>
+            <section className="card">
               <GroupTitle>فعالیت شما</GroupTitle>
-              <Row
-                plain
-                icon={Sparkles}
-                tone="indigo"
-                label="آهنگ پخش‌شده"
-                value={fa(history.length)}
-              />
-              <Row plain icon={Clock} tone="gray" label="روز فعال" value={fa(activeDays)} />
-              <Row
-                plain
-                icon={Mic2}
-                tone="green"
-                label="خواننده‌های دنبال‌شده"
-                to="/favorites"
-                value={fa(favoriteArtists.length)}
-              />
-
-              <GroupTitle>دسترسی سریع</GroupTitle>
-              <Row plain icon={Search} tone="tint" label="جستجوی آهنگ" to="/explore" />
-              <Row plain icon={Disc3} tone="purple" label="کتابخانه و پلی‌لیست" to="/library" />
-              <Row plain icon={Download} tone="teal" label="پخش آفلاین" to="/downloads" />
-              <Row plain icon={SettingsIcon} tone="gray" label="تنظیمات" to="/settings" />
-
-              <GroupTitle>کلیدهای میان‌بر</GroupTitle>
-              {SHORTCUTS.map(([keys, label]) => (
+              <div className="inset-divided">
                 <Row
-                  key={keys}
                   plain
-                  label={label}
-                  accessory={
-                    <kbd className="type-footnote rounded-md bg-ios-fill px-2 py-1 ltr-nums">
-                      {keys}
-                    </kbd>
-                  }
+                  icon={Sparkles}
+                  tone="indigo"
+                  label="آهنگ پخش‌شده"
+                  value={fa(history.length)}
                 />
-              ))}
+                <Row plain icon={Clock} tone="gray" label="روز فعال" value={fa(activeDays)} />
+                <Row
+                  plain
+                  icon={Mic2}
+                  tone="green"
+                  label="خواننده‌های دنبال‌شده"
+                  to="/favorites"
+                  value={fa(favoriteArtists.length)}
+                />
+              </div>
             </section>
           </Reveal>
 
-          <p className="type-footnote text-center text-ios-label-tertiary">
+          <Reveal index={3}>
+            <section className="card">
+              <GroupTitle>دسترسی سریع</GroupTitle>
+              <div className="inset-divided">
+                <Row plain icon={Search} tone="tint" label="جستجوی آهنگ" to="/explore" />
+                <Row plain icon={Disc3} tone="purple" label="کتابخانه و پلی‌لیست" to="/library" />
+                <Row plain icon={Download} tone="teal" label="پخش آفلاین" to="/downloads" />
+                <Row plain icon={SettingsIcon} tone="gray" label="تنظیمات" to="/settings" />
+              </div>
+            </section>
+          </Reveal>
+
+          <Reveal index={4}>
+            <section className="card">
+              <GroupTitle>کلیدهای میان‌بر</GroupTitle>
+              <div className="inset-divided">
+                {SHORTCUTS.map(([keys, label]) => (
+                  <Row
+                    key={keys}
+                    plain
+                    label={label}
+                    accessory={
+                      <kbd className="type-footnote rounded-md bg-ios-fill px-2 py-1 ltr-nums">
+                        {keys}
+                      </kbd>
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          </Reveal>
+
+          <p className="type-footnote pt-1 text-center text-ios-label-tertiary">
             همه‌ی داده‌ها روی همین دستگاه ذخیره می‌شوند. برای همگام‌سازی، وارد حساب شوید.
           </p>
         </div>
@@ -197,8 +207,15 @@ function ProfilePage() {
   );
 }
 
-/** A group's name inside the continuous card — small, tinted, and the only
- *  thing the hairline above it separates. */
-function GroupTitle({ children }: { children: ReactNode }) {
-  return <h2 className="type-footnote px-4 pb-1 pt-4 font-semibold text-ios-tint">{children}</h2>;
+/** A group's name at the top of its card — small, tinted, with an optional
+ *  value on the far edge. The only thing that names the rows below it. */
+function GroupTitle({ children, value }: { children: ReactNode; value?: ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-4 pb-1 pt-4">
+      <h2 className="type-footnote font-semibold text-ios-tint">{children}</h2>
+      {value !== undefined && (
+        <span className="type-footnote shrink-0 text-ios-label-secondary">{value}</span>
+      )}
+    </div>
+  );
 }
