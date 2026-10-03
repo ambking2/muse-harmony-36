@@ -503,6 +503,7 @@
 
 /* Ambient page glow tinted by the current artwork. */
 @utility ambient {
+  isolation: isolate;
   background:
     radial-gradient(120% 60% at 50% -10%, color-mix(in oklch, var(--track-accent) 35%, transparent) 0%, transparent 70%),
     var(--color-background);
@@ -692,9 +693,9 @@
     backdrop-filter: url(#muis-lens);
   }
 
-  .lens > .refract {
-    display: none;
-  }
+  /* Keep the visual fallback enabled even on browsers that claim support
+     for backdrop-filter:url(). Some Chromium/WebView builds accept the
+     syntax but do not actually paint SVG displacement on a live backdrop. */
 }
 
 /* Layer 1b. Paints the same background as the page, then bends it. */
