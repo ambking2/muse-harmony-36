@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import {
   Clock,
   Disc3,
@@ -35,30 +34,17 @@ import {
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage });
 
-/** Keyboard shortcuts, shown the way a settings list shows a value. */
-const SHORTCUTS: readonly (readonly [string, string])[] = [
-  ["Space", "پخش / توقف"],
-  ["← / →", "جلو و عقب ۵ ثانیه"],
-  ["⇧ + ← / →", "آهنگ قبلی / بعدی"],
-  ["↑ / ↓", "بلندی صدا"],
-  ["S", "پخش تصادفی"],
-  ["R", "حالت تکرار"],
-  ["M", "بی‌صدا"],
-  ["/", "رفتن به جستجو"],
-  ["⌘ / Ctrl + K", "جستجوی سریع"],
-];
-
 /**
  * Profile.
  *
- * Five cards, each one a group of its own: the account at the top, then the
+ * Four cards, each one a group of its own: the account at the top, then the
  * collection, then what you have done with it, then the way into the rest of
- * the app, then the keys. The shape is the iOS settings screen read from the
+ * the app. The shape is the iOS settings screen read from the
  * top — a heading, a card, a gap — so each group says what it is before it
  * says what is in it.
  *
  * The groups stay separate on purpose. Welded into one panel they would be a
- * single object with five headings, and nothing would say which rows belong
+ * single object with four headings, and nothing would say which rows belong
  * together; separated, each card is one thing you could lift out on its own.
  * Inside a card, the rows run together with only a hairline between them,
  * because they are one list.
@@ -235,26 +221,6 @@ function ProfilePage() {
                 <Row plain icon={Disc3} tone="sky" label="کتابخانه و پلی‌لیست" to="/library" />
                 <Row plain icon={Download} tone="cyan" label="پخش آفلاین" to="/downloads" />
                 <Row plain icon={SettingsIcon} tone="slate" label="تنظیمات" to="/settings" />
-              </div>
-            </section>
-          </Reveal>
-
-          <Reveal index={4}>
-            <section className="card">
-              <GroupTitle>کلیدهای میان‌بر</GroupTitle>
-              <div className="inset-divided">
-                {SHORTCUTS.map(([keys, label]) => (
-                  <Row
-                    key={keys}
-                    plain
-                    label={label}
-                    accessory={
-                      <kbd className="type-footnote rounded-md bg-ios-fill px-2 py-1 ltr-nums">
-                        {keys}
-                      </kbd>
-                    }
-                  />
-                ))}
               </div>
             </section>
           </Reveal>
