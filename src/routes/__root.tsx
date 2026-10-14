@@ -239,15 +239,18 @@ function WebAppInstallPrompt() {
   return (
     <div className="muis-install-overlay" role="presentation">
       <section className="muis-install-card" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="muis-install-title">
+        <div className="muis-install-handle" aria-hidden="true" />
         <button className="muis-install-close" onClick={dismiss} aria-label="بستن اعلان نصب"><X size={18} /></button>
-        <div className="muis-install-icon"><Smartphone size={26} /></div>
+        <div className="muis-install-heading">
+          <div className="muis-install-icon"><Smartphone size={24} /></div>
         <div className="muis-install-copy">
           <span className="muis-install-eyebrow">تجربه بهتر با muis</span>
           <h2 id="muis-install-title">موسیقی همیشه دم دستت باشه</h2>
-          <p>وب‌اپ muis رو روی گوشیت نصب کن؛ مثل یک برنامه، مستقیم از صفحه اصلی بازش کن.</p>
+          <p>وب‌اپ muis رو نصب کن تا مثل یک برنامه، مستقیم از صفحهٔ اصلی بازش کنی.</p>
+          </div>
         </div>
         {!helpOpen ? (
-          <button className="muis-install-primary" onClick={install}>
+          <button className="btn btn-filled muis-install-primary" onClick={install}>
             <Download size={18} />
             نصب وب‌اپ
           </button>
@@ -267,7 +270,7 @@ function WebAppInstallPrompt() {
             )}
           </div>
         )}
-        <button className="muis-install-later" onClick={dismiss}>فعلاً نه</button>
+        <button className="btn btn-gray muis-install-later" onClick={dismiss}>فعلاً نه</button>
       </section>
     </div>
   );
