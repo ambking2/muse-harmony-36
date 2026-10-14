@@ -7,8 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 
 import appCss from "../styles.css?url";
 // Imported through Vite so the content hash lands in the URL. Preloading the
@@ -26,8 +26,7 @@ import { initTheme } from "@/lib/theme";
 import { useAccountLibrary } from "@/lib/library-sync";
 import { AudioEngine } from "@/hooks/use-audio-engine";
 import { useLibrary } from "@/stores/library";
-import { usePlayer } from "@/stores/player";
-import { Music2, Pause, Play } from "lucide-react";
+import { Download, Share, X, Smartphone } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -172,69 +171,108 @@ function AccountLibrarySync() {
 }
 
 
-/** A lightweight web-native Dynamic Island-style notice for playback changes. */
-function DynamicIslandNotice() {
-  const track = usePlayer((s) => s.queue[s.index]);
-  const isPlaying = usePlayer((s) => s.isPlaying);
-  const isBuffering = usePlayer((s) => s.isBuffering);
-  const [notice, setNotice] = useState<{ title: string; detail: string; playing: boolean; buffering: boolean } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previousTrack = useRef<string | null>(null);
-  const previousPlaying = useRef<boolean | null>(null);
+
+/** First-visit PWA install prompt, with browser-specific fallback instructions. */
+function WebAppInstallPrompt() {
+  const [visible, setVisible] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [ios, setIos] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    const id = track ? `${track.source}:${track.id}` : null;
-    const trackChanged = id !== previousTrack.current;
-    const playbackChanged = previousPlaying.current !== null && isPlaying !== previousPlaying.current;
-    previousTrack.current = id;
-    previousPlaying.current = isPlaying;
-    if (!track || (!trackChanged && !playbackChanged)) return;
+    const w = window as Window & { __muisInstallPrompt?: any };
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    setIos(isIOS);
+    if (isStandalone) return;
 
-    setNotice({
-      title: track.name,
-      detail: isPlaying ? (trackChanged ? "اکنون در حال پخش" : "پخش موسیقی") : "پخش متوقف شد",
-      playing: isPlaying,
-      buffering: false,
-    });
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setNotice(null), 3200);
-  }, [track?.source, track?.id, track?.name, isPlaying]);
+    try {
+      if (localStorage.getItem("muis-install-dismissed") === "1") return;
+    } catch {}
 
-  useEffect(() => {
-    if (!notice || !isBuffering) return;
-    setNotice((current) => current ? { ...current, detail: "در حال بارگذاری…", buffering: true } : current);
-  }, [isBuffering]);
+    const onBeforeInstall = (event: Event) => {
+      event.preventDefault();
+      w.__muisInstallPrompt = event;
+      setDeferredPrompt(event);
+      setVisible(true);
+    };
+    const onInstalled = () => {
+      setVisible(false);
+      setDeferredPrompt(null);
+      try { localStorage.removeItem("muis-install-dismissed"); } catch {}
+    };
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
 
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
+    // Safari on iOS does not expose beforeinstallprompt; show its Add to Home Screen guide.
+    if (isIOS) {
+      const timer = window.setTimeout(() => setVisible(true), 1400);
+      return () => {
+        window.clearTimeout(timer);
+        window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+        window.removeEventListener("appinstalled", onInstalled);
+      };
+    }
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
   }, []);
 
+  const dismiss = () => {
+    setVisible(false);
+    setHelpOpen(false);
+    try { localStorage.setItem("muis-install-dismissed", "1"); } catch {}
+  };
+
+  const install = async () => {
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      if (choice?.outcome === "accepted") setVisible(false);
+      else dismiss();
+      return;
+    }
+    setHelpOpen(true);
+  };
+
+  if (!visible) return null;
   return (
-    <div className="mh-island-anchor" aria-live="polite" aria-atomic="true">
-      <AnimatePresence>
-        {notice && (
-          <motion.div
-            key={notice.title + notice.detail}
-            initial={{ opacity: 0, y: -18, scale: 0.88, filter: "blur(5px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -10, scale: 0.94, filter: "blur(4px)" }}
-            transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.8 }}
-            className="mh-island-notice"
-            dir="rtl"
-          >
-            <span className="mh-island-art" aria-hidden="true">
-              {track?.picUrl ? <img src={track.picUrl} alt="" /> : <Music2 size={19} />}
-            </span>
-            <span className="mh-island-copy">
-              <span className="mh-island-title">{notice.title}</span>
-              <span className="mh-island-detail">{notice.buffering ? "در حال بارگذاری…" : notice.detail}</span>
-            </span>
-            <span className="mh-island-state" aria-hidden="true">
-              {notice.buffering ? <span className="mh-island-spinner" /> : notice.playing ? <Play size={15} fill="currentColor" /> : <Pause size={15} />}
-            </span>
-          </motion.div>
+    <div className="muis-install-overlay" role="presentation">
+      <section className="muis-install-card" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="muis-install-title">
+        <button className="muis-install-close" onClick={dismiss} aria-label="بستن اعلان نصب"><X size={18} /></button>
+        <div className="muis-install-icon"><Smartphone size={26} /></div>
+        <div className="muis-install-copy">
+          <span className="muis-install-eyebrow">تجربه بهتر با muis</span>
+          <h2 id="muis-install-title">موسیقی همیشه دم دستت باشه</h2>
+          <p>وب‌اپ muis رو روی گوشیت نصب کن؛ مثل یک برنامه، مستقیم از صفحه اصلی بازش کن.</p>
+        </div>
+        {!helpOpen ? (
+          <button className="muis-install-primary" onClick={install}>
+            <Download size={18} />
+            نصب وب‌اپ
+          </button>
+        ) : (
+          <div className="muis-install-help">
+            {ios ? (
+              <>
+                <p><Share size={17} /> ۱. در Safari روی دکمهٔ اشتراک‌گذاری بزن.</p>
+                <p><span className="muis-install-plus">＋</span> ۲. گزینهٔ «افزودن به صفحهٔ اصلی» را انتخاب کن.</p>
+                <p>۳. روی «افزودن» بزن تا muis نصب شود.</p>
+              </>
+            ) : (
+              <>
+                <p>از منوی مرورگر گزینهٔ «Install app» یا «افزودن به صفحهٔ اصلی» را انتخاب کن.</p>
+                <p>اگر این گزینه را نمی‌بینی، صفحه را در Chrome باز کن و دوباره امتحان کن.</p>
+              </>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+        <button className="muis-install-later" onClick={dismiss}>فعلاً نه</button>
+      </section>
     </div>
   );
 }
@@ -264,7 +302,7 @@ function RootComponent() {
       <MotionConfig reducedMotion="user">
         {/* The refraction filter every glass surface points at. Mounted once. */}
         <GlassDefs />
-        <DynamicIslandNotice />
+        <WebAppInstallPrompt />
         {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
         <AudioEngine />
         <AccountLibrarySync />
