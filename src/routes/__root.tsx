@@ -7,8 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
-import { MotionConfig } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 
 import appCss from "../styles.css?url";
 // Imported through Vite so the content hash lands in the URL. Preloading the
@@ -26,6 +26,8 @@ import { initTheme } from "@/lib/theme";
 import { useAccountLibrary } from "@/lib/library-sync";
 import { AudioEngine } from "@/hooks/use-audio-engine";
 import { useLibrary } from "@/stores/library";
+import { usePlayer } from "@/stores/player";
+import { Music2, Pause, Play } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -169,6 +171,74 @@ function AccountLibrarySync() {
   return null;
 }
 
+
+/** A lightweight web-native Dynamic Island-style notice for playback changes. */
+function DynamicIslandNotice() {
+  const track = usePlayer((s) => s.queue[s.index]);
+  const isPlaying = usePlayer((s) => s.isPlaying);
+  const isBuffering = usePlayer((s) => s.isBuffering);
+  const [notice, setNotice] = useState<{ title: string; detail: string; playing: boolean; buffering: boolean } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousTrack = useRef<string | null>(null);
+  const previousPlaying = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const id = track ? `${track.source}:${track.id}` : null;
+    const trackChanged = id !== previousTrack.current;
+    const playbackChanged = previousPlaying.current !== null && isPlaying !== previousPlaying.current;
+    previousTrack.current = id;
+    previousPlaying.current = isPlaying;
+    if (!track || (!trackChanged && !playbackChanged)) return;
+
+    setNotice({
+      title: track.name,
+      detail: isPlaying ? (trackChanged ? "اکنون در حال پخش" : "پخش موسیقی") : "پخش متوقف شد",
+      playing: isPlaying,
+      buffering: false,
+    });
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setNotice(null), 3200);
+  }, [track?.source, track?.id, track?.name, isPlaying]);
+
+  useEffect(() => {
+    if (!notice || !isBuffering) return;
+    setNotice((current) => current ? { ...current, detail: "در حال بارگذاری…", buffering: true } : current);
+  }, [isBuffering]);
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
+  return (
+    <div className="mh-island-anchor" aria-live="polite" aria-atomic="true">
+      <AnimatePresence>
+        {notice && (
+          <motion.div
+            key={notice.title + notice.detail}
+            initial={{ opacity: 0, y: -18, scale: 0.88, filter: "blur(5px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, scale: 0.94, filter: "blur(4px)" }}
+            transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.8 }}
+            className="mh-island-notice"
+            dir="rtl"
+          >
+            <span className="mh-island-art" aria-hidden="true">
+              {track?.picUrl ? <img src={track.picUrl} alt="" /> : <Music2 size={19} />}
+            </span>
+            <span className="mh-island-copy">
+              <span className="mh-island-title">{notice.title}</span>
+              <span className="mh-island-detail">{notice.buffering ? "در حال بارگذاری…" : notice.detail}</span>
+            </span>
+            <span className="mh-island-state" aria-hidden="true">
+              {notice.buffering ? <span className="mh-island-spinner" /> : notice.playing ? <Play size={15} fill="currentColor" /> : <Pause size={15} />}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const hydrateDownloads = useLibrary((s) => s.hydrateDownloads);
@@ -194,6 +264,7 @@ function RootComponent() {
       <MotionConfig reducedMotion="user">
         {/* The refraction filter every glass surface points at. Mounted once. */}
         <GlassDefs />
+        <DynamicIslandNotice />
         {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
         <AudioEngine />
         <AccountLibrarySync />
