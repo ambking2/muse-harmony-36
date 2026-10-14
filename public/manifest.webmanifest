@@ -8,8 +8,8 @@
   "display_override": ["fullscreen", "standalone"],
   "lang": "fa",
   "dir": "rtl",
-  "background_color": "#0b0810",
-  "theme_color": "#0b0810",
+  "background_color": "#f5f2fb",
+  "theme_color": "#f5f2fb",
   "orientation": "portrait",
   "icons": [
     { "src": "/favicon.ico", "sizes": "48x48 32x32 16x16", "type": "image/x-icon" }
