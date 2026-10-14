@@ -206,16 +206,12 @@ function WebAppInstallPrompt() {
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
     window.addEventListener("appinstalled", onInstalled);
 
-    // Safari on iOS does not expose beforeinstallprompt; show its Add to Home Screen guide.
-    if (isIOS) {
-      const timer = window.setTimeout(() => setVisible(true), 1400);
-      return () => {
-        window.clearTimeout(timer);
-        window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-        window.removeEventListener("appinstalled", onInstalled);
-      };
-    }
+    // Some browsers (including iOS Safari) do not expose beforeinstallprompt.
+    // Still show a helpful first-visit install card; the button uses the native
+    // prompt whenever the browser provides it, otherwise it explains the steps.
+    const timer = window.setTimeout(() => setVisible(true), 1800);
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
       window.removeEventListener("appinstalled", onInstalled);
     };
