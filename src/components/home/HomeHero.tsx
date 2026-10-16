@@ -10,24 +10,23 @@ export function HomeHero() {
 
   return (
     <motion.section
-      initial={mounted ? { opacity: 0, y: 14 } : false}
+      initial={mounted ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={standard}
-      className="relative mb-6"
+      className="record-archive-header"
     >
-      <div className="rounded-card border border-ios-separator bg-ios-surface/70 p-5 backdrop-blur-2xl">
-        <p className="type-large-title">muis</p>
-        <p className="type-body mt-1 text-ios-label-secondary">
-          موسیقی ایرانی و جهانی — جستجو با نام فارسی، متن ترانه، پخش آفلاین.
-        </p>
-        <Link
-          to="/explore"
-          className="press mt-4 flex min-h-11 items-center gap-2 rounded-xl bg-ios-fill px-3 text-ios-label-secondary"
-        >
-          <Search className="size-4 shrink-0" strokeWidth={2.5} />
-          <span className="type-body">جستجوی آهنگ، خواننده یا آلبوم</span>
-        </Link>
+      <div className="record-archive-brand">
+        <p className="type-title-2 font-bold tracking-tight">muis<span className="text-ios-tint">.</span></p>
+        <span className="type-footnote text-ios-label-secondary">آرشیو موسیقی</span>
       </div>
+      <Link
+        to="/explore"
+        className="record-archive-search press"
+        aria-label="جستجوی آهنگ، خواننده یا آلبوم"
+      >
+        <Search className="size-5 shrink-0 text-ios-tint" strokeWidth={2.2} />
+        <span className="type-body">جستجوی آهنگ، خواننده یا آلبوم</span>
+      </Link>
     </motion.section>
   );
 }
