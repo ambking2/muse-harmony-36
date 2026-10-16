@@ -1171,3 +1171,35 @@
 @media (prefers-reduced-motion: reduce) {
   .muis-install-overlay, .muis-install-card { animation: none; }
 }
+
+
+/* Playlist artwork: a little depth and a consistent music-cover treatment,
+   while keeping the established tile palette and real playlist content. */
+.playlist-card-art {
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(145deg, oklch(1 0 0 / .16), transparent 48%, oklch(0 0 0 / .12));
+}
+.playlist-card-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse at 25% 18%, oklch(1 0 0 / .22), transparent 52%);
+}
+.playlist-card-glyph {
+  display: grid;
+  place-items: center;
+  width: 42%;
+  aspect-ratio: 1;
+  border: 1px solid oklch(1 0 0 / .24);
+  border-radius: 28%;
+  background: oklch(1 0 0 / .12);
+  box-shadow: 0 12px 26px oklch(0 0 0 / .13), inset 0 1px 0 oklch(1 0 0 / .18);
+  filter: saturate(.88);
+  transform: rotate(-5deg);
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .panel:hover .playlist-card-glyph { transform: rotate(0deg) scale(1.04); }
+}
