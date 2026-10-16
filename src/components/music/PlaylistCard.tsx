@@ -27,11 +27,11 @@ export function PlaylistCard({
     >
       <div
         className={cn(
-          "media-tile grid place-items-center text-5xl",
+          "media-tile playlist-card-art grid place-items-center text-5xl",
           TILE_CLASS[tileFor(playlist.id)],
         )}
       >
-        <span aria-hidden>{playlist.emoji}</span>
+        <span className="playlist-card-glyph" aria-hidden>{playlist.emoji}</span>
       </div>
       <div className="p-3">
         <div className="type-headline truncate">{playlist.title}</div>
