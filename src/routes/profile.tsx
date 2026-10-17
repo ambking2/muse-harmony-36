@@ -1,22 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Clock,
   Disc3,
-  Download,
   HardDrive,
   Heart,
   ListMusic,
   LogOut,
-  Mic2,
   Music,
   Search,
   Settings as SettingsIcon,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { GroupTitle } from "@/components/ios/GroupTitle";
 import { Reveal } from "@/components/ios/Reveal";
 import { Row } from "@/components/ios/Row";
 import { Screen } from "@/components/ios/Screen";
