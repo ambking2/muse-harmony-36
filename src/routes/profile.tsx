@@ -1,22 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Clock,
   Disc3,
-  Download,
   HardDrive,
   Heart,
   ListMusic,
   LogOut,
-  Mic2,
   Music,
   Search,
   Settings as SettingsIcon,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { GroupTitle } from "@/components/ios/GroupTitle";
 import { Reveal } from "@/components/ios/Reveal";
 import { Row } from "@/components/ios/Row";
 import { Screen } from "@/components/ios/Screen";
@@ -56,7 +51,7 @@ function ProfilePage() {
   const downloads = useLibrary((state) => state.downloads);
   const history = useLibrary((state) => state.history);
   const favoriteArtists = useLibrary((state) => state.favoriteArtists);
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const queryClient = useQueryClient();
 
   const handleLogout = async () => {
@@ -64,169 +59,109 @@ function ProfilePage() {
       await accountApi.logout();
       await queryClient.invalidateQueries({ queryKey: ["session"] });
     } catch {
-      // Keep the menu responsive; the session query remains the source of truth.
+      // The session query remains the source of truth.
     }
   };
 
   const fa = (value: number) => value.toLocaleString("fa-IR");
   const offline = downloads.filter((item) => item.status === "done");
   const offlineSize = offline.reduce((sum, item) => sum + (item.size || 0), 0);
-  // Days with at least one play — cheap, but it makes the page feel like it
-  // knows something about you rather than just counting rows.
-  const activeDays = new Set(history.map((entry) => new Date(entry.at).toISOString().slice(0, 10)))
-    .size;
 
   return (
     <AppShell>
-      <Screen title="پروفایل" subtitle={session?.username ?? "مهمان"}>
-        <div className="space-y-4">
+      <Screen title="حساب کاربری" subtitle="مدیریت حساب و موسیقی‌های شما">
+        <div className="mx-auto w-full max-w-2xl space-y-5 pb-6">
           <Reveal index={0}>
-            <section className="card">
-              <GroupTitle>حساب شما</GroupTitle>
-              <div className="inset-divided">
-                <Row
-                  plain
-                  icon={UserRound}
-                  tone="blue"
-                  label={session?.username ?? "ورود و ثبت‌نام"}
-                  detail={
-                    session
+            <section className="card overflow-hidden p-4 sm:p-5">
+              <div className="flex items-center gap-4">
+                <div className="grid size-16 shrink-0 place-items-center rounded-full bg-ios-fill text-ios-tint ring-1 ring-black/5 dark:ring-white/10">
+                  <UserRound className="size-8" strokeWidth={1.6} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="type-footnote text-ios-label-secondary">حساب شما</p>
+                  <p className="mt-1 truncate text-xl font-semibold tracking-tight" dir={session?.username ? "ltr" : "rtl"}>
+                    {isPending ? "در حال بررسی…" : session?.username ?? "مهمان"}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-ios-label-secondary">
+                    {session
                       ? "پلی‌لیست‌ها و علاقه‌مندی‌ها با حساب شما همگام می‌شوند"
-                      : "با ورود، پلی‌لیست‌ها و علاقه‌مندی‌ها بین دستگاه‌هایتان می‌آیند"
-                  }
-                  accessory={
-                    <DropdownMenu dir="rtl">
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="grid size-9 shrink-0 place-items-center rounded-full text-ios-label-secondary transition-colors hover:bg-ios-fill active:scale-95"
-                          aria-label="گزینه‌های حساب"
-                        >
-                          <span className="flex gap-1" aria-hidden>
-                            <span className="size-1 rounded-full bg-current" />
-                            <span className="size-1 rounded-full bg-current" />
-                            <span className="size-1 rounded-full bg-current" />
-                          </span>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-48 rounded-2xl p-1.5">
-                        <DropdownMenuItem asChild className="rounded-xl py-2.5">
-                          <Link to="/account">
-                            <UserRound className="size-4" />
-                            حساب کاربری
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="rounded-xl py-2.5">
-                          <Link to="/settings">
-                            <SettingsIcon className="size-4" />
-                            تنظیمات
-                          </Link>
-                        </DropdownMenuItem>
-                        {session && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="rounded-xl py-2.5 text-red-500 focus:text-red-500"
-                              onSelect={() => void handleLogout()}
-                            >
-                              <LogOut className="size-4" />
-                              خروج از حساب
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  }
-                />              </div>
+                      : "برای همگام‌سازی پلی‌لیست‌ها و علاقه‌مندی‌ها وارد شوید"}
+                  </p>
+                </div>
+                <DropdownMenu dir="rtl">
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" className="grid size-10 shrink-0 place-items-center rounded-full text-ios-label-secondary transition-colors hover:bg-ios-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-tint" aria-label="گزینه‌های حساب">
+                      <span className="flex gap-1" aria-hidden>
+                        <span className="size-1 rounded-full bg-current" />
+                        <span className="size-1 rounded-full bg-current" />
+                        <span className="size-1 rounded-full bg-current" />
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-48 rounded-2xl p-1.5">
+                    <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                      <Link to="/account"><UserRound className="size-4" />حساب کاربری</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                      <Link to="/settings"><SettingsIcon className="size-4" />تنظیمات</Link>
+                    </DropdownMenuItem>
+                    {session && <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="rounded-xl py-2.5 text-red-500 focus:text-red-500" onSelect={() => void handleLogout()}>
+                        <LogOut className="size-4" />خروج از حساب
+                      </DropdownMenuItem>
+                    </>}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              {!session && !isPending && (
+                <Link to="/account" className="btn btn-filled mt-4 w-full justify-center">
+                  ورود یا ساخت حساب
+                </Link>
+              )}
             </section>
           </Reveal>
 
           <Reveal index={1}>
-            <section className="card">
-              <GroupTitle value={`${fa(library.length)} آهنگ`}>کتابخانه‌ی شما</GroupTitle>
+            <section className="card overflow-hidden">
+              <div className="px-5 pb-2 pt-5">
+                <h2 className="type-title-3">موسیقی‌های من</h2>
+                <p className="type-footnote mt-1 text-ios-label-secondary">مجموعه‌ها و محتوای ذخیره‌شده</p>
+              </div>
               <div className="inset-divided">
-                <Row
-                  plain
-                  icon={Music}
-                  tone="amber"
-                  label="در کتابخانه"
-                  detail="هر چیزی که ذخیره کرده‌اید"
-                  to="/library"
-                  value={fa(library.length)}
-                />
-                <Row
-                  plain
-                  icon={Heart}
-                  tone="rose"
-                  label="علاقه‌مندی‌ها"
-                  detail="آهنگ‌ها و خواننده‌های دوست‌داشتنی"
-                  to="/favorites"
-                  value={fa(favorites.length)}
-                />
-                <Row
-                  plain
-                  icon={ListMusic}
-                  tone="sky"
-                  label="پلی‌لیست‌ها"
-                  detail="مجموعه‌هایی که خودتان ساخته‌اید"
-                  to="/library"
-                  value={fa(playlists.length)}
-                />
-                <Row
-                  plain
-                  icon={HardDrive}
-                  tone="cyan"
-                  label="پخش آفلاین"
-                  detail={
-                    offlineSize > 0
-                      ? `بدون اینترنت · ${formatBytes(offlineSize)}`
-                      : "برای گوش دادن بدون اینترنت"
-                  }
-                  to="/downloads"
-                  value={offline.length ? fa(offline.length) : undefined}
-                />
+                <Row plain icon={Music} tone="amber" label="کتابخانه‌ی من" detail="آهنگ‌های ذخیره‌شده" to="/library" value={fa(library.length)} />
+                <Row plain icon={Heart} tone="rose" label="علاقه‌مندی‌ها" detail="آهنگ‌ها و خواننده‌های محبوب" to="/favorites" value={fa(favorites.length)} />
+                <Row plain icon={ListMusic} tone="sky" label="پلی‌لیست‌ها" detail="مجموعه‌های موسیقی شما" to="/library" value={fa(playlists.length)} />
+                <Row plain icon={HardDrive} tone="cyan" label="پخش آفلاین" detail={offlineSize > 0 ? formatBytes(offlineSize) : "آهنگ‌های آماده‌ی پخش بدون اینترنت"} to="/downloads" value={offline.length ? fa(offline.length) : undefined} />
+                <Row plain icon={Search} tone="blue" label="جستجوی موسیقی" detail="پیداکردن آهنگ تازه" to="/explore" />
               </div>
             </section>
           </Reveal>
 
           <Reveal index={2}>
-            <section className="card">
-              <GroupTitle>فعالیت شما</GroupTitle>
+            <section className="card overflow-hidden">
+              <div className="px-5 pb-2 pt-5">
+                <h2 className="type-title-3">حساب و تنظیمات</h2>
+                <p className="type-footnote mt-1 text-ios-label-secondary">اطلاعات و ترجیحات برنامه</p>
+              </div>
               <div className="inset-divided">
-                <Row
-                  plain
-                  icon={Sparkles}
-                  tone="violet"
-                  label="آهنگ پخش‌شده"
-                  value={fa(history.length)}
-                />
-                <Row plain icon={Clock} tone="slate" label="روز فعال" value={fa(activeDays)} />
-                <Row
-                  plain
-                  icon={Mic2}
-                  tone="lime"
-                  label="خواننده‌های دنبال‌شده"
-                  to="/favorites"
-                  value={fa(favoriteArtists.length)}
-                />
+                <Row plain icon={UserRound} tone="slate" label="اطلاعات حساب" detail={session ? "مدیریت حساب و پلی‌لیست‌های اشتراکی" : "ورود، ثبت‌نام یا بازیابی حساب"} to="/account" />
+                <Row plain icon={SettingsIcon} tone="blue" label="تنظیمات برنامه" detail="ظاهر و رفتار پخش‌کننده" to="/settings" />
+                <Row plain icon={Disc3} tone="violet" label="پلی‌لیست‌های اشتراکی" detail="مدیریت مجموعه‌های منتشرشده" to="/account" />
+                {session && (
+                  <div className="px-4 py-2">
+                    <button type="button" onClick={() => void handleLogout()} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-2 text-right text-red-500 transition-colors hover:bg-red-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                      <LogOut className="size-5 shrink-0" strokeWidth={1.8} />
+                      <span className="flex-1">خروج از حساب کاربری</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
           </Reveal>
 
-          <Reveal index={3}>
-            <section className="card">
-              <GroupTitle>دسترسی سریع</GroupTitle>
-              <div className="inset-divided">
-                <Row plain icon={Search} tone="blue" label="جستجوی آهنگ" to="/explore" />
-                <Row plain icon={Disc3} tone="sky" label="کتابخانه و پلی‌لیست" to="/library" />
-                <Row plain icon={Download} tone="cyan" label="پخش آفلاین" to="/downloads" />
-                <Row plain icon={SettingsIcon} tone="slate" label="تنظیمات" to="/settings" />
-              </div>
-            </section>
-          </Reveal>
-
-          <p className="type-footnote pt-1 text-center text-ios-label-tertiary">
-            همه‌ی داده‌ها روی همین دستگاه ذخیره می‌شوند. برای همگام‌سازی، وارد حساب شوید.
+          <p className="type-footnote px-4 text-center leading-6 text-ios-label-tertiary">
+            {session ? "حساب شما برای همگام‌سازی پلی‌لیست‌ها و علاقه‌مندی‌ها استفاده می‌شود." : "بدون حساب هم می‌توانید موسیقی جستجو کنید و به کتابخانه‌ی خود دسترسی داشته باشید."}
           </p>
         </div>
       </Screen>
