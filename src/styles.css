@@ -1398,13 +1398,30 @@
   box-shadow: var(--floating-shadow);
 }
 
-/* Light appearance keeps the dock's ambient edge-light independently of the
-   glass preference. Glass-off removes blur/refraction, not the soft glow that
-   makes the floating dock feel lifted from the page. Applies to both the pill
-   and the adjacent search button via their shared .dock-hero class. */
+/* Light-mode beveled glass: a crisp upper specular rim, softly lit sides,
+   and a neutral lower bevel. Independent of the glass toggle, and shared by
+   the dock pill and its separate circular search button. */
 :root:not(.dark) .dock-hero {
   box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--track-accent) 12%, transparent),
-    0 0 22px color-mix(in oklch, var(--track-accent) 22%, transparent),
-    0 10px 28px oklch(0.3 0.02 268 / 0.12);
+    inset 0 1.25px 0 oklch(1 0 0 / 0.96),
+    inset 1px 0 0 oklch(1 0 0 / 0.62),
+    inset -1px 0 0 oklch(0.52 0.015 255 / 0.12),
+    inset 0 -1.5px 0 oklch(0.52 0.015 255 / 0.2),
+    0 8px 20px oklch(0.3 0.02 268 / 0.11);
+}
+
+:root:not(.dark) .dock-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    oklch(1 0 0 / 0.16) 0%,
+    transparent 34%,
+    transparent 68%,
+    oklch(0.52 0.015 255 / 0.045) 100%
+  );
+  border: 1px solid oklch(1 0 0 / 0.28);
 }
