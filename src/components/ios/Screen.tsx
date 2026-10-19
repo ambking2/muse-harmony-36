@@ -148,7 +148,7 @@ function BackButton({ to }: { to?: string }) {
         to={to}
         data-back
         aria-label="بازگشت"
-        className="glass-btn dock-hero press text-ios-tint"
+        className="glass-btn press text-ios-tint"
       >
         {face}
       </Link>
@@ -160,7 +160,7 @@ function BackButton({ to }: { to?: string }) {
       onClick={go}
       data-back
       aria-label="بازگشت"
-      className="glass-btn dock-hero press text-ios-tint"
+      className="glass-btn press text-ios-tint"
     >
       {face}
     </button>
