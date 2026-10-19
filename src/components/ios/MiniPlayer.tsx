@@ -69,12 +69,7 @@ export function MiniPlayer() {
           transition={morph}
           className="fixed inset-x-0 bottom-[var(--tabbar-inset)] z-40 px-3"
         >
-          <div className="material lens specular spotlight relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-card border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
-            {/* The live bend: an empty layer whose only job is to displace the
-                frosted backdrop underneath. Falls back to a bent copy of the
-                scene where the engine cannot filter a backdrop at all. */}
-            <span className="lens-bend" aria-hidden />
-            <span className="refract opacity-35" aria-hidden />
+          <div className="material lens specular dock-hero relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-[2.25rem] border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
             <Link
               to="/now-playing"
               className="press relative flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-tile ps-1 pe-2"

@@ -134,10 +134,15 @@ function FavoritesRail() {
   if (!liked.length) return null;
 
   return (
-    <Rail title="علاقه‌مندی‌ها" icon={Heart}>
-      <Link to="/favorites" className="type-footnote flex shrink-0 items-center text-ios-tint px-1">
-        همه
-      </Link>
+    <Rail
+      title="علاقه‌مندی‌ها"
+      icon={Heart}
+      action={
+        <Link to="/favorites" className="type-footnote text-ios-tint">
+          همه
+        </Link>
+      }
+    >
       {liked.slice(0, 9).map((track) => (
         <RecentTile key={trackKey(track)} track={track} list={liked} onPlay={playTrack} />
       ))}

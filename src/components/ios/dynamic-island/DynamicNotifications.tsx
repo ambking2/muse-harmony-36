@@ -314,7 +314,6 @@ function IslandOverlay({
   threshold: number;
 }) {
   const { layout, drop, expand, reveal, tint, dragY, blur, accent } = useDynamicNotifications();
-  const islandColor = PALETTE.island;
   const cardColor = PALETTE.card;
   const resolvedAccent = notification.accent ?? accent;
 
@@ -323,9 +322,7 @@ function IslandOverlay({
       className="pointer-events-none fixed inset-x-0 top-0 z-[70]"
       style={{ height: layout.canvasHeight }}
     >
-      <IslandGoo
-        {...{ layout, drop, expand, tint, blur, gain, threshold, islandColor, cardColor }}
-      />
+      <IslandGoo {...{ layout, drop, expand, tint, blur, gain, threshold, cardColor }} />
       <IslandContent
         notification={notification}
         accent={resolvedAccent}
@@ -346,7 +343,6 @@ function IslandGoo({
   blur,
   gain,
   threshold,
-  islandColor,
   cardColor,
 }: {
   layout: NotificationLayout;
@@ -356,7 +352,6 @@ function IslandGoo({
   blur: number;
   gain: number;
   threshold: number;
-  islandColor: string;
   cardColor: string;
 }) {
   // One derived value for the whole shape, then one per property, so the
@@ -376,14 +371,12 @@ function IslandGoo({
   const neckRadius = useTransform(geometry, (g: NotificationGeometry) => g.neckRadius);
   const shadowOpacity = useTransform(geometry, (g: NotificationGeometry) => g.shadowOpacity);
 
-  // The droplet travels from the island's black to the card's white as it
-  // falls — the same two-stop interpolation the original does with
-  // `interpolateColor`.
+  // The droplet keeps the card's colour from the very first frame: there is
+  // no black island on the web to drip out of, so nothing tints dark on the
+  // way down.
   const droplet = useTransform(() =>
-    mixColor(tint.get(), islandColor, cardColor, DROP_TINT_START, DROP_TINT_END),
+    mixColor(tint.get(), cardColor, cardColor, DROP_TINT_START, DROP_TINT_END),
   );
-
-  const inset = blur * GOO_INSET_RATIO;
 
   return (
     <>
@@ -404,20 +397,11 @@ function IslandGoo({
         }}
       />
 
-      {/* Everything that merges: the island's underside, the neck and the
-          droplet, blurred and re-thresholded by the goo filter. */}
+      {/* Everything that merges: the neck and the droplet, blurred and
+          re-thresholded by the goo filter. The island pill itself is not
+          painted — on the web the notification drops from the top edge of the
+          screen, not from a fake hardware cutout. */}
       <div className="absolute inset-0" style={{ filter: "url(#muis-island-goo)" }} aria-hidden>
-        <motion.div
-          className="absolute"
-          style={{
-            left: layout.centerX - layout.islandWidth / 2 + inset,
-            top: layout.islandTop + inset,
-            width: layout.islandWidth - inset * 2,
-            height: layout.islandHeight - inset * 2,
-            borderRadius: Math.max(layout.islandRadius - inset, 0),
-            background: islandColor,
-          }}
-        />
         <motion.div
           className="absolute"
           style={{
@@ -426,7 +410,7 @@ function IslandGoo({
             width: neckWidth,
             height: neckHeight,
             borderRadius: neckRadius,
-            background: islandColor,
+            background: cardColor,
           }}
         />
         <motion.div
@@ -434,20 +418,6 @@ function IslandGoo({
           style={{ left: x, top: y, width, height, borderRadius: radius, background: droplet }}
         />
       </div>
-
-      {/* The crisp island on top, so its edges stay sharp inside the blur. */}
-      <div
-        className="absolute"
-        aria-hidden
-        style={{
-          left: layout.centerX - layout.islandWidth / 2,
-          top: layout.islandTop,
-          width: layout.islandWidth,
-          height: layout.islandHeight,
-          borderRadius: layout.islandRadius,
-          background: islandColor,
-        }}
-      />
     </>
   );
 }

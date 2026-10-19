@@ -47,19 +47,24 @@ export function TrackThumb({
   );
 }
 
-/** A titled shelf of cards. */
+/** A titled shelf of cards, with an optional trailing link in the title row. */
 export function Rail({
   title,
   icon,
+  action,
   children,
 }: {
   title: string;
   icon: LucideIcon;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="mb-8">
-      <h2 className="type-footnote mb-3 px-4 text-ios-label-secondary">{title}</h2>
+      <div className="mb-3 flex items-center justify-between px-4">
+        <h2 className="type-footnote text-ios-label-secondary">{title}</h2>
+        {action}
+      </div>
       <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{children}</div>
     </section>
   );

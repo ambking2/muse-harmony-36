@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <TabBar />
         </>
       )}
-      <Toaster position="top-center" theme="dark" richColors closeButton />
+      <Toaster position="top-center" richColors closeButton />
     </div>
   );
 }
