@@ -207,12 +207,12 @@ function NowPlaying() {
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
-            <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] shadow-sm backdrop-blur-xl">
+            <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] shadow-sm backdrop-blur-xl">
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="glass-btn press text-ios-label-secondary"
+                  className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
                   aria-label="امکانات آهنگ"
                 >
                   <Ellipsis className="size-5" strokeWidth={2} />
@@ -341,7 +341,7 @@ function NowPlaying() {
             <button
               type="button"
               onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد"))}
-              className="glass-btn press text-ios-label-secondary"
+              className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
               aria-label="اشتراک‌گذاری آهنگ"
             >
               <Share2 className="size-5" strokeWidth={2} />
