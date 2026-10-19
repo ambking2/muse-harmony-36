@@ -340,21 +340,21 @@ function NowPlaying() {
             </DropdownMenu>
             <button
               type="button"
-              onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد"))}
+              onClick={minimize}
               className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
-              aria-label="اشتراک‌گذاری آهنگ"
+              aria-label="بستن صفحه پخش"
             >
-              <Share2 className="size-5" strokeWidth={2} />
+              <ChevronDown className="size-5" strokeWidth={2.2} />
             </button>
             </div>
 
             <button
               type="button"
-              onClick={minimize}
+              onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد"))}
               className="glass-btn press text-ios-label-secondary"
-              aria-label="بستن صفحه پخش"
+              aria-label="اشتراک‌گذاری آهنگ"
             >
-              <ChevronDown className="size-5" strokeWidth={2.2} />
+              <Share2 className="size-5" strokeWidth={2} />
             </button>
           </header>
 
