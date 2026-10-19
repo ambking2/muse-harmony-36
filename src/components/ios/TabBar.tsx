@@ -1,45 +1,41 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
 import { DOCK_ITEMS, SEARCH_ITEM, tabForPath } from "@/lib/design/tabs";
-import { useGlassMode } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 /**
- * The dock — one slab of liquid glass, and one circle beside it.
+ * The dock — one slab of frosted glass, and one circle beside it.
  *
  * Three destinations live in the pill (home, library, the profile) and search
  * floats beside it as its own circular button. Selection is colour alone: the
- * chosen tab tints, the others dim. No pill, no travelling marker, no pointer
- * spotlight — those read as extra grey objects sitting on the glass.
+ * chosen tab tints, the others dim.
  *
- * The slab keeps the liquid-glass layers that belong to the surface itself
- * (deep frost, the bent edge, the specular rim, the faint chromatic fringe)
- * and nothing painted on top of them.
+ * The surface keeps only what belongs to the glass itself — deep frost, the
+ * specular rim, the floating shadow. The displacement bend and the chromatic
+ * fringe are not on the dock: on the in-app webview they rendered as dust
+ * settled on the glass, and the artwork crossing under it went wavy.
  */
 export function TabBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const current = tabForPath(pathname);
-  const glass = useGlassMode();
 
   const glassRing = cn(
     "material lens specular dock-hero pointer-events-auto relative overflow-hidden",
     "border border-ios-separator shadow-[var(--floating-shadow)]",
-    glass === "on" && "chromatic",
   );
 
   return (
     <nav
       aria-label="ناوبری اصلی"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),1.25rem)]"
     >
       <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
         <div
           className={cn(
             glassRing,
-            "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[1.6rem] px-1.5 py-1.5",
+            "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[2.25rem] px-2 py-1.5",
           )}
         >
-          {glass === "on" && <span className="lens-bend" aria-hidden />}
           {DOCK_ITEMS.map((item) => (
             <TabLink key={item.tab} item={item} active={current === item.tab} />
           ))}
@@ -54,7 +50,6 @@ export function TabBar() {
             "transition-colors duration-200 hover:text-ios-tint",
           )}
         >
-          {glass === "on" && <span className="lens-bend" aria-hidden />}
           <SEARCH_ITEM.icon className="size-6" strokeWidth={1.8} />
         </Link>
       </div>
@@ -68,7 +63,7 @@ function TabLink({ item, active }: { item: (typeof DOCK_ITEMS)[number]; active: 
       to={item.to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "press relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[1.15rem] px-3.5",
+        "press relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[1.75rem] px-3.5",
         "transition-colors duration-200",
         active ? "text-ios-tint" : "text-ios-label-secondary",
       )}

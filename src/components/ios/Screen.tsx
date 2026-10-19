@@ -75,7 +75,7 @@ export function Screen({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4">
-      <div className="pb-4 pt-6" ref={headRef}>
+      <div className="pb-5 pt-10" ref={headRef}>
         {back && <BackButton to={back.to} label={back.label ?? "بازگشت"} />}
 
         {largeTitle && (

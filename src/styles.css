@@ -247,7 +247,7 @@
      and the home-indicator inset. Pages pad by this so content never hides
      under it. Keep in sync with the tab bar (56px) + its own margin (12px) +
      the mini player (60px). */
-  --tabbar-inset: calc(3.5rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  --tabbar-inset: calc(3.5rem + 1.25rem + env(safe-area-inset-bottom, 0px));
   --chrome-inset: calc(var(--tabbar-inset) + 4.75rem);
 
   /* Glass mode. Every translucent surface reads its alpha and its blur from
@@ -1373,9 +1373,10 @@
 }
 
 /* The dock is the one glass object the thumb rests on, so it frosts deeper
-   than the default chrome: more blur, more saturation, and a louder liquid
-   edge — while the artwork underneath stays put (see .refract above). */
-.dock-hero {
+   than the default chrome: more blur, more saturation, and a quieter
+   surface — but only while glass mode is on. Scoped to :root:not(...) so the
+   element-level values cannot out-rank the glass-off overrides on :root. */
+:root:not([data-glass="off"]) .dock-hero {
   --lens-blur: 26px;
   --glass-sat: 220%;
   --material-alpha: 42%;
