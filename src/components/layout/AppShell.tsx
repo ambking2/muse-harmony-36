@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
 import { useArtworkAccent } from "@/hooks/use-artwork-accent";
 import { usePointerLight } from "@/hooks/use-pointer-light";
 import { page } from "@/lib/design/motion";
+import { cn } from "@/lib/utils";
 import { armMotion } from "@/lib/design/motion-gsap";
 import { paletteRegistry, queueRegistry } from "@/lib/ui-control";
 import type { OpenerRegistry } from "@/lib/ui-control";
@@ -55,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     // `overflow-x-clip` stops any single wide child (a long title, a bleeded
     // rail) from turning into a page-wide horizontal scrollbar, while rails
     // that really do scroll keep their own `overflow-x-auto`.
-    <div className="ambient relative min-h-screen overflow-x-clip text-foreground">
+    <div className={cn("ambient relative overflow-x-clip text-foreground", isStandalone ? "h-dvh overflow-y-hidden" : "min-h-screen")}>
       {/* The living background, then the smeared cover on top of it. Together
           they are the scene every glass surface refracts. Decorative only — the
           artwork is already announced by the player. */}
@@ -70,14 +71,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <QueueSheet />
       </DeferredOverlay>
 
-      <main className="pb-[calc(var(--chrome-inset)+1.5rem)]">
+      <main className={isStandalone ? "h-full overflow-hidden pb-0" : "pb-[calc(var(--chrome-inset)+1.5rem)]"}>
         {/* The page transition. Keyed on the path, so navigating replays a
             short enter instead of swapping the whole surface at once — eight
             pixels of travel and a fifth of a second, which reads as turning a
             page rather than as the app thinking. Only `transform` and `opacity`
             move, so it never costs a layout pass, and it never delays the
             route: the new screen is mounted immediately and arrives. */}
-        <motion.div key={pathname} initial="hidden" animate="visible" variants={page}>
+        <motion.div className={isStandalone ? "h-full" : undefined} key={pathname} initial="hidden" animate="visible" variants={page}>
           {children}
         </motion.div>
       </main>
