@@ -207,7 +207,7 @@ function NowPlaying() {
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
-            <div className="flex items-center gap-0">
+            <div className="flex items-center gap-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] shadow-sm backdrop-blur-xl">
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button
