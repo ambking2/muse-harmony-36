@@ -182,7 +182,7 @@ function NowPlaying() {
 
   return (
     <AppShell>
-      <div className="relative min-h-svh overflow-hidden text-foreground">
+      <div className="now-playing-screen relative h-[100dvh] min-h-0 overflow-hidden text-foreground">
         {/* Blurred background from the artwork, tinted by the extracted accent. */}
         <div className="pointer-events-none fixed inset-0 -z-10">
           {art && (
@@ -203,7 +203,7 @@ function NowPlaying() {
           />
         </div>
 
-        <div className="mx-auto flex min-h-svh max-w-lg flex-col px-6 pb-6 pt-4">
+        <div className="now-playing-layout mx-auto flex h-full max-w-lg flex-col px-6 pb-[calc(var(--chrome-inset)+env(safe-area-inset-bottom)+0.25rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
@@ -348,18 +348,18 @@ function NowPlaying() {
             </button>
           </header>
 
-          <div className="flex flex-1 flex-col justify-center">
+          <div className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-hidden">
             {/* Cover */}
             <motion.div
               key={key}
               initial={{ scale: 0.92, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 220, damping: 26 }}
-              className="mx-auto w-full max-w-sm"
+              className="mx-auto w-full max-w-sm min-h-0 shrink"
             >
               <motion.div
                 layoutId={`artwork-${key}`}
-                className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
+                className="relative aspect-square max-h-[min(34dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
               >
                 {art ? (
                   <img
@@ -380,7 +380,7 @@ function NowPlaying() {
             </motion.div>
 
             {/* Meta — the name and who sings it; the album lives in the menu. */}
-            <div className="mt-6 text-center">
+            <div className="mt-2 shrink-0 text-center">
               <h1 className="type-title-2 truncate">{track.name}</h1>
               <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
                 {track.artist.map((a) => (
@@ -415,7 +415,7 @@ function NowPlaying() {
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="mx-auto mt-5 flex w-full max-w-md flex-nowrap items-center justify-between">
+          <div className="mx-auto mt-2 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
