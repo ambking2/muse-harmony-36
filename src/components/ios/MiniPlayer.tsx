@@ -67,7 +67,7 @@ export function MiniPlayer() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.97 }}
           transition={morph}
-          className="fixed inset-x-0 bottom-[var(--tabbar-inset)] z-40 px-3"
+          className="fixed inset-x-0 bottom-[calc(var(--tabbar-inset)+0.5rem)] z-40 px-3"
         >
           <div className="material lens specular dock-hero relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-[2.25rem] border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
             <Link

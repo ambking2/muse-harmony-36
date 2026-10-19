@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 
 import { WordRise } from "@/components/ios/WordRise";
 import { dur, fadeSlide, gsap } from "@/lib/design/motion-gsap";
@@ -14,17 +14,16 @@ import { dur, fadeSlide, gsap } from "@/lib/design/motion-gsap";
  * scrolled away and handed its title over to a compact one — the standard iOS
  * chrome. It was cut because this interface is one continuous surface: the
  * background is a living mesh, the elements float on it, and a bar of chrome
- * across the top was the one thing that did not belong to it. The title is now
- * simply the first line of the page, sitting on that background like
+ * across the top was the one thing that did not belong to it. The title is
+ * now simply the first line of the page, sitting on that background like
  * everything else.
  *
- * What is left is what the bar was actually doing: a heading, and a way back
- * on a screen that is not a tab root. Both are ordinary content now — the back
- * control is a labelled chevron above the title, at full tap height, where the
- * thumb already is.
- *
- * `Scroll` and the sticky positioning are gone with it, so a screen renders
- * once and never re-renders on scroll.
+ * What survived from that bar are the controls, and they behave like the dock
+ * now: fixed to the top of the viewport while the page scrolls under them —
+ * the back circle at the reading edge, the page's own actions (a create
+ * button, a menu) at the other end, each its own object. Every screen except
+ * home carries the back circle automatically; a screen can still aim it at an
+ * exact route by passing `back: { to }`, or opt out with `back: false`.
  */
 export function Screen({
   title,
@@ -40,19 +39,22 @@ export function Screen({
   largeTitle?: boolean;
   /** Trailing controls beside the title — pass buttons, they inherit sizing. */
   actions?: ReactNode;
-  back?: { to: string; label?: string };
+  /** Default: a history-back circle on every screen except home. */
+  back?: boolean | { to: string; label?: string };
   children: ReactNode;
 }) {
-  const headRef = useRef<HTMLDivElement>(null);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const showBack = back === undefined ? pathname !== "/" : back !== false;
+  const barRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
 
-  // The header arrives as one gesture (Rapport's `Ls` head timeline): the back
-  // control slides in from the reading edge, the trailing actions follow a
-  // beat later. The title runs its own masked rise inside `WordRise`.
+  // The controls arrive as one gesture (Rapport's `Ls` head timeline): the
+  // back circle slides in from the reading edge, the actions follow a beat
+  // later. The title runs its own masked rise inside `WordRise`.
   useEffect(() => {
-    const head = headRef.current;
-    if (!head) return;
-    const backEl = head.querySelector("[data-back]");
+    const bar = barRef.current;
+    if (!bar) return;
+    const backEl = bar.querySelector("[data-back]");
     if (backEl) {
       // Mirrored from Rapport's `x: -14`: in this RTL app back lives on the
       // reading edge, which is the right.
@@ -73,33 +75,45 @@ export function Screen({
     }
   }, []);
 
+  const to = typeof back === "object" ? back.to : undefined;
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-4">
-      <div className="pb-5 pt-10" ref={headRef}>
-        {back && <BackButton to={back.to} label={back.label ?? "بازگشت"} />}
-
-        {largeTitle && (
-          <>
-            <WordRise text={title} className="type-large-title" />
-            {subtitle && (
-              <p
-                suppressHydrationWarning
-                className="type-subheadline mt-1 text-ios-label-secondary"
-              >
-                {subtitle}
-              </p>
+    <>
+      {(showBack || actions) && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
+          <div
+            ref={barRef}
+            className="pointer-events-auto flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),0.75rem)]"
+          >
+            {showBack && <BackButton to={to} />}
+            {actions && (
+              <div className="flex items-center gap-2" ref={actionsRef}>
+                {actions}
+              </div>
             )}
-          </>
-        )}
-
-        {actions && (
-          <div className="mt-3 flex items-center gap-2" ref={actionsRef}>
-            {actions}
           </div>
-        )}
+        </div>
+      )}
+
+      <div className="mx-auto w-full max-w-3xl px-4">
+        <div className="pb-5 pt-[calc(max(env(safe-area-inset-top),0.75rem)+4.25rem)]">
+          {largeTitle && (
+            <>
+              <WordRise text={title} className="type-large-title" />
+              {subtitle && (
+                <p
+                  suppressHydrationWarning
+                  className="type-subheadline mt-1 text-ios-label-secondary"
+                >
+                  {subtitle}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
+    </>
   );
 }
 
@@ -107,15 +121,36 @@ export function Screen({
  * The way back, as its own object.
  *
  * A circular glass button — the same material as the dock's search circle —
- * holding only the chevron. In a right-to-left app "back" is to the right, so
- * the chevron is mirrored by the layout rather than by JavaScript — the same
- * `rtl:` flip every disclosure indicator in the app uses. 44pt tall, like
- * everything else you can tap.
+ * holding only the chevron, and going back through history like an iPhone
+ * does; a screen can aim it at an exact route instead, and a direct landing
+ * (no history to unwind) falls home. In a right-to-left app "back" is to the
+ * right, so the chevron is mirrored by the layout rather than by JavaScript.
  */
-function BackButton({ to, label }: { to: string; label: string }) {
+function BackButton({ to }: { to?: string }) {
+  const router = useRouter();
+  const go = () => {
+    if (window.history.length > 1) router.history.back();
+    else void router.navigate({ to: to ?? "/" });
+  };
+
+  const face = <ChevronRight className="size-5 rotate-180 rtl:rotate-0" strokeWidth={2.2} />;
+
+  if (to) {
+    return (
+      <Link to={to} data-back aria-label="بازگشت" className="glass-btn press text-ios-tint">
+        {face}
+      </Link>
+    );
+  }
   return (
-    <Link to={to} data-back aria-label={label} className="glass-btn press -me-1 mb-2 text-ios-tint">
-      <ChevronRight className="size-5 rotate-180 rtl:rotate-0" strokeWidth={2.2} />
-    </Link>
+    <button
+      type="button"
+      onClick={go}
+      data-back
+      aria-label="بازگشت"
+      className="glass-btn press text-ios-tint"
+    >
+      {face}
+    </button>
   );
 }

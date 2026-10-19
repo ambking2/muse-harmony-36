@@ -199,24 +199,27 @@ function NowPlaying() {
       </div>
 
       <div className="mx-auto flex min-h-svh max-w-lg flex-col px-6 pb-10 pt-4">
-        {/* Two independent controls, and nothing else on the header. */}
-        <header className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="glass-btn press text-ios-label-secondary"
-            aria-label="امکانات آهنگ"
-          >
-            <Ellipsis className="size-5" strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            onClick={minimize}
-            className="glass-btn press text-ios-label-secondary"
-            aria-label="بستن صفحه پخش"
-          >
-            <ChevronDown className="size-5" strokeWidth={2.2} />
-          </button>
+        {/* Two controls, one slab: the collapse chevron and the song menu live
+            in a single glass box, the dots on its reading edge. */}
+        <header className="flex items-center justify-start">
+          <div className="material lens specular dock-hero flex items-center gap-1 rounded-full border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="press grid size-11 place-items-center rounded-full text-ios-label-secondary transition-colors hover:text-ios-label"
+              aria-label="امکانات آهنگ"
+            >
+              <Ellipsis className="size-5" strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={minimize}
+              className="press grid size-11 place-items-center rounded-full text-ios-label-secondary transition-colors hover:text-ios-label"
+              aria-label="بستن صفحه پخش"
+            >
+              <ChevronDown className="size-5" strokeWidth={2.2} />
+            </button>
+          </div>
         </header>
 
         {/* Cover */}
