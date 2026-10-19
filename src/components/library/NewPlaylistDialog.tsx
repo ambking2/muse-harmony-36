@@ -36,11 +36,7 @@ export function NewPlaylistDialog() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <button
-          type="button"
-          className="press grid size-9 place-items-center rounded-lg text-ios-tint"
-          aria-label="پلی‌لیست جدید"
-        >
+        <button type="button" className="glass-btn press text-ios-tint" aria-label="پلی‌لیست جدید">
           <Plus className="size-6" strokeWidth={2.2} />
         </button>
       </AlertDialogTrigger>

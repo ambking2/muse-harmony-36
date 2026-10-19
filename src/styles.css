@@ -1381,3 +1381,19 @@
   --glass-sat: 220%;
   --material-alpha: 42%;
 }
+
+/* A circular glass button — the header's back and create controls, the dock's
+   search circle at a thumb-sized 44pt. Same material recipe, no spotlight. */
+.glass-btn {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--color-ios-separator);
+  background: color-mix(in oklch, var(--color-ios-surface) 60%, transparent);
+  backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--floating-shadow);
+}

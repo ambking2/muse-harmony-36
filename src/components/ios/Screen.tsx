@@ -104,21 +104,18 @@ export function Screen({
 }
 
 /**
- * The way back, as content rather than chrome.
+ * The way back, as its own object.
  *
- * In a right-to-left app "back" is to the right, so the chevron is mirrored by
- * the layout rather than by JavaScript — the same `rtl:` flip every disclosure
- * indicator in the app uses. 44pt tall, like everything else you can tap.
+ * A circular glass button — the same material as the dock's search circle —
+ * holding only the chevron. In a right-to-left app "back" is to the right, so
+ * the chevron is mirrored by the layout rather than by JavaScript — the same
+ * `rtl:` flip every disclosure indicator in the app uses. 44pt tall, like
+ * everything else you can tap.
  */
 function BackButton({ to, label }: { to: string; label: string }) {
   return (
-    <Link
-      to={to}
-      data-back
-      className="press -me-1 mb-1 flex min-h-11 w-fit items-center gap-0.5 rounded-lg text-ios-tint"
-    >
+    <Link to={to} data-back aria-label={label} className="glass-btn press -me-1 mb-2 text-ios-tint">
       <ChevronRight className="size-5 rotate-180 rtl:rotate-0" strokeWidth={2.2} />
-      <span className="type-body">{label}</span>
     </Link>
   );
 }

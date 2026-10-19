@@ -6,16 +6,13 @@ import { snappy } from "@/lib/design/motion";
 import { cn } from "@/lib/utils";
 
 /**
- * The search field, styled as an iOS search bar.
+ * The search field, bare.
  *
- * Lives inside a filled capsule rather than a bordered box, with the clear
- * button as a filled circle inside the field — the same affordance every iOS
- * app uses, and one the eye already knows.
- *
- * Focus is answered with motion: the capsule swells a hair and takes the tint,
- * and gives both back on blur. Without that, typing feels like typing into a
- * static box on a page where everything else moves. The clear button fades in
- * instead of appearing between two taps.
+ * No filled capsule: the field is a hairline — magnifier, placeholder, and a
+ * rule along the reading edge. Focus is answered twice, both quiet: the
+ * hairline takes the tint, and the magnifier leans into it. The clear button
+ * stays a filled circle, the one place a fill helps (it is a target, not
+ * decoration).
  */
 export function SearchField({
   value,
@@ -36,26 +33,27 @@ export function SearchField({
 
   return (
     <motion.div
-      animate={{ scale: focused ? 1.012 : 1 }}
+      animate={{ scale: focused ? 1.01 : 1 }}
       transition={snappy}
       className={cn(
-        "flex min-h-11 items-center gap-2 rounded-xl bg-ios-fill px-3 transition-shadow duration-200",
-        focused && "shadow-[0_0_0_2px_var(--color-ios-tint)]",
+        "flex min-h-11 items-center gap-2.5 px-1",
+        "border-b transition-colors duration-200",
+        focused ? "border-ios-tint" : "border-ios-separator",
         className,
       )}
     >
       <motion.span
-        animate={{ scale: focused ? 1.08 : 1, rotate: focused ? -8 : 0 }}
+        animate={{ scale: focused ? 1.08 : 1 }}
         transition={snappy}
         className="flex shrink-0"
         aria-hidden
       >
         <Search
           className={cn(
-            "size-4 transition-colors duration-200",
+            "size-5 transition-colors duration-200",
             focused ? "text-ios-tint" : "text-ios-label-secondary",
           )}
-          strokeWidth={2.5}
+          strokeWidth={2.2}
         />
       </motion.span>
       <input
