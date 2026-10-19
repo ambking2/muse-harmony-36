@@ -203,7 +203,7 @@ function NowPlaying() {
           />
         </div>
 
-        <div className="now-playing-layout mx-auto flex h-full max-w-lg flex-col px-6 pb-[calc(var(--chrome-inset)+env(safe-area-inset-bottom)+0.5rem)] pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <div className="now-playing-layout mx-auto flex h-full max-w-lg flex-col px-6 pb-[calc(var(--chrome-inset)+env(safe-area-inset-bottom)+0.25rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
@@ -359,7 +359,7 @@ function NowPlaying() {
             >
               <motion.div
                 layoutId={`artwork-${key}`}
-                className="relative aspect-square max-h-[min(42dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
+                className="relative aspect-square max-h-[min(34dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
               >
                 {art ? (
                   <img
@@ -380,7 +380,7 @@ function NowPlaying() {
             </motion.div>
 
             {/* Meta — the name and who sings it; the album lives in the menu. */}
-            <div className="mt-3 shrink-0 text-center">
+            <div className="mt-2 shrink-0 text-center">
               <h1 className="type-title-2 truncate">{track.name}</h1>
               <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
                 {track.artist.map((a) => (
@@ -415,7 +415,7 @@ function NowPlaying() {
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="mx-auto mt-3 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
+          <div className="mx-auto mt-2 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
