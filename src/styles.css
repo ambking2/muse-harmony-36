@@ -1382,6 +1382,27 @@
   --material-alpha: 42%;
 }
 
+/* A soft, fading glass canopy behind fixed screen controls. It lets page
+   content scroll underneath while keeping the controls legible without drawing
+   a hard-edged header bar. */
+.screen-top-frost {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--color-ios-grouped) 82%, transparent) 0%,
+    color-mix(in oklch, var(--color-ios-grouped) 52%, transparent) 42%,
+    color-mix(in oklch, var(--color-ios-grouped) 18%, transparent) 72%,
+    transparent 100%
+  );
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(165%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 48%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 48%, transparent 100%);
+}
+:root[data-glass="off"] .screen-top-frost {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* A circular glass button — the header's back and create controls, the dock's
    search circle at a thumb-sized 44pt. Same material recipe, no spotlight. */
 .glass-btn {
