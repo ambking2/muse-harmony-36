@@ -1383,6 +1383,16 @@
 }
 
 /* Transparent top blur: fade the blur, not a white surface. */
+/* Keep the back control readable without the stray bright rim. */
+:root:not(.dark) .screen-back-button {
+  border-color: color-mix(in oklch, var(--color-ios-separator) 45%, transparent);
+  box-shadow: 0 5px 16px oklch(0.3 0.02 268 / 0.08);
+}
+.dark .screen-back-button {
+  border-color: color-mix(in oklch, var(--color-ios-separator) 50%, transparent);
+  box-shadow: 0 5px 16px oklch(0 0 0 / 0.18);
+}
+
 .screen-top-frost {
   background: transparent;
   border: 0;
