@@ -11,7 +11,7 @@ import { usePlayer } from "@/stores/player";
  * missing, CORS-blocked, or fails to decode.
  */
 
-const FALLBACK = "oklch(0.55 0.08 65)";
+const FALLBACK = "oklch(0.55 0.17 280)";
 
 const cache = new Map<string, string>();
 

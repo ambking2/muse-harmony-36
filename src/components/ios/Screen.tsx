@@ -82,7 +82,12 @@ export function Screen({
           <>
             <WordRise text={title} className="type-large-title" />
             {subtitle && (
-              <p className="type-subheadline mt-1 text-ios-label-secondary">{subtitle}</p>
+              <p
+                suppressHydrationWarning
+                className="type-subheadline mt-1 text-ios-label-secondary"
+              >
+                {subtitle}
+              </p>
             )}
           </>
         )}

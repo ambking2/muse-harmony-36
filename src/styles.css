@@ -148,14 +148,14 @@
      src/lib/design for the JS half). Components in src/components/ios read
      these instead of hard-coding colours, so the whole app moves together
      when one of them changes. */
-  --ios-label: oklch(0.19 0.008 60);
-  --ios-label-secondary: oklch(0.44 0.008 60);
-  --ios-label-tertiary: oklch(0.6 0.01 60);
+  --ios-label: oklch(0.19 0.008 268);
+  --ios-label-secondary: oklch(0.44 0.008 268);
+  --ios-label-tertiary: oklch(0.6 0.01 268);
   /* systemGroupedBackground — the page behind the cards. */
-  --ios-grouped: oklch(0.962 0.003 60);
+  --ios-grouped: oklch(0.962 0.003 268);
   /* secondarySystemGroupedBackground — one step up, the card itself. */
   --ios-surface: oklch(1 0 0);
-  --ios-surface-raised: oklch(0.945 0.004 60);
+  --ios-surface-raised: oklch(0.945 0.004 268);
   /* On light, a separator is a line of *less* light, not more. */
   --ios-separator: oklch(0 0 0 / 0.11);
   --ios-fill: oklch(0 0 0 / 0.055);
@@ -164,7 +164,7 @@
   --ios-material: oklch(0.985 0.002 268 / 0.72);
   /* System colours, the light set. Dark needs them a full step brighter to
      hold the same contrast against a black background. */
-  --ios-tint: oklch(0.52 0.115 70);
+  --ios-tint: oklch(0.545 0.215 256);
   --ios-green: oklch(0.6 0.17 150);
   --ios-orange: oklch(0.68 0.18 58);
   --ios-red: oklch(0.585 0.215 27);
@@ -187,16 +187,16 @@
      eye actually remembers. */
   /* Telegram-inspired icon tile palette — applied globally in both
      light and dark appearances. The existing icon/layout system stays intact. */
-  --tile-blue: oklch(0.42 0.06 60);
-  --tile-cyan: oklch(0.50 0.07 65);
-  --tile-sky: oklch(0.56 0.08 70);
-  --tile-violet: oklch(0.62 0.09 75);
-  --tile-rose: oklch(0.67 0.09 78);
-  --tile-red: oklch(0.72 0.08 80);
-  --tile-orange: oklch(0.76 0.075 82);
-  --tile-amber: oklch(0.80 0.06 85);
-  --tile-green: oklch(0.85 0.05 88);
-  --tile-lime: oklch(0.88 0.04 90);
+  --tile-blue: oklch(0.60 0.16 238);
+  --tile-cyan: oklch(0.64 0.13 196);
+  --tile-sky: oklch(0.65 0.14 220);
+  --tile-violet: oklch(0.63 0.17 292);
+  --tile-rose: oklch(0.65 0.18 350);
+  --tile-red: oklch(0.63 0.18 25);
+  --tile-orange: oklch(0.67 0.16 55);
+  --tile-amber: oklch(0.67 0.15 78);
+  --tile-green: oklch(0.61 0.19 142);
+  --tile-lime: oklch(0.64 0.17 125);
   --tile-slate: oklch(0.53 0.035 245);
 
   /* --- Legacy shadcn tokens, now expressed in iOS terms ----------------- */
@@ -212,7 +212,7 @@
   --secondary-foreground: var(--ios-label);
   --muted: var(--ios-fill);
   --muted-foreground: var(--ios-label-secondary);
-  --accent: oklch(0.52 0.115 70 / 0.14);
+  --accent: oklch(0.545 0.215 256 / 0.14);
   --accent-foreground: var(--ios-tint);
   --accent-a: 256 90% 58%;
   --destructive: var(--ios-red);
@@ -222,7 +222,7 @@
   --success: var(--ios-green);
   --border: var(--ios-separator);
   --input: var(--ios-fill-strong);
-  --ring: oklch(0.52 0.115 70 / 0.55);
+  --ring: oklch(0.545 0.215 256 / 0.55);
   --glass: var(--ios-fill-soft);
   --glass-strong: oklch(1 0 0 / 0.1);
   --chart-1: var(--ios-tint);
@@ -237,7 +237,7 @@
   --sidebar-accent: var(--ios-surface-raised);
   --sidebar-accent-foreground: var(--ios-label);
   --sidebar-border: var(--ios-separator);
-  --sidebar-ring: oklch(0.52 0.115 70 / 0.55);
+  --sidebar-ring: oklch(0.545 0.215 256 / 0.55);
 
   /* Set per-track from the artwork; drives the now-playing gradient. The
      default is a deep indigo so the ambient glow never reads as the app's
@@ -291,17 +291,17 @@
  */
 .dark {
   --ios-label: oklch(0.985 0 0);
-  --ios-label-secondary: oklch(0.675 0.005 60);
-  --ios-label-tertiary: oklch(0.512 0.008 60);
-  --ios-grouped: oklch(0.107 0.008 60);
-  --ios-surface: oklch(0.176 0.008 60);
-  --ios-surface-raised: oklch(0.225 0.009 60);
+  --ios-label-secondary: oklch(0.675 0.005 266);
+  --ios-label-tertiary: oklch(0.512 0.008 266);
+  --ios-grouped: oklch(0.107 0.008 268);
+  --ios-surface: oklch(0.176 0.008 268);
+  --ios-surface-raised: oklch(0.225 0.009 268);
   --ios-separator: oklch(1 0 0 / 0.1);
   --ios-fill: oklch(1 0 0 / 0.09);
   --ios-fill-soft: oklch(1 0 0 / 0.05);
   --ios-fill-strong: oklch(1 0 0 / 0.16);
   --ios-material: oklch(0.128 0.01 268 / 0.72);
-  --ios-tint: oklch(0.78 0.135 78);
+  --ios-tint: oklch(0.645 0.185 256);
   --ios-green: oklch(0.735 0.17 150);
   --ios-orange: oklch(0.79 0.16 65);
   --ios-red: oklch(0.678 0.208 24);
@@ -311,9 +311,9 @@
   --ios-pink: oklch(0.72 0.18 350);
 
   --popover: oklch(0.176 0.008 268 / 0.94);
-  --accent: oklch(0.78 0.135 78 / 0.16);
-  --ring: oklch(0.78 0.135 78 / 0.6);
-  --sidebar-ring: oklch(0.78 0.135 78 / 0.6);
+  --accent: oklch(0.645 0.185 256 / 0.16);
+  --ring: oklch(0.645 0.185 256 / 0.6);
+  --sidebar-ring: oklch(0.645 0.185 256 / 0.6);
 
   --panel-shadow: 0 8px 24px oklch(0 0 0 / 0.28);
   --floating-shadow: 0 12px 36px oklch(0 0 0 / 0.42);
@@ -589,9 +589,9 @@
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(38rem 38rem at 18% 22%, oklch(0.32 0.045 60 / 0.5), transparent 60%),
-    radial-gradient(34rem 34rem at 82% 18%, oklch(0.28 0.035 45 / 0.42), transparent 62%),
-    radial-gradient(40rem 40rem at 62% 88%, oklch(0.36 0.06 80 / 0.34), transparent 64%);
+    radial-gradient(38rem 38rem at 18% 22%, oklch(0.45 0.19 285 / 0.5), transparent 60%),
+    radial-gradient(34rem 34rem at 82% 18%, oklch(0.45 0.17 205 / 0.42), transparent 62%),
+    radial-gradient(40rem 40rem at 62% 88%, oklch(0.45 0.19 330 / 0.34), transparent 64%);
   filter: blur(60px) saturate(140%);
   opacity: 0.55;
   animation: mesh-drift 78s ease-in-out infinite alternate;
@@ -935,7 +935,7 @@
 }
 
 @utility btn-tinted {
-  background: oklch(0.78 0.135 78 / 0.18);
+  background: oklch(0.645 0.185 256 / 0.18);
   color: var(--color-ios-tint);
 }
 
@@ -1021,14 +1021,14 @@
    appearance toward Telegram's deep blue-gray surfaces and bright blue
    accent. */
 .dark {
-  --ios-label: oklch(0.97 0.008 70);
-  --ios-label-secondary: oklch(0.70 0.014 65);
-  --ios-label-tertiary: oklch(0.52 0.014 65);
+  --ios-label: oklch(0.98 0.005 250);
+  --ios-label-secondary: oklch(0.70 0.025 250);
+  --ios-label-tertiary: oklch(0.52 0.025 250);
 
   /* Telegram-style deep navy page + blue-gray grouped surfaces. */
-  --ios-grouped: oklch(0.14 0.012 55);
-  --ios-surface: oklch(0.19 0.014 58);
-  --ios-surface-raised: oklch(0.23 0.016 60);
+  --ios-grouped: oklch(0.20 0.025 250);
+  --ios-surface: oklch(0.245 0.03 250);
+  --ios-surface-raised: oklch(0.285 0.035 250);
   --ios-material: oklch(0.20 0.025 250 / 0.88);
 
   --ios-separator: oklch(1 0 0 / 0.085);
@@ -1037,17 +1037,17 @@
   --ios-fill-strong: oklch(1 0 0 / 0.13);
 
   /* Telegram blue accent. */
-  --ios-tint: oklch(0.78 0.135 78);
-  --accent: oklch(0.78 0.135 78 / 0.17);
-  --ring: oklch(0.78 0.135 78 / 0.58);
-  --sidebar-ring: oklch(0.78 0.135 78 / 0.58);
+  --ios-tint: oklch(0.68 0.17 235);
+  --accent: oklch(0.68 0.17 235 / 0.17);
+  --ring: oklch(0.68 0.17 235 / 0.58);
+  --sidebar-ring: oklch(0.68 0.17 235 / 0.58);
   --primary: var(--ios-tint);
   --accent-foreground: var(--ios-tint);
 
   --popover: oklch(0.245 0.03 250 / 0.96);
 
-  --panel-shadow: 0 8px 24px oklch(0.03 0.01 45 / 0.30);
-  --floating-shadow: 0 12px 36px oklch(0.02 0.01 45 / 0.46);
+  --panel-shadow: 0 8px 24px oklch(0.05 0.02 250 / 0.30);
+  --floating-shadow: 0 12px 36px oklch(0.04 0.02 250 / 0.46);
 }
 
 
@@ -1061,7 +1061,7 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
-  background: oklch(0.06 0.012 55 / .34);
+  background: oklch(0.08 0.02 250 / .34);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   animation: muis-install-dim .22s ease-out both;
@@ -1217,18 +1217,18 @@
 /* Record-sleeve archive direction: editorial, artwork-first, and quiet.
    Preserve the existing light/dark toggle and the app's current font files. */
 :root:not(.dark) {
-  --ios-grouped: oklch(0.955 0.01 70);
-  --ios-surface: oklch(0.99 0.004 72);
-  --ios-surface-raised: oklch(0.925 0.012 70);
-  --ios-label: oklch(0.2 0.012 60);
-  --ios-label-secondary: oklch(0.45 0.02 62);
-  --ios-separator: oklch(0.3 0.02 60 / 0.13);
-  --ios-tint: oklch(0.52 0.115 70);
+  --ios-grouped: oklch(0.962 0.006 250);
+  --ios-surface: oklch(0.995 0.002 250);
+  --ios-surface-raised: oklch(0.935 0.008 250);
+  --ios-label: oklch(0.19 0.012 255);
+  --ios-label-secondary: oklch(0.45 0.015 255);
+  --ios-separator: oklch(0.25 0.015 255 / 0.13);
+  --ios-tint: oklch(0.49 0.19 258);
   --primary: var(--ios-tint);
   --accent-foreground: var(--ios-tint);
-  --ring: oklch(0.52 0.115 70 / 0.55);
+  --ring: oklch(0.49 0.19 258 / 0.55);
   --sidebar-primary: var(--ios-tint);
-  --sidebar-ring: oklch(0.52 0.115 70 / 0.55);
+  --sidebar-ring: oklch(0.49 0.19 258 / 0.55);
 }
 
 /* Header is a compact catalogue masthead, not a floating glass card. */
@@ -1267,18 +1267,18 @@
 
 /* Record-sleeve archive direction: editorial, artwork-first, and quiet. */
 :root:not(.dark) {
-  --ios-grouped: oklch(0.955 0.01 70);
-  --ios-surface: oklch(0.99 0.004 72);
-  --ios-surface-raised: oklch(0.925 0.012 70);
-  --ios-label: oklch(0.2 0.012 60);
-  --ios-label-secondary: oklch(0.45 0.02 62);
-  --ios-separator: oklch(0.3 0.02 60 / 0.13);
-  --ios-tint: oklch(0.52 0.115 70);
+  --ios-grouped: oklch(0.962 0.006 250);
+  --ios-surface: oklch(0.995 0.002 250);
+  --ios-surface-raised: oklch(0.935 0.008 250);
+  --ios-label: oklch(0.19 0.012 255);
+  --ios-label-secondary: oklch(0.45 0.015 255);
+  --ios-separator: oklch(0.25 0.015 255 / 0.13);
+  --ios-tint: oklch(0.49 0.19 258);
   --primary: var(--ios-tint);
   --accent-foreground: var(--ios-tint);
-  --ring: oklch(0.52 0.115 70 / 0.55);
+  --ring: oklch(0.49 0.19 258 / 0.55);
   --sidebar-primary: var(--ios-tint);
-  --sidebar-ring: oklch(0.52 0.115 70 / 0.55);
+  --sidebar-ring: oklch(0.49 0.19 258 / 0.55);
 }
 .record-archive-header {
   margin-bottom: 1.5rem;
@@ -1313,10 +1313,9 @@
 }
 
 /* ─── Rapport motion layer ─────────────────────────────────────────────────
-   Ported from the reverse-engineered Rapport dashboard (rapport-copy/
-   ANALYSIS.md): the masked word rise, the floating action badge, and the
-   stat flash. Everything answers to one easing, Rapport's own, alongside
-   the app's --ease-ios. */
+   Ported from the reverse-engineered Rapport dashboard: the masked word
+   rise, the floating action badge, and the stat flash. One easing token
+   alongside the app's --ease-ios. */
 
 :root {
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -1354,8 +1353,7 @@
   white-space: nowrap;
 }
 
-/* The stat flash (Rapport's `flash` keyframe): the number takes the tint for
-   a beat, then hands it back to its inherited colour. */
+/* The stat flash: the number takes the tint for a beat, then hands it back. */
 @keyframes muis-flash {
   0% {
     color: var(--ios-tint);

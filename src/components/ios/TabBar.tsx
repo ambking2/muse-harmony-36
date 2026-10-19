@@ -1,59 +1,77 @@
 import { motion } from "framer-motion";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import { TAB_ITEMS, tabForPath } from "@/lib/design/tabs";
-import { morph, snappy } from "@/lib/design/motion";
+import { DOCK_ITEMS, SEARCH_ITEM, tabForPath } from "@/lib/design/tabs";
+import { snappy } from "@/lib/design/motion";
 import { useGlassMode } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 /**
- * The tab bar — floating glass that tells you where you are by moving.
+ * The dock — floating glass, and one circle beside it.
  *
- * It **floats**, detached from the page, in the same material as the rest of
- * the app; it **refracts** what scrolls under it (a track title crossing the
- * dock bends as it goes); it catches a **specular** rim with the highlight
- * sliding along it as the pointer moves.
+ * Three destinations live in the pill (home, library, the player) and search
+ * floats beside it as its own circular button, the way a camera sits beside
+ * the mode tabs in a camera app: one control, one job, always the same place.
  *
- * The selection is a single dot that **travels** from one tab to the next on a
- * spring, rather than a filled square that blinks in and out. That is the whole
- * difference between a tab bar and a row of links: the reader sees the change
- * happen. It stays a dot on purpose — the destination itself is carried by
- * colour on the icon and its label, so the control never becomes a block that
- * hides the icon it is meant to point at.
+ * The pill **floats**, detached from the page, in the same material as the
+ * rest of the app; it **refracts** what scrolls under it (a track title
+ * crossing the dock bends as it goes); it catches a **specular** rim with the
+ * highlight sliding along it as the pointer moves.
  *
- * Nothing here enlarges the icons under the pointer. A dock that rearranges
- * itself while a finger is on it moves the target, and this one gets tapped
- * five times a minute.
+ * Selection is carried by colour on the icon and its label — the control never
+ * becomes a block that hides the icon it is meant to point at. Nothing here
+ * enlarges the icons under the pointer: a dock that rearranges itself while a
+ * finger is on it moves the target, and this one gets tapped five times a
+ * minute.
  */
 export function TabBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const current = tabForPath(pathname);
   const glass = useGlassMode();
 
+  const glassRing = cn(
+    "material lens specular spotlight pointer-events-auto relative overflow-hidden",
+    "border border-ios-separator shadow-[var(--floating-shadow)]",
+    glass === "on" && "chromatic",
+  );
+
   return (
     <nav
       aria-label="ناوبری اصلی"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)]"
     >
-      <div
-        className={cn(
-          "material lens specular spotlight pointer-events-auto relative flex w-[min(100%-1.5rem,30rem)] items-stretch",
-          "justify-around overflow-hidden rounded-[1.75rem] border border-ios-separator px-1.5 py-1",
-          "shadow-[var(--floating-shadow)]",
-          glass === "on" && "chromatic",
-        )}
-      >
-        {glass === "on" && <span className="lens-bend" aria-hidden />}
-        {glass === "on" && <span className="refract opacity-40" aria-hidden />}
-        {TAB_ITEMS.map((item) => (
-          <TabLink key={item.tab} item={item} active={current === item.tab} />
-        ))}
+      <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
+        <div
+          className={cn(
+            glassRing,
+            "flex w-[min(100%-3.75rem,19rem)] items-stretch justify-around rounded-[1.75rem] px-1.5 py-1",
+          )}
+        >
+          {glass === "on" && <span className="lens-bend" aria-hidden />}
+          {glass === "on" && <span className="refract opacity-40" aria-hidden />}
+          {DOCK_ITEMS.map((item) => (
+            <TabLink key={item.tab} item={item} active={current === item.tab} />
+          ))}
+        </div>
+
+        <Link
+          to={SEARCH_ITEM.to}
+          aria-label={SEARCH_ITEM.label}
+          className={cn(
+            glassRing,
+            "grid size-14 shrink-0 place-items-center rounded-full text-ios-label-secondary",
+            "transition-colors duration-200 hover:text-ios-tint",
+          )}
+        >
+          {glass === "on" && <span className="lens-bend" aria-hidden />}
+          <SEARCH_ITEM.icon className="size-6" strokeWidth={1.8} />
+        </Link>
       </div>
     </nav>
   );
 }
 
-function TabLink({ item, active }: { item: (typeof TAB_ITEMS)[number]; active: boolean }) {
+function TabLink({ item, active }: { item: (typeof DOCK_ITEMS)[number]; active: boolean }) {
   return (
     <Link
       to={item.to}

@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Screen } from "@/components/ios/Screen";
 import { Section } from "@/components/ios/Section";
-import { HomeHero } from "@/components/home/HomeHero";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { ResumeCard } from "@/components/home/ResumeCard";
 import { PlaylistCard } from "@/components/music/PlaylistCard";
@@ -18,16 +17,23 @@ export const Route = createFileRoute("/")({ component: Home });
 /**
  * Home.
  *
- * One screen, five things: what the app is, what is playing right now, what to
- * listen to next, what was just played, and where the rest of the library lives.
- * Sections are grouped lists and tiles rather than full-height scrolling
- * panels, so the first screen still shows something useful on a phone.
+ * The eyebrow is the date — the cheapest line that says today is real — and
+ * under it the screen is one thing after another to hear: what is playing, the
+ * provider's own collections, what was just played, and the doors to the rest
+ * of the library. Search is not on this screen; it lives in the circular
+ * button beside the dock, where the finger already is.
  */
 function Home() {
+  // «شنبه ۲۷ مهر» — the long Persian date, as the reference's "Fri 3 October".
+  const today = useMemo(
+    () =>
+      new Date().toLocaleDateString("fa-IR", { weekday: "long", day: "numeric", month: "long" }),
+    [],
+  );
+
   return (
     <AppShell>
-      <Screen title="خانه" subtitle="موسیقی ایرانی و جهانی">
-        <HomeHero />
+      <Screen title="خانه" subtitle={today}>
         <ResumeCard />
         <Collections />
         <RecentlyPlayed />
