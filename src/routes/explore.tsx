@@ -141,7 +141,7 @@ function Explore() {
             one control worth having in the hand while reading them is the one
             that changes them — so it rides above the list on a frosted bar
             that lets rows pass under it, rather than scrolling away. */}
-        <div className="sticky top-2 z-30 -mx-4 mt-4 bg-ios-grouped/80 px-4 py-2 backdrop-blur-xl">
+        <div className="sticky top-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem)] z-30 -mx-4 mt-4 px-4 py-2">
           <SearchField
             value={query}
             onChange={setQuery}
