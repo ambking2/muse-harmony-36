@@ -3,6 +3,7 @@ import { Clock, History as HistoryIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { CountUp } from "@/components/ios/CountUp";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { Screen } from "@/components/ios/Screen";
 import { SearchField } from "@/components/ios/SearchField";
@@ -78,9 +79,13 @@ function LibraryPage() {
       <Screen
         title="کتابخانه"
         subtitle={
-          library.length
-            ? `${library.length.toLocaleString("fa-IR")} آهنگ ذخیره‌شده`
-            : "هنوز آهنگی ذخیره نکرده‌اید"
+          library.length ? (
+            <>
+              <CountUp value={library.length} flash /> آهنگ ذخیره‌شده
+            </>
+          ) : (
+            "هنوز آهنگی ذخیره نکرده‌اید"
+          )
         }
         actions={<NewPlaylistDialog />}
       >

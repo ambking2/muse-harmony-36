@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
 import { useArtworkAccent } from "@/hooks/use-artwork-accent";
 import { usePointerLight } from "@/hooks/use-pointer-light";
 import { page } from "@/lib/design/motion";
+import { armMotion } from "@/lib/design/motion-gsap";
 import { paletteRegistry, queueRegistry } from "@/lib/ui-control";
 import type { OpenerRegistry } from "@/lib/ui-control";
 
@@ -38,6 +39,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   useArtworkAccent();
   // Publishes the pointer position so the chrome's highlights can track it.
   usePointerLight();
+  // Rapport's boot contract: hover motion (lift, magnetic) waits until the
+  // entrance has finished, so a resting pointer never fights the arrival.
+  useEffect(() => armMotion(), []);
 
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isStandalone = STANDALONE.has(pathname);

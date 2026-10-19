@@ -5,6 +5,8 @@ import { Link } from "@tanstack/react-router";
 
 import { getPicUrl, picKey } from "@/lib/gdmusic";
 import { crossfade, morph, snappy, swapIcon, swapLine } from "@/lib/design/motion";
+import { floatUp, iconPop } from "@/lib/design/motion-gsap";
+import { useMagnetic } from "@/hooks/use-motion";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import { trackKey } from "@/lib/types";
@@ -45,6 +47,7 @@ export function MiniPlayer() {
 
   const key = track ? trackKey(track) : "";
   const isFavorite = !!key && favorites.includes(key);
+  const playRef = useMagnetic<HTMLButtonElement>();
 
   const pic = useQuery({
     queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 128),
@@ -137,7 +140,16 @@ export function MiniPlayer() {
 
             <motion.button
               type="button"
-              onClick={() => toggleFavorite(track)}
+              onClick={(event) => {
+                // Rapport's reward pair: the icon snaps in and a badge floats
+                // off the action — only when something was added, never when
+                // it was taken away.
+                if (!isFavorite) {
+                  floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                  iconPop(event.currentTarget);
+                }
+                toggleFavorite(track);
+              }}
               aria-label={isFavorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
               aria-pressed={isFavorite}
               whileTap={{ scale: 0.88 }}
@@ -158,6 +170,7 @@ export function MiniPlayer() {
 
             <motion.button
               type="button"
+              ref={playRef}
               onClick={() => togglePlay()}
               aria-label={isPlaying ? "توقف" : "پخش"}
               whileTap={{ scale: 0.9 }}

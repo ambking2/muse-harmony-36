@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import type { FeaturedPlaylist } from "@/lib/featured";
 import { TILE_CLASS, tileFor } from "@/lib/tile";
+import { useLift } from "@/hooks/use-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,7 +11,9 @@ import { cn } from "@/lib/utils";
  *
  * The tile is one link: the whole card is the tap target, artwork included, so
  * there is no guessing where to touch. Callers size it: a grid cell passes
- * nothing, a horizontal rail passes a fixed width.
+ * nothing, a horizontal rail passes a fixed width. On a desktop pointer the
+ * whole card lifts a few pixels (Rapport's `ho`), once the app's entrance has
+ * armed itself.
  */
 export function PlaylistCard({
   playlist,
@@ -19,10 +22,13 @@ export function PlaylistCard({
   playlist: FeaturedPlaylist;
   className?: string;
 }) {
+  const liftRef = useLift<HTMLAnchorElement>();
+
   return (
     <Link
       to="/mix/$id"
       params={{ id: playlist.id }}
+      ref={liftRef}
       className={cn("panel press block overflow-hidden text-right", className)}
     >
       <div
@@ -31,7 +37,9 @@ export function PlaylistCard({
           TILE_CLASS[tileFor(playlist.id)],
         )}
       >
-        <span className="playlist-card-glyph" aria-hidden>{playlist.emoji}</span>
+        <span className="playlist-card-glyph" aria-hidden>
+          {playlist.emoji}
+        </span>
       </div>
       <div className="p-3">
         <div className="type-headline truncate">{playlist.title}</div>

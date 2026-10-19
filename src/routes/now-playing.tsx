@@ -49,6 +49,7 @@ import { shareTrack } from "@/lib/share-link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TrackMenu } from "@/components/music/TrackMenu";
+import { floatUp, iconPop, gsap } from "@/lib/design/motion-gsap";
 
 export const Route = createFileRoute("/now-playing")({
   head: () => ({ meta: [{ title: "در حال پخش — muis" }] }),
@@ -80,6 +81,26 @@ function NowPlaying() {
   const isFav = favorites.includes(key);
   const isOffline = !!track?.srcUrl;
   const downloaded = downloads.some((d) => d.id.startsWith(`${key}:`) && d.status === "done");
+  const discRef = useRef<HTMLDivElement>(null);
+
+  // The listening booth's signature: the artwork is the record under the
+  // needle. While the track plays the platter turns, slowly; pausing stops it
+  // where it is rather than resetting it, and picking the same record up again
+  // resumes from that exact groove. Reduce Motion keeps the image still.
+  useEffect(() => {
+    const disc = discRef.current;
+    if (!disc || !isPlaying) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const spin = gsap.to(disc, {
+      rotation: "+=360",
+      duration: 24,
+      ease: "none",
+      repeat: -1,
+    });
+    return () => {
+      spin.kill();
+    };
+  }, [isPlaying, key]);
 
   const pic = useQuery({
     queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 800),
@@ -225,6 +246,7 @@ function NowPlaying() {
             // places, so when both are on screen it travels between them rather
             // than being cut from one size to another.
             layoutId={`artwork-${key}`}
+            ref={discRef}
             className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
           >
             {art ? (
@@ -267,7 +289,13 @@ function NowPlaying() {
             )}
           </div>
           <button
-            onClick={() => toggleFav(track)}
+            onClick={(event) => {
+              if (!isFav) {
+                floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                iconPop(event.currentTarget);
+              }
+              toggleFav(track);
+            }}
             className={cn(
               "shrink-0 rounded-full p-2 transition active:scale-90",
               isFav ? "text-primary" : "text-muted-foreground",
