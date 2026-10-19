@@ -36,7 +36,7 @@ export interface TabItem {
 export const DOCK_ITEMS: readonly TabItem[] = [
   { tab: Tab.Home, to: "/", label: "خانه", icon: House },
   { tab: Tab.Library, to: "/library", label: "کتابخانه", icon: Library },
-  { tab: Tab.Account, to: "/account", label: "حساب", icon: UserRound },
+  { tab: Tab.Account, to: "/profile", label: "پروفایل", icon: UserRound },
 ] as const;
 
 /** Search, the circular button beside the dock. */
@@ -68,7 +68,7 @@ const DETAIL_PARENTS: readonly (readonly [string, Tab])[] = [
   ["/downloads", Tab.Library],
   ["/favorites", Tab.Library],
   ["/settings", Tab.Account],
-  ["/profile", Tab.Account],
+  ["/account", Tab.Account],
 ];
 
 export function tabForPath(pathname: string): Tab | null {

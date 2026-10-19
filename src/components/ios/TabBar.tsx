@@ -1,26 +1,20 @@
-import { motion } from "framer-motion";
 import { Link, useRouterState } from "@tanstack/react-router";
 
 import { DOCK_ITEMS, SEARCH_ITEM, tabForPath } from "@/lib/design/tabs";
-import { snappy } from "@/lib/design/motion";
 import { useGlassMode } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 /**
  * The dock — one slab of liquid glass, and one circle beside it.
  *
- * Three destinations live in the pill (home, library, the account) and search
- * floats beside it as its own circular button. The selected tab is not a dot
- * or a colour swap: it is a **raised frosted pill** that the icon and label
- * sit inside, the way the reference dock marks Tonight — the selection is an
- * object you could pick up, not a highlight that happened to land.
+ * Three destinations live in the pill (home, library, the profile) and search
+ * floats beside it as its own circular button. Selection is colour alone: the
+ * chosen tab tints, the others dim. No pill, no travelling marker, no pointer
+ * spotlight — those read as extra grey objects sitting on the glass.
  *
- * The slab `dock-hero`s itself: deeper frost than the default chrome, a
- * louder chromatic rim, and it refracts what scrolls under it — except the
- * artwork, which stays put (see `.refract` in styles.css). Nothing here
- * enlarges icons under the pointer: a dock that rearranges itself while a
- * finger is on it moves the target, and this one gets tapped five times a
- * minute.
+ * The slab keeps the liquid-glass layers that belong to the surface itself
+ * (deep frost, the bent edge, the specular rim, the faint chromatic fringe)
+ * and nothing painted on top of them.
  */
 export function TabBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -28,7 +22,7 @@ export function TabBar() {
   const glass = useGlassMode();
 
   const glassRing = cn(
-    "material lens specular spotlight dock-hero pointer-events-auto relative overflow-hidden",
+    "material lens specular dock-hero pointer-events-auto relative overflow-hidden",
     "border border-ios-separator shadow-[var(--floating-shadow)]",
     glass === "on" && "chromatic",
   );
@@ -46,7 +40,6 @@ export function TabBar() {
           )}
         >
           {glass === "on" && <span className="lens-bend" aria-hidden />}
-          {glass === "on" && <span className="refract opacity-40" aria-hidden />}
           {DOCK_ITEMS.map((item) => (
             <TabLink key={item.tab} item={item} active={current === item.tab} />
           ))}
@@ -76,30 +69,14 @@ function TabLink({ item, active }: { item: (typeof DOCK_ITEMS)[number]; active: 
       aria-current={active ? "page" : undefined}
       className={cn(
         "press relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[1.15rem] px-3.5",
-        "transition-[background-color,box-shadow] duration-200",
-        active &&
-          "bg-ios-surface-raised/90 shadow-[inset_0_1px_0_oklch(1_0_0/.35),0_2px_10px_-4px_oklch(0_0_0/.25)]",
+        "transition-colors duration-200",
+        active ? "text-ios-tint" : "text-ios-label-secondary",
       )}
     >
-      <motion.span
-        aria-hidden
-        animate={{ scale: active ? 1.06 : 1, y: active ? -1 : 0 }}
-        whileTap={{ scale: active ? 0.96 : 0.9 }}
-        transition={snappy}
-        className={cn(
-          "flex flex-col items-center gap-0.5 transition-colors duration-200",
-          active ? "text-ios-tint" : "text-ios-label-secondary",
-        )}
-      >
-        <item.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} />
-        <motion.span
-          animate={{ opacity: active ? 1 : 0.72 }}
-          transition={snappy}
-          className="type-caption leading-none"
-        >
-          {item.label}
-        </motion.span>
-      </motion.span>
+      <item.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} />
+      <span className="type-caption leading-none" style={{ opacity: active ? 1 : 0.72 }}>
+        {item.label}
+      </span>
     </Link>
   );
 }
