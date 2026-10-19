@@ -731,7 +731,10 @@
      syntax but do not actually paint SVG displacement on a live backdrop. */
 }
 
-/* Layer 1b. Paints the same background as the page, then bends it. */
+/* Layer 1b. Paints the same background as the page, then bends it.
+   Deliberately NOT the artwork: the song cover bending inside the dock read
+   as a wavy smear of the image, so the fallback refracts only the ambient
+   tint and the surface colour — the artwork stays where it is. */
 @utility refract {
   position: absolute;
   inset: 0;
@@ -740,15 +743,14 @@
   overflow: hidden;
   pointer-events: none;
   background-image:
-    var(--track-art, none),
     radial-gradient(
       140% 160% at 50% 130%,
       color-mix(in oklch, var(--track-accent) 55%, transparent),
       transparent 62%
     ),
     linear-gradient(var(--ios-grouped), var(--ios-grouped));
-  background-size: cover, auto, auto;
-  background-position: center 30%, center, center;
+  background-size: auto, auto;
+  background-position: center, center;
   opacity: var(--refract-opacity, 0.5);
   transform: scale(1.06);
   filter: url(#muis-refract);
@@ -1368,4 +1370,13 @@
   .is-flash {
     animation: none;
   }
+}
+
+/* The dock is the one glass object the thumb rests on, so it frosts deeper
+   than the default chrome: more blur, more saturation, and a louder liquid
+   edge — while the artwork underneath stays put (see .refract above). */
+.dock-hero {
+  --lens-blur: 26px;
+  --glass-sat: 220%;
+  --material-alpha: 42%;
 }

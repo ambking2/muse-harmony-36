@@ -7,20 +7,18 @@ import { useGlassMode } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 /**
- * The dock — floating glass, and one circle beside it.
+ * The dock — one slab of liquid glass, and one circle beside it.
  *
- * Three destinations live in the pill (home, library, the player) and search
- * floats beside it as its own circular button, the way a camera sits beside
- * the mode tabs in a camera app: one control, one job, always the same place.
+ * Three destinations live in the pill (home, library, the account) and search
+ * floats beside it as its own circular button. The selected tab is not a dot
+ * or a colour swap: it is a **raised frosted pill** that the icon and label
+ * sit inside, the way the reference dock marks Tonight — the selection is an
+ * object you could pick up, not a highlight that happened to land.
  *
- * The pill **floats**, detached from the page, in the same material as the
- * rest of the app; it **refracts** what scrolls under it (a track title
- * crossing the dock bends as it goes); it catches a **specular** rim with the
- * highlight sliding along it as the pointer moves.
- *
- * Selection is carried by colour on the icon and its label — the control never
- * becomes a block that hides the icon it is meant to point at. Nothing here
- * enlarges the icons under the pointer: a dock that rearranges itself while a
+ * The slab `dock-hero`s itself: deeper frost than the default chrome, a
+ * louder chromatic rim, and it refracts what scrolls under it — except the
+ * artwork, which stays put (see `.refract` in styles.css). Nothing here
+ * enlarges icons under the pointer: a dock that rearranges itself while a
  * finger is on it moves the target, and this one gets tapped five times a
  * minute.
  */
@@ -30,7 +28,7 @@ export function TabBar() {
   const glass = useGlassMode();
 
   const glassRing = cn(
-    "material lens specular spotlight pointer-events-auto relative overflow-hidden",
+    "material lens specular spotlight dock-hero pointer-events-auto relative overflow-hidden",
     "border border-ios-separator shadow-[var(--floating-shadow)]",
     glass === "on" && "chromatic",
   );
@@ -44,7 +42,7 @@ export function TabBar() {
         <div
           className={cn(
             glassRing,
-            "flex w-[min(100%-3.75rem,19rem)] items-stretch justify-around rounded-[1.75rem] px-1.5 py-1",
+            "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[1.6rem] px-1.5 py-1.5",
           )}
         >
           {glass === "on" && <span className="lens-bend" aria-hidden />}
@@ -76,15 +74,20 @@ function TabLink({ item, active }: { item: (typeof DOCK_ITEMS)[number]; active: 
     <Link
       to={item.to}
       aria-current={active ? "page" : undefined}
-      className="relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1"
+      className={cn(
+        "press relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[1.15rem] px-3.5",
+        "transition-[background-color,box-shadow] duration-200",
+        active &&
+          "bg-ios-surface-raised/90 shadow-[inset_0_1px_0_oklch(1_0_0/.35),0_2px_10px_-4px_oklch(0_0_0/.25)]",
+      )}
     >
       <motion.span
         aria-hidden
-        animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
+        animate={{ scale: active ? 1.06 : 1, y: active ? -1 : 0 }}
         whileTap={{ scale: active ? 0.96 : 0.9 }}
         transition={snappy}
         className={cn(
-          "flex flex-col items-center gap-1 transition-colors duration-200",
+          "flex flex-col items-center gap-0.5 transition-colors duration-200",
           active ? "text-ios-tint" : "text-ios-label-secondary",
         )}
       >

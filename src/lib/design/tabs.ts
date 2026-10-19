@@ -1,12 +1,13 @@
-import { Disc3, Home, Library, Search, type LucideIcon } from "lucide-react";
+import { House, Library, Search, UserRound, type LucideIcon } from "lucide-react";
 
 /**
  * The app's destinations.
  *
- * The dock carries three of them — home, library and the player — and search
+ * The dock carries three of them — home, library and the account — and search
  * rides beside the dock as its own circular button, the way a camera sits
- * beside the mode tabs. Everything else (favourites, downloads, settings, the
- * account) lives where the content is: the home screen's shortcut list.
+ * beside the mode tabs. The player is not a dock item: it is a full-screen
+ * surface the mini player already opens, and favourites, downloads and
+ * settings live where the content is — the home screen's shortcut list.
  *
  * Modelled as an enum rather than loose strings because the dock, the keyboard
  * shortcuts and the "which screen am I on?" check all need to agree on one
@@ -17,7 +18,7 @@ export enum Tab {
   Home = "home",
   Search = "search",
   Library = "library",
-  Player = "player",
+  Account = "account",
   Favorites = "favorites",
   Profile = "profile",
 }
@@ -33,9 +34,9 @@ export interface TabItem {
 
 /** The three items inside the floating dock, in RTL reading order. */
 export const DOCK_ITEMS: readonly TabItem[] = [
-  { tab: Tab.Home, to: "/", label: "خانه", icon: Home },
+  { tab: Tab.Home, to: "/", label: "خانه", icon: House },
   { tab: Tab.Library, to: "/library", label: "کتابخانه", icon: Library },
-  { tab: Tab.Player, to: "/now-playing", label: "در حال پخش", icon: Disc3 },
+  { tab: Tab.Account, to: "/account", label: "حساب", icon: UserRound },
 ] as const;
 
 /** Search, the circular button beside the dock. */
@@ -52,8 +53,8 @@ export const SEARCH_ITEM: TabItem = {
  * A detail screen pushed on top of a tab (an artist, an album, a playlist)
  * keeps its parent tab lit, the way iOS keeps the tab you came from
  * highlighted on a pushed screen. Screens reached from the home shortcut list
- * (favourites, downloads, settings, the account) keep home lit. The player is
- * full screen and has no dock at all, so it returns null there.
+ * (favourites, downloads, settings) keep home lit. The player is full screen
+ * and has no dock at all, so it returns null there.
  */
 const DETAIL_PARENTS: readonly (readonly [string, Tab])[] = [
   // Found through search, so they carry the search light while pushed.
@@ -66,8 +67,8 @@ const DETAIL_PARENTS: readonly (readonly [string, Tab])[] = [
   ["/mix/", Tab.Library],
   ["/downloads", Tab.Library],
   ["/favorites", Tab.Library],
-  ["/settings", Tab.Home],
-  ["/account", Tab.Home],
+  ["/settings", Tab.Account],
+  ["/profile", Tab.Account],
 ];
 
 export function tabForPath(pathname: string): Tab | null {
