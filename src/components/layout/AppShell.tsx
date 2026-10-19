@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <QueueSheet />
       </DeferredOverlay>
 
-      <main className={isStandalone ? undefined : "pb-[calc(var(--chrome-inset)+1.5rem)]"}>
+      <main className="pb-[calc(var(--chrome-inset)+1.5rem)]">
         {/* The page transition. Keyed on the path, so navigating replays a
             short enter instead of swapping the whole surface at once — eight
             pixels of travel and a fifth of a second, which reads as turning a
@@ -82,12 +82,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </motion.div>
       </main>
 
-      {!isStandalone && (
-        <>
-          <MiniPlayer />
-          <TabBar />
-        </>
-      )}
+      {/* The dock lives on every screen, the player included — the full player
+          is a page, not a mode. The mini player keeps its distance there: the
+          same track twice on one screen is noise, not navigation. */}
+      {!isStandalone && <MiniPlayer />}
+      <TabBar />
       <Toaster position="top-center" richColors closeButton />
     </div>
   );

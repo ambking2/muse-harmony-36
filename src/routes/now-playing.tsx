@@ -21,6 +21,8 @@ import { trackKey } from "@/lib/types";
 import type { LyricLine, Quality } from "@/lib/types";
 import {
   ChevronDown,
+  Disc3,
+  Ellipsis,
   Heart,
   ListMusic,
   Pause,
@@ -41,8 +43,8 @@ import {
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { RippleButton } from "@/components/ui/ripple-button";
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
 import { shareTrack } from "@/lib/share-link";
@@ -81,6 +83,16 @@ function NowPlaying() {
   const isFav = favorites.includes(key);
   const isOffline = !!track?.srcUrl;
   const downloaded = downloads.some((d) => d.id.startsWith(`${key}:`) && d.status === "done");
+
+  // The screen carries two controls and nothing else: collapse to wherever the
+  // user came from (the mini player takes over), and the sheet for everything
+  // secondary.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [lyricsOpen, setLyricsOpen] = useState(false);
+  const minimize = () => {
+    if (window.history.length > 1) router.history.back();
+    else void router.navigate({ to: "/" });
+  };
 
   const pic = useQuery({
     queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 800),
@@ -128,7 +140,6 @@ function NowPlaying() {
     ? lyrics.data
     : (fallback.data ?? lyrics.data);
 
-  const [showLyrics, setShowLyrics] = useState(false);
   const [showTranslation, setShowTranslation] = useState(true);
   const hasTranslation = (shown?.translated.length ?? 0) > 0;
 
@@ -166,7 +177,7 @@ function NowPlaying() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden text-foreground">
+    <div className="relative min-h-svh overflow-hidden text-foreground">
       {/* Blurred background from the artwork, tinted by the extracted accent. */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         {art && (
@@ -187,29 +198,24 @@ function NowPlaying() {
         />
       </div>
 
-      <div className="mx-auto flex min-h-screen max-w-lg flex-col px-6 pb-44 pt-5">
+      <div className="mx-auto flex min-h-svh max-w-lg flex-col px-6 pb-10 pt-4">
+        {/* Two independent controls, and nothing else on the header. */}
         <header className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => router.history.back()}
-            className="press grid size-11 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary"
-            aria-label="بازگشت"
+            onClick={() => setMenuOpen(true)}
+            className="glass-btn press text-ios-label-secondary"
+            aria-label="امکانات آهنگ"
           >
-            <ChevronDown className="size-5 rotate-180" strokeWidth={2} />
+            <Ellipsis className="size-5" strokeWidth={2} />
           </button>
-          <div className="text-center">
-            <p className="type-footnote text-ios-label-secondary">در حال پخش</p>
-            <p className="type-caption text-ios-label-tertiary">
-              {isOffline ? "آفلاین" : isBuffering ? "در حال بافر…" : track.album || "muis"}
-            </p>
-          </div>
           <button
             type="button"
-            onClick={() => queueRegistry.openAll()}
-            className="press grid size-11 place-items-center rounded-lg bg-ios-fill text-ios-label-secondary"
-            aria-label="صف پخش"
+            onClick={minimize}
+            className="glass-btn press text-ios-label-secondary"
+            aria-label="بستن صفحه پخش"
           >
-            <ListMusic className="size-5" strokeWidth={2} />
+            <ChevronDown className="size-5" strokeWidth={2.2} />
           </button>
         </header>
 
@@ -219,12 +225,12 @@ function NowPlaying() {
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 220, damping: 26 }}
-          className="mx-auto mt-8 w-full max-w-sm"
+          className="mx-auto mt-7 w-full max-w-sm"
         >
           <motion.div
             // Shared with the mini player: the same album is one object in two
             // places, so when both are on screen it travels between them rather
-            // than being cut from one size to another.
+            // than being cut.
             layoutId={`artwork-${key}`}
             className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
           >
@@ -241,52 +247,25 @@ function NowPlaying() {
           </motion.div>
         </motion.div>
 
-        {/* Meta */}
-        <div className="mt-8 flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="type-title-2 truncate">{track.name}</h1>
-            <div className="flex flex-wrap gap-x-2">
-              {track.artist.map((a) => (
-                <Link
-                  key={a}
-                  to="/artist/$name"
-                  params={{ name: a }}
-                  className="max-w-full truncate text-muted-foreground transition hover:text-primary"
-                >
-                  {a}
-                </Link>
-              ))}
-            </div>
-            {track.album && (
+        {/* Meta — the name and who sings it; the album lives in the sheet. */}
+        <div className="mt-7 text-center">
+          <h1 className="type-title-2 truncate">{track.name}</h1>
+          <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
+            {track.artist.map((a) => (
               <Link
-                to="/album/$name"
-                params={{ name: track.album }}
-                className="mt-0.5 block truncate text-xs text-muted-foreground/70 transition hover:text-primary"
+                key={a}
+                to="/artist/$name"
+                params={{ name: a }}
+                className="max-w-full truncate text-sm text-muted-foreground transition hover:text-primary"
               >
-                {track.album}
+                {a}
               </Link>
-            )}
+            ))}
           </div>
-          <button
-            onClick={(event) => {
-              if (!isFav) {
-                floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
-                iconPop(event.currentTarget);
-              }
-              toggleFav(track);
-            }}
-            className={cn(
-              "shrink-0 rounded-full p-2 transition active:scale-90",
-              isFav ? "text-primary" : "text-muted-foreground",
-            )}
-            aria-label="علاقه‌مندی"
-          >
-            <Heart className={cn("size-6", isFav && "fill-current")} />
-          </button>
         </div>
 
         {/* Progress */}
-        <div className="mt-6">
+        <div className="mt-7">
           <Waveform current={currentTime} duration={duration} />
           <Slider
             value={[Math.min(currentTime, duration || 0)]}
@@ -302,14 +281,14 @@ function NowPlaying() {
           </div>
         </div>
 
-        {/* Transport */}
-        <div className="mt-5 flex items-center justify-between">
+        {/* Transport — one row on every width, play at the centre and larger. */}
+        <div className="mx-auto mt-5 flex w-full max-w-md flex-nowrap items-center justify-between">
           <button
             type="button"
             onClick={toggleShuffle}
             aria-pressed={shuffle}
             className={cn(
-              "press grid size-11 place-items-center rounded-lg",
+              "press grid size-11 shrink-0 place-items-center rounded-lg",
               shuffle ? "text-ios-tint" : "text-ios-label-secondary",
             )}
             aria-label="پخش تصادفی"
@@ -319,7 +298,7 @@ function NowPlaying() {
           <button
             type="button"
             onClick={prev}
-            className="press grid size-12 place-items-center rounded-lg text-ios-label"
+            className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
             aria-label="قبلی"
           >
             <SkipBack className="size-8" strokeWidth={1.8} />
@@ -327,7 +306,7 @@ function NowPlaying() {
           <button
             type="button"
             onClick={togglePlay}
-            className="press grid size-16 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
+            className="press grid size-16 shrink-0 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
             aria-label={isPlaying ? "توقف" : "پخش"}
           >
             {isPlaying ? (
@@ -339,7 +318,7 @@ function NowPlaying() {
           <button
             type="button"
             onClick={next}
-            className="press grid size-12 place-items-center rounded-lg text-ios-label"
+            className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
             aria-label="بعدی"
           >
             <SkipForward className="size-8" strokeWidth={1.8} />
@@ -348,7 +327,7 @@ function NowPlaying() {
             type="button"
             onClick={cycleRepeat}
             className={cn(
-              "press grid size-11 place-items-center rounded-lg",
+              "press grid size-11 shrink-0 place-items-center rounded-lg",
               repeat !== "off" ? "text-ios-tint" : "text-ios-label-secondary",
             )}
             aria-label="تکرار"
@@ -356,73 +335,221 @@ function NowPlaying() {
             {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
           </button>
         </div>
-
-        {/* Secondary actions */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowLyrics((v) => !v)}
-            className={cn("btn btn-gray", showLyrics && "text-ios-tint")}
-          >
-            <Type className="size-4" strokeWidth={2} />{" "}
-            {showLyrics ? "پنهان‌کردن متن" : "متن ترانه"}
-          </button>
-          <QualityMenu quality={quality} onChange={setQuality} />
-          <LoadingButton
-            variant="glass"
-            onAction={() => downloadTrack(track, quality)}
-            loadingText="در حال دانلود…"
-            successText="دانلود شد"
-            disabled={downloaded}
-          >
-            {isOffline || downloaded ? <WifiOff /> : <Download />}
-            {/* `downloaded` is read back from storage, so the label has to say
-                "done" for a file saved in a previous session too — not only
-                inside LoadingButton's own success window. */}
-            {downloaded ? "دانلود شد" : "دانلود"}
-          </LoadingButton>
-          <LoadingButton
-            variant="glass"
-            onAction={share}
-            loadingText="در حال کپی…"
-            successText="کپی شد"
-          >
-            <Share2 /> اشتراک
-          </LoadingButton>
-          <TrackMenu track={track}>
-            <button type="button" className="btn btn-gray">
-              <Plus className="size-4" strokeWidth={2} /> بیشتر
-            </button>
-          </TrackMenu>
-          <SleepButton />
-        </div>
-
-        {showLyrics && (
-          <div className="mt-6 flex-1">
-            {hasTranslation && (
-              <div className="mb-3 flex justify-center">
-                <button
-                  onClick={() => setShowTranslation((v) => !v)}
-                  aria-pressed={showTranslation}
-                  className={cn(
-                    "glass rounded-full px-3.5 py-1.5 text-xs transition",
-                    showTranslation ? "text-primary" : "text-muted-foreground",
-                  )}
-                >
-                  {showTranslation ? "ترجمه روشن" : "ترجمه خاموش"}
-                </button>
-              </div>
-            )}
-            <Lyrics
-              lines={shown?.lines ?? []}
-              current={currentTime}
-              loading={lyrics.isLoading || (needsFallback && fallback.isFetching)}
-              showSecondLine={showTranslation && hasTranslation}
-            />
-          </div>
-        )}
       </div>
+
+      {/* Everything secondary lives in the sheet. */}
+      <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+        <DrawerContent className="material-thick max-h-[85svh] overflow-y-auto rounded-t-sheet">
+          <div className="mx-auto w-full max-w-lg pb-[max(env(safe-area-inset-bottom),1rem)]">
+            <DrawerTitle className="px-5 pt-1 pb-3 text-base">امکانات آهنگ</DrawerTitle>
+
+            <div className="inset-divided px-3">
+              <SheetRow
+                icon={<Type className="size-5" strokeWidth={2} />}
+                label="متن ترانه"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setLyricsOpen(true);
+                }}
+              />
+              <SheetRow
+                icon={<ListMusic className="size-5" strokeWidth={2} />}
+                label="صف پخش"
+                onClick={() => {
+                  setMenuOpen(false);
+                  queueRegistry.openAll();
+                }}
+              />
+              {track.album && (
+                <SheetRow
+                  icon={<Disc3 className="size-5" strokeWidth={2} />}
+                  label={`آلبوم ${track.album}`}
+                  to={`/album/$name`}
+                  params={{ name: track.album }}
+                  onNavigate={() => setMenuOpen(false)}
+                />
+              )}
+              <button
+                type="button"
+                onClick={(event) => {
+                  if (!isFav) {
+                    floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                    iconPop(event.currentTarget);
+                  }
+                  toggleFav(track);
+                }}
+                className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
+              >
+                <SheetIcon>
+                  <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
+                </SheetIcon>
+                <span className="flex-1 truncate text-sm font-medium">
+                  {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+                </span>
+              </button>
+              <TrackMenu track={track}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
+                >
+                  <SheetIcon>
+                    <Plus className="size-5" strokeWidth={2} />
+                  </SheetIcon>
+                  <span className="flex-1 truncate text-sm font-medium">
+                    افزودن به پلی‌لیست و بیشتر
+                  </span>
+                </button>
+              </TrackMenu>
+              <div className="py-2.5">
+                <LoadingButton
+                  variant="glass"
+                  onAction={() => downloadTrack(track, quality)}
+                  loadingText="در حال دانلود…"
+                  successText="دانلود شد"
+                  disabled={downloaded}
+                  className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3.5 text-start text-sm font-medium"
+                >
+                  <SheetIcon>
+                    {isOffline || downloaded ? (
+                      <WifiOff className="size-5" strokeWidth={2} />
+                    ) : (
+                      <Download className="size-5" strokeWidth={2} />
+                    )}
+                  </SheetIcon>
+                  {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
+                </LoadingButton>
+              </div>
+              <div className="py-2.5">
+                <LoadingButton
+                  variant="glass"
+                  onAction={share}
+                  loadingText="در حال کپی…"
+                  successText="کپی شد"
+                  className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3.5 text-start text-sm font-medium"
+                >
+                  <SheetIcon>
+                    <Share2 className="size-5" strokeWidth={2} />
+                  </SheetIcon>
+                  اشتراک‌گذاری آهنگ
+                </LoadingButton>
+              </div>
+            </div>
+
+            <div className="px-5 pt-2">
+              <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
+              <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
+                {QUALITIES.map((q) => (
+                  <button
+                    key={q.br}
+                    onClick={() => onChangeQuality(setQuality, q.br as Quality)}
+                    className={cn(
+                      "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
+                      quality === q.br
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {q.br === 999 ? "FLAC" : q.br}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <SleepSection />
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Lyrics, in their own sheet-width dialog so the main screen stays clear. */}
+      <Dialog open={lyricsOpen} onOpenChange={setLyricsOpen}>
+        <DialogContent className="material-thick max-h-[85svh] gap-3 overflow-y-auto rounded-sheet p-5">
+          <DialogHeader>
+            <DialogTitle className="type-title-3">متن ترانه</DialogTitle>
+          </DialogHeader>
+          {hasTranslation && (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowTranslation((v) => !v)}
+                aria-pressed={showTranslation}
+                className={cn(
+                  "glass rounded-full px-3.5 py-1.5 text-xs transition",
+                  showTranslation ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                {showTranslation ? "ترجمه روشن" : "ترجمه خاموش"}
+              </button>
+            </div>
+          )}
+          <Lyrics
+            lines={shown?.lines ?? []}
+            current={currentTime}
+            loading={lyrics.isLoading || (needsFallback && fallback.isFetching)}
+            showSecondLine={showTranslation && hasTranslation}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+/** Keeps the picker's call sites honest without dragging types around. */
+function onChangeQuality(set: (q: Quality) => void, br: Quality) {
+  set(br);
+}
+
+function SheetIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-ios-fill text-ios-tint">
+      {children}
+    </span>
+  );
+}
+
+/**
+ * One row of the song sheet. Either a button (onClick) or a router link (to +
+ * params); the two shapes never mix on one row.
+ */
+function SheetRow({
+  icon,
+  label,
+  onClick,
+  to,
+  params,
+  onNavigate,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  to?: string;
+  params?: Record<string, string>;
+  onNavigate?: () => void;
+}) {
+  const inner = (
+    <>
+      <SheetIcon>{icon}</SheetIcon>
+      <span className="flex-1 truncate text-sm font-medium">{label}</span>
+    </>
+  );
+  if (to) {
+    return (
+      <Link
+        to={to}
+        params={params}
+        onClick={onNavigate}
+        className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start transition hover:text-primary"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
+    >
+      {inner}
+    </button>
   );
 }
 
@@ -492,11 +619,10 @@ function Lyrics({
   return (
     <div
       ref={containerRef}
-      className="no-scrollbar max-h-80 space-y-3 overflow-y-auto pb-24 pt-8 text-center"
+      className="no-scrollbar max-h-[55svh] space-y-3 overflow-y-auto pb-6 pt-4 text-center"
     >
-      {" "}
       {lines.map((l, i) => (
-        <div key={`${i}-${l.time}`} data-lrc={i} className="px-4 transition-all">
+        <div key={`${i}-${l.time}`} data-lrc={i} className="px-2 transition-all">
           <p
             className={cn(
               "leading-relaxed",
@@ -521,70 +647,42 @@ function Lyrics({
   );
 }
 
-function QualityMenu({ quality, onChange }: { quality: Quality; onChange: (q: Quality) => void }) {
-  return (
-    <div className="glass flex overflow-hidden rounded-full">
-      {QUALITIES.map((q) => (
-        <button
-          key={q.br}
-          onClick={() => onChange(q.br as Quality)}
-          className={cn(
-            "px-3 py-2 text-xs font-medium transition ltr-nums",
-            quality === q.br ? "bg-primary text-primary-foreground" : "text-muted-foreground",
-          )}
-        >
-          {q.br === 999 ? "FLAC" : q.br}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SleepButton() {
+/** Sleep timer, inline in the song sheet — no drawer inside a drawer. */
+function SleepSection() {
   const sleepAt = usePlayer((s) => s.sleepAt);
   const setSleep = usePlayer((s) => s.setSleepMinutes);
-  const [open, setOpen] = useState(false);
   const remaining = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <button
-        onClick={() => setOpen(true)}
-        className={cn(
-          "glass flex items-center gap-1.5 rounded-full px-4 py-2 text-sm",
-          sleepAt && "text-primary",
+    <div className="px-5 py-4">
+      <p className="type-footnote mb-2 flex items-center gap-1.5 text-ios-label-secondary">
+        <Timer className="size-3.5" /> تایمر خواب
+        {sleepAt && <span className="ltr-nums">· {remaining} دقیقه مانده</span>}
+      </p>
+      <div className="glass grid grid-cols-3 gap-1.5 rounded-2xl p-1.5">
+        {[5, 10, 15, 30, 45, 60].map((m) => (
+          <button
+            key={m}
+            onClick={() => {
+              setSleep(m);
+              toast.success(`تا ${m} دقیقه دیگر متوقف می‌شود`);
+            }}
+            className={cn(
+              "rounded-xl py-2.5 text-sm font-semibold transition ltr-nums hover:bg-white/10",
+              sleepAt && "opacity-80",
+            )}
+          >
+            {m}
+          </button>
+        ))}
+        {sleepAt && (
+          <button
+            onClick={() => setSleep(null)}
+            className="col-span-3 rounded-xl py-2 text-sm text-destructive"
+          >
+            لغو تایمر
+          </button>
         )}
-      >
-        <Timer className="size-4" /> {sleepAt ? `${remaining} دقیقه` : "تایمر خواب"}
-      </button>
-      <DrawerContent className="bg-card/95 backdrop-blur-2xl">
-        <DrawerTitle className="px-5 text-base">تایمر خواب</DrawerTitle>
-        <div className="grid grid-cols-3 gap-3 p-4">
-          {[5, 10, 15, 30, 45, 60].map((m) => (
-            <button
-              key={m}
-              onClick={() => {
-                setSleep(m);
-                toast.success(`تا ${m} دقیقه دیگر متوقف می‌شود`);
-                setOpen(false);
-              }}
-              className="glass rounded-2xl p-4 text-lg font-semibold transition hover:bg-white/10 ltr-nums"
-            >
-              {m}
-            </button>
-          ))}
-          {sleepAt && (
-            <button
-              onClick={() => {
-                setSleep(null);
-                setOpen(false);
-              }}
-              className="col-span-3 rounded-full py-2 text-sm text-destructive"
-            >
-              لغو تایمر
-            </button>
-          )}
-        </div>
-      </DrawerContent>
-    </Drawer>
+      </div>
+    </div>
   );
 }
