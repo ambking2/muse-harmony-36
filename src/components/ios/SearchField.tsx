@@ -6,13 +6,8 @@ import { snappy } from "@/lib/design/motion";
 import { cn } from "@/lib/utils";
 
 /**
- * The search field, bare.
- *
- * No filled capsule: the field is a hairline — magnifier, placeholder, and a
- * rule along the reading edge. Focus is answered twice, both quiet: the
- * hairline takes the tint, and the magnifier leans into it. The clear button
- * stays a filled circle, the one place a fill helps (it is a target, not
- * decoration).
+ * Search field as a raised, rounded material surface. Focus is shown with a
+ * restrained tint ring; the glass itself follows the app-wide glass setting.
  */
 export function SearchField({
   value,
@@ -36,9 +31,10 @@ export function SearchField({
       animate={{ scale: focused ? 1.01 : 1 }}
       transition={snappy}
       className={cn(
-        "flex min-h-11 items-center gap-2.5 px-1",
-        "border-b transition-colors duration-200",
-        focused ? "border-ios-tint" : "border-ios-separator",
+        "material specular flex min-h-14 items-center gap-3 rounded-2xl border px-4 transition-[border-color,box-shadow] duration-200",
+        focused
+          ? "border-ios-tint ring-2 ring-ios-tint/15"
+          : "border-ios-separator",
         className,
       )}
     >
@@ -83,7 +79,7 @@ export function SearchField({
             transition={snappy}
             onClick={() => onChange("")}
             aria-label="پاک کردن"
-            className="press grid size-6 shrink-0 place-items-center rounded-full bg-ios-fill-strong text-ios-label-secondary"
+            className="press grid size-8 shrink-0 place-items-center rounded-full bg-ios-fill-strong text-ios-label-secondary"
           >
             <X className="size-3.5" strokeWidth={2.5} />
           </motion.button>
