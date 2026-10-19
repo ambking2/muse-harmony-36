@@ -207,6 +207,7 @@ function NowPlaying() {
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button
@@ -337,6 +338,15 @@ function NowPlaying() {
                 <SleepSection />
               </DropdownMenuContent>
             </DropdownMenu>
+            <button
+              type="button"
+              onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد"))}
+              className="glass-btn press text-ios-label-secondary"
+              aria-label="اشتراک‌گذاری آهنگ"
+            >
+              <Share2 className="size-5" strokeWidth={2} />
+            </button>
+            </div>
 
             <button
               type="button"
