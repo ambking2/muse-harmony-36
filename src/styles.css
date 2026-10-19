@@ -633,6 +633,15 @@
   }
 }
 
+/* Hidden tab. The background is a permanent animation on a very large blurred
+   surface; with nobody watching it, that is pure battery. `animation-play-state`
+   keeps the animation where it is instead of restarting it, so the background
+   is exactly where it was when the tab comes back. */
+:root[data-idle] .mesh,
+:root[data-idle] .mesh-accent {
+  animation-play-state: paused;
+}
+
 :root[data-glass="off"] .mesh,
 :root[data-glass="off"] .mesh-accent {
   animation: none;

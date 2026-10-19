@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchHistoryRouteImport } from './routes/search-history'
+import { Route as RecognizeRouteImport } from './routes/recognize'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NowPlayingRouteImport } from './routes/now-playing'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -44,6 +45,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SearchHistoryRoute = SearchHistoryRouteImport.update({
   id: '/search-history',
   path: '/search-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecognizeRoute = RecognizeRouteImport.update({
+  id: '/recognize',
+  path: '/recognize',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
+  '/recognize': typeof RecognizeRoute
   '/search-history': typeof SearchHistoryRoute
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
+  '/recognize': typeof RecognizeRoute
   '/search-history': typeof SearchHistoryRoute
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/now-playing': typeof NowPlayingRoute
   '/profile': typeof ProfileRoute
+  '/recognize': typeof RecognizeRoute
   '/search-history': typeof SearchHistoryRoute
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/now-playing'
     | '/profile'
+    | '/recognize'
     | '/search-history'
     | '/settings'
     | '/studio'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/now-playing'
     | '/profile'
+    | '/recognize'
     | '/search-history'
     | '/settings'
     | '/studio'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/now-playing'
     | '/profile'
+    | '/recognize'
     | '/search-history'
     | '/settings'
     | '/studio'
@@ -288,6 +300,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   NowPlayingRoute: typeof NowPlayingRoute
   ProfileRoute: typeof ProfileRoute
+  RecognizeRoute: typeof RecognizeRoute
   SearchHistoryRoute: typeof SearchHistoryRoute
   SettingsRoute: typeof SettingsRoute
   StudioRoute: typeof StudioRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/search-history'
       fullPath: '/search-history'
       preLoaderRoute: typeof SearchHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recognize': {
+      id: '/recognize'
+      path: '/recognize'
+      fullPath: '/recognize'
+      preLoaderRoute: typeof RecognizeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -464,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   NowPlayingRoute: NowPlayingRoute,
   ProfileRoute: ProfileRoute,
+  RecognizeRoute: RecognizeRoute,
   SearchHistoryRoute: SearchHistoryRoute,
   SettingsRoute: SettingsRoute,
   StudioRoute: StudioRoute,

@@ -20,6 +20,7 @@ import appCss from "../styles.css?url";
 import vazirmatnArabic from "@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { GlassDefs } from "@/components/ios/GlassDefs";
+import { DynamicNotifications, NowPlayingIsland } from "@/components/ios/dynamic-island";
 import { useSession } from "@/lib/account";
 import { initGlassMode } from "@/lib/glass";
 import { initTheme } from "@/lib/theme";
@@ -305,8 +306,15 @@ function RootComponent() {
         {/* Global audio engine — must live above the route outlet so playback persists across navigation. */}
         <AudioEngine />
         <AccountLibrarySync />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        {/* The island wraps the whole app, so a notification can be raised from
+            any screen and still draw above all of them. `duration` is the
+            default lifetime for anything that does not set its own. */}
+        <DynamicNotifications duration={3600}>
+          {/* Announces whatever the player starts playing. */}
+          <NowPlayingIsland />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </DynamicNotifications>
       </MotionConfig>
     </QueryClientProvider>
   );

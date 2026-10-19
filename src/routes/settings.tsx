@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  BellRing,
   Database,
   HardDriveDownload,
   Heart,
@@ -7,6 +8,7 @@ import {
   ListMusic,
   Moon,
   Search,
+  Sparkles,
   Sun,
   Trash2,
 } from "lucide-react";
@@ -18,6 +20,7 @@ import { Screen } from "@/components/ios/Screen";
 import { Section } from "@/components/ios/Section";
 import { Segmented } from "@/components/ios/Segmented";
 import { Switch } from "@/components/ui/switch";
+import { useDynamicNotifications } from "@/components/ios/dynamic-island";
 import { QUALITIES, formatBytes } from "@/lib/gdmusic";
 import { setGlassMode, useGlassMode } from "@/lib/glass";
 import { setTheme, useTheme } from "@/lib/theme";
@@ -49,6 +52,7 @@ function SettingsPage() {
   const library = useLibrary((state) => state.library);
   const favorites = useLibrary((state) => state.favorites);
   const playlists = useLibrary((state) => state.playlists);
+  const { trigger } = useDynamicNotifications();
 
   const remaining = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
   const offlineSize = downloads
@@ -93,6 +97,20 @@ function SettingsPage() {
                   aria-label="حالت شیشه‌ای"
                   className="relative h-8 w-14 border-0 bg-ios-fill data-[state=checked]:bg-ios-green after:absolute after:-inset-1 after:content-[''] [&>span]:h-7 [&>span]:w-7 [&>span]:bg-white data-[state=checked]:[&>span]:-translate-x-6"
                 />
+              }
+            />
+            <Row
+              icon={BellRing}
+              tone="red"
+              label="اعلان داینامیک آیلند"
+              detail="آهنگ‌ها را اعلام می‌کند؛ اینجا یک نمونه نشان می‌دهد"
+              onClick={() =>
+                trigger({
+                  title: "muis",
+                  message: "اعلان داینامیک آیلند کار می‌کند",
+                  symbol: <Sparkles className="size-6" />,
+                  duration: 2600,
+                })
               }
             />
           </Section>
