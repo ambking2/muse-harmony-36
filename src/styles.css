@@ -1392,7 +1392,7 @@
   flex-shrink: 0;
   border-radius: 999px;
   border: 1px solid var(--color-ios-separator);
-  background: color-mix(in oklch, var(--color-ios-surface) 60%, transparent);
+  background: color-mix(in oklch, var(--color-ios-surface) var(--material-alpha), transparent);
   backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--material-blur)) saturate(var(--glass-sat));
   box-shadow: var(--floating-shadow);

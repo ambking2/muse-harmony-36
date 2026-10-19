@@ -6,6 +6,7 @@ import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 
 import { WordRise } from "@/components/ios/WordRise";
 import { dur, fadeSlide, gsap } from "@/lib/design/motion-gsap";
+import { cn } from "@/lib/utils";
 
 /**
  * A page: its title, and what the title is about.
@@ -45,6 +46,7 @@ export function Screen({
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const showBack = back === undefined ? pathname !== "/" : back !== false;
+  const hasBar = showBack || Boolean(actions);
   const barRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
 
@@ -79,7 +81,7 @@ export function Screen({
 
   return (
     <>
-      {(showBack || actions) && (
+      {hasBar && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
           <div
             ref={barRef}
@@ -96,7 +98,12 @@ export function Screen({
       )}
 
       <div className="mx-auto w-full max-w-3xl px-4">
-        <div className="pb-5 pt-[calc(max(env(safe-area-inset-top),0.75rem)+4.25rem)]">
+        <div
+          className={cn(
+            "pb-5",
+            hasBar ? "pt-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem)]" : "pt-7",
+          )}
+        >
           {largeTitle && (
             <>
               <WordRise text={title} className="type-large-title" />
@@ -137,7 +144,12 @@ function BackButton({ to }: { to?: string }) {
 
   if (to) {
     return (
-      <Link to={to} data-back aria-label="بازگشت" className="glass-btn press text-ios-tint">
+      <Link
+        to={to}
+        data-back
+        aria-label="بازگشت"
+        className="glass-btn dock-hero press text-ios-tint"
+      >
         {face}
       </Link>
     );
@@ -148,7 +160,7 @@ function BackButton({ to }: { to?: string }) {
       onClick={go}
       data-back
       aria-label="بازگشت"
-      className="glass-btn press text-ios-tint"
+      className="glass-btn dock-hero press text-ios-tint"
     >
       {face}
     </button>

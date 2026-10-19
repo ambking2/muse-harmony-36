@@ -42,7 +42,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { downloadTrack } from "@/lib/download";
@@ -177,293 +181,297 @@ function NowPlaying() {
   };
 
   return (
-    <div className="relative min-h-svh overflow-hidden text-foreground">
-      {/* Blurred background from the artwork, tinted by the extracted accent. */}
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        {art && (
-          <img
-            src={art}
-            alt=""
-            aria-hidden
-            decoding="async"
-            className="size-full object-cover opacity-50 blur-3xl saturate-150"
+    <AppShell>
+      <div className="relative min-h-svh overflow-hidden text-foreground">
+        {/* Blurred background from the artwork, tinted by the extracted accent. */}
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          {art && (
+            <img
+              src={art}
+              alt=""
+              aria-hidden
+              decoding="async"
+              className="size-full object-cover opacity-50 blur-3xl saturate-150"
+            />
+          )}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, color-mix(in oklch, var(--track-accent) 25%, transparent), var(--color-background) 70%)",
+            }}
           />
-        )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, color-mix(in oklch, var(--track-accent) 25%, transparent), var(--color-background) 70%)",
-          }}
-        />
-      </div>
+        </div>
 
-      <div className="mx-auto flex min-h-svh max-w-lg flex-col px-6 pb-10 pt-4">
-        {/* Two controls, one slab: the collapse chevron and the song menu live
-            in a single glass box, the dots on its reading edge. */}
-        <header className="flex items-center justify-start">
-          <div className="material lens specular dock-hero flex items-center gap-1 rounded-full border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="press grid size-11 place-items-center rounded-full text-ios-label-secondary transition-colors hover:text-ios-label"
-              aria-label="امکانات آهنگ"
-            >
-              <Ellipsis className="size-5" strokeWidth={2} />
-            </button>
+        <div className="mx-auto flex min-h-svh max-w-lg flex-col px-6 pb-6 pt-4">
+          {/* Two independent controls: the song menu on the reading edge, the
+              collapse chevron at the other end. */}
+          <header className="flex items-center justify-between">
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="glass-btn press text-ios-label-secondary"
+                  aria-label="امکانات آهنگ"
+                >
+                  <Ellipsis className="size-5" strokeWidth={2} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={10}
+                className="material-thick max-h-[70svh] w-72 origin-top overflow-y-auto rounded-2xl border-ios-separator p-2"
+              >
+                <div className="inset-divided">
+                  <SheetRow
+                    icon={<Type className="size-5" strokeWidth={2} />}
+                    label="متن ترانه"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setLyricsOpen(true);
+                    }}
+                  />
+                  <SheetRow
+                    icon={<ListMusic className="size-5" strokeWidth={2} />}
+                    label="صف پخش"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      queueRegistry.openAll();
+                    }}
+                  />
+                  {track.album && (
+                    <SheetRow
+                      icon={<Disc3 className="size-5" strokeWidth={2} />}
+                      label={`آلبوم ${track.album}`}
+                      to={`/album/$name`}
+                      params={{ name: track.album }}
+                      onNavigate={() => setMenuOpen(false)}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      if (!isFav) {
+                        floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                        iconPop(event.currentTarget);
+                      }
+                      toggleFav(track);
+                    }}
+                    className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
+                  >
+                    <SheetIcon>
+                      <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
+                    </SheetIcon>
+                    <span className="flex-1 truncate text-sm font-medium">
+                      {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+                    </span>
+                  </button>
+                  <TrackMenu track={track}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
+                    >
+                      <SheetIcon>
+                        <Plus className="size-5" strokeWidth={2} />
+                      </SheetIcon>
+                      <span className="flex-1 truncate text-sm font-medium">
+                        افزودن به پلی‌لیست و بیشتر
+                      </span>
+                    </button>
+                  </TrackMenu>
+                  <div className="py-1.5">
+                    <LoadingButton
+                      variant="glass"
+                      onAction={() => downloadTrack(track, quality)}
+                      loadingText="در حال دانلود…"
+                      successText="دانلود شد"
+                      disabled={downloaded}
+                      className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3 text-start text-sm font-medium"
+                    >
+                      <SheetIcon>
+                        {isOffline || downloaded ? (
+                          <WifiOff className="size-5" strokeWidth={2} />
+                        ) : (
+                          <Download className="size-5" strokeWidth={2} />
+                        )}
+                      </SheetIcon>
+                      {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
+                    </LoadingButton>
+                  </div>
+                  <div className="py-1.5">
+                    <LoadingButton
+                      variant="glass"
+                      onAction={share}
+                      loadingText="در حال کپی…"
+                      successText="کپی شد"
+                      className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3 text-start text-sm font-medium"
+                    >
+                      <SheetIcon>
+                        <Share2 className="size-5" strokeWidth={2} />
+                      </SheetIcon>
+                      اشتراک‌گذاری آهنگ
+                    </LoadingButton>
+                  </div>
+                </div>
+
+                <div className="px-1 pt-1">
+                  <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
+                  <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
+                    {QUALITIES.map((q) => (
+                      <button
+                        key={q.br}
+                        onClick={() => onChangeQuality(setQuality, q.br as Quality)}
+                        className={cn(
+                          "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
+                          quality === q.br
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {q.br === 999 ? "FLAC" : q.br}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <SleepSection />
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <button
               type="button"
               onClick={minimize}
-              className="press grid size-11 place-items-center rounded-full text-ios-label-secondary transition-colors hover:text-ios-label"
+              className="glass-btn press text-ios-label-secondary"
               aria-label="بستن صفحه پخش"
             >
               <ChevronDown className="size-5" strokeWidth={2.2} />
             </button>
-          </div>
-        </header>
+          </header>
 
-        {/* Cover */}
-        <motion.div
-          key={key}
-          initial={{ scale: 0.92, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 220, damping: 26 }}
-          className="mx-auto mt-7 w-full max-w-sm"
-        >
-          <motion.div
-            // Shared with the mini player: the same album is one object in two
-            // places, so when both are on screen it travels between them rather
-            // than being cut.
-            layoutId={`artwork-${key}`}
-            className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
-          >
-            {art ? (
-              <img src={art} alt={track.name} decoding="async" className="size-full object-cover" />
-            ) : (
-              <div className="skeleton size-full" />
-            )}
-            {isBuffering && (
-              <div className="absolute inset-0 grid place-items-center bg-black/30">
-                <Loader2 className="size-8 animate-spin" />
-              </div>
-            )}
-          </motion.div>
-        </motion.div>
-
-        {/* Meta — the name and who sings it; the album lives in the sheet. */}
-        <div className="mt-7 text-center">
-          <h1 className="type-title-2 truncate">{track.name}</h1>
-          <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
-            {track.artist.map((a) => (
-              <Link
-                key={a}
-                to="/artist/$name"
-                params={{ name: a }}
-                className="max-w-full truncate text-sm text-muted-foreground transition hover:text-primary"
+          <div className="flex flex-1 flex-col justify-center">
+            {/* Cover */}
+            <motion.div
+              key={key}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 220, damping: 26 }}
+              className="mx-auto w-full max-w-sm"
+            >
+              <motion.div
+                layoutId={`artwork-${key}`}
+                className="relative aspect-square overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
               >
-                {a}
-              </Link>
-            ))}
-          </div>
-        </div>
+                {art ? (
+                  <img
+                    src={art}
+                    alt={track.name}
+                    decoding="async"
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <div className="skeleton size-full" />
+                )}
+                {isBuffering && (
+                  <div className="absolute inset-0 grid place-items-center bg-black/30">
+                    <Loader2 className="size-8 animate-spin" />
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
 
-        {/* Progress */}
-        <div className="mt-7">
-          <Waveform current={currentTime} duration={duration} />
-          <Slider
-            value={[Math.min(currentTime, duration || 0)]}
-            max={Math.max(duration || 0, 1)}
-            step={0.5}
-            onValueChange={(v) => seek(v[0])}
-            className="mt-2"
-            aria-label="موقعیت پخش"
-          />
-          <div className="type-footnote mt-1 flex justify-between tabular-nums text-ios-label-secondary ltr-nums">
-            <span>{formatTime(currentTime)}</span>
-            <span>-{formatTime(remaining)}</span>
-          </div>
-        </div>
-
-        {/* Transport — one row on every width, play at the centre and larger. */}
-        <div className="mx-auto mt-5 flex w-full max-w-md flex-nowrap items-center justify-between">
-          <button
-            type="button"
-            onClick={toggleShuffle}
-            aria-pressed={shuffle}
-            className={cn(
-              "press grid size-11 shrink-0 place-items-center rounded-lg",
-              shuffle ? "text-ios-tint" : "text-ios-label-secondary",
-            )}
-            aria-label="پخش تصادفی"
-          >
-            <Shuffle className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={prev}
-            className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
-            aria-label="قبلی"
-          >
-            <SkipBack className="size-8" strokeWidth={1.8} />
-          </button>
-          <button
-            type="button"
-            onClick={togglePlay}
-            className="press grid size-16 shrink-0 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
-            aria-label={isPlaying ? "توقف" : "پخش"}
-          >
-            {isPlaying ? (
-              <Pause className="size-7 fill-current" strokeWidth={0} />
-            ) : (
-              <Play className="size-7 translate-x-px fill-current" strokeWidth={0} />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={next}
-            className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
-            aria-label="بعدی"
-          >
-            <SkipForward className="size-8" strokeWidth={1.8} />
-          </button>
-          <button
-            type="button"
-            onClick={cycleRepeat}
-            className={cn(
-              "press grid size-11 shrink-0 place-items-center rounded-lg",
-              repeat !== "off" ? "text-ios-tint" : "text-ios-label-secondary",
-            )}
-            aria-label="تکرار"
-          >
-            {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Everything secondary lives in the sheet. */}
-      <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-        <DrawerContent className="material-thick max-h-[85svh] overflow-y-auto rounded-t-sheet">
-          <div className="mx-auto w-full max-w-lg pb-[max(env(safe-area-inset-bottom),1rem)]">
-            <DrawerTitle className="px-5 pt-1 pb-3 text-base">امکانات آهنگ</DrawerTitle>
-
-            <div className="inset-divided px-3">
-              <SheetRow
-                icon={<Type className="size-5" strokeWidth={2} />}
-                label="متن ترانه"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setLyricsOpen(true);
-                }}
-              />
-              <SheetRow
-                icon={<ListMusic className="size-5" strokeWidth={2} />}
-                label="صف پخش"
-                onClick={() => {
-                  setMenuOpen(false);
-                  queueRegistry.openAll();
-                }}
-              />
-              {track.album && (
-                <SheetRow
-                  icon={<Disc3 className="size-5" strokeWidth={2} />}
-                  label={`آلبوم ${track.album}`}
-                  to={`/album/$name`}
-                  params={{ name: track.album }}
-                  onNavigate={() => setMenuOpen(false)}
-                />
-              )}
-              <button
-                type="button"
-                onClick={(event) => {
-                  if (!isFav) {
-                    floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
-                    iconPop(event.currentTarget);
-                  }
-                  toggleFav(track);
-                }}
-                className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
-              >
-                <SheetIcon>
-                  <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
-                </SheetIcon>
-                <span className="flex-1 truncate text-sm font-medium">
-                  {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-                </span>
-              </button>
-              <TrackMenu track={track}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
-                >
-                  <SheetIcon>
-                    <Plus className="size-5" strokeWidth={2} />
-                  </SheetIcon>
-                  <span className="flex-1 truncate text-sm font-medium">
-                    افزودن به پلی‌لیست و بیشتر
-                  </span>
-                </button>
-              </TrackMenu>
-              <div className="py-2.5">
-                <LoadingButton
-                  variant="glass"
-                  onAction={() => downloadTrack(track, quality)}
-                  loadingText="در حال دانلود…"
-                  successText="دانلود شد"
-                  disabled={downloaded}
-                  className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3.5 text-start text-sm font-medium"
-                >
-                  <SheetIcon>
-                    {isOffline || downloaded ? (
-                      <WifiOff className="size-5" strokeWidth={2} />
-                    ) : (
-                      <Download className="size-5" strokeWidth={2} />
-                    )}
-                  </SheetIcon>
-                  {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
-                </LoadingButton>
-              </div>
-              <div className="py-2.5">
-                <LoadingButton
-                  variant="glass"
-                  onAction={share}
-                  loadingText="در حال کپی…"
-                  successText="کپی شد"
-                  className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3.5 text-start text-sm font-medium"
-                >
-                  <SheetIcon>
-                    <Share2 className="size-5" strokeWidth={2} />
-                  </SheetIcon>
-                  اشتراک‌گذاری آهنگ
-                </LoadingButton>
-              </div>
-            </div>
-
-            <div className="px-5 pt-2">
-              <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
-              <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
-                {QUALITIES.map((q) => (
-                  <button
-                    key={q.br}
-                    onClick={() => onChangeQuality(setQuality, q.br as Quality)}
-                    className={cn(
-                      "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
-                      quality === q.br
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground",
-                    )}
+            {/* Meta — the name and who sings it; the album lives in the menu. */}
+            <div className="mt-6 text-center">
+              <h1 className="type-title-2 truncate">{track.name}</h1>
+              <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
+                {track.artist.map((a) => (
+                  <Link
+                    key={a}
+                    to="/artist/$name"
+                    params={{ name: a }}
+                    className="max-w-full truncate text-sm text-muted-foreground transition hover:text-primary"
                   >
-                    {q.br === 999 ? "FLAC" : q.br}
-                  </button>
+                    {a}
+                  </Link>
                 ))}
               </div>
             </div>
 
-            <SleepSection />
+            {/* Progress */}
+            <div className="mt-6">
+              <Waveform current={currentTime} duration={duration} />
+              <Slider
+                value={[Math.min(currentTime, duration || 0)]}
+                max={Math.max(duration || 0, 1)}
+                step={0.5}
+                onValueChange={(v) => seek(v[0])}
+                className="mt-2"
+                aria-label="موقعیت پخش"
+              />
+              <div className="type-footnote mt-1 flex justify-between tabular-nums text-ios-label-secondary ltr-nums">
+                <span>{formatTime(currentTime)}</span>
+                <span>-{formatTime(remaining)}</span>
+              </div>
+            </div>
           </div>
-        </DrawerContent>
-      </Drawer>
 
-      {/* Lyrics, in their own sheet-width dialog so the main screen stays clear. */}
+          {/* Transport — one row on every width, play at the centre and larger. */}
+          <div className="mx-auto mt-5 flex w-full max-w-md flex-nowrap items-center justify-between">
+            <button
+              type="button"
+              onClick={toggleShuffle}
+              aria-pressed={shuffle}
+              className={cn(
+                "press grid size-11 shrink-0 place-items-center rounded-lg",
+                shuffle ? "text-ios-tint" : "text-ios-label-secondary",
+              )}
+              aria-label="پخش تصادفی"
+            >
+              <Shuffle className="size-5" />
+            </button>
+            <button
+              type="button"
+              onClick={prev}
+              className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
+              aria-label="قبلی"
+            >
+              <SkipBack className="size-8" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="press grid size-16 shrink-0 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
+              aria-label={isPlaying ? "توقف" : "پخش"}
+            >
+              {isPlaying ? (
+                <Pause className="size-7 fill-current" strokeWidth={0} />
+              ) : (
+                <Play className="size-7 translate-x-px fill-current" strokeWidth={0} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              className="press grid size-12 shrink-0 place-items-center rounded-lg text-ios-label"
+              aria-label="بعدی"
+            >
+              <SkipForward className="size-8" strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={cycleRepeat}
+              className={cn(
+                "press grid size-11 shrink-0 place-items-center rounded-lg",
+                repeat !== "off" ? "text-ios-tint" : "text-ios-label-secondary",
+              )}
+              aria-label="تکرار"
+            >
+              {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lyrics, in their own dialog so the main screen stays clear. */}
       <Dialog open={lyricsOpen} onOpenChange={setLyricsOpen}>
         <DialogContent className="material-thick max-h-[85svh] gap-3 overflow-y-auto rounded-sheet p-5">
           <DialogHeader>
@@ -491,7 +499,7 @@ function NowPlaying() {
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </AppShell>
   );
 }
 
@@ -509,7 +517,7 @@ function SheetIcon({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * One row of the song sheet. Either a button (onClick) or a router link (to +
+ * One row of the song menu. Either a button (onClick) or a router link (to +
  * params); the two shapes never mix on one row.
  */
 function SheetRow({
@@ -539,7 +547,7 @@ function SheetRow({
         to={to}
         params={params}
         onClick={onNavigate}
-        className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start transition hover:text-primary"
+        className="flex w-full items-center gap-3.5 px-2 py-3 text-start transition hover:text-primary"
       >
         {inner}
       </Link>
@@ -549,7 +557,7 @@ function SheetRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3.5 px-2 py-3.5 text-start"
+      className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
     >
       {inner}
     </button>
