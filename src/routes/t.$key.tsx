@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Link2 as LinkIcon, Loader2, Play, Pause, Search } from "lucide-react";
+import { Link2 as LinkIcon, Loader2, Play, Pause, Search, Copy, Music2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { Artwork } from "@/components/music/Artwork";
@@ -88,93 +88,131 @@ function SharedTrackPage() {
   const isCurrent = !!active && trackKey(active) === trackKey(shown);
   return (
     <AppShell>
-      <div className="mx-auto flex min-h-[80vh] max-w-md flex-col justify-center py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, ease: "easeOut" }}
-        >
-          <p className="type-footnote text-ios-label-secondary">به اشتراک گذاشته شده</p>
-
-          <div className="mt-4 overflow-hidden rounded-sheet shadow-2xl shadow-black/60">
-            <Artwork
-              track={shown}
-              size={600}
-              className="aspect-square w-full"
-              rounded="rounded-sheet"
+      <div className="relative isolate min-h-[calc(100dvh-var(--chrome-inset))] overflow-hidden">
+        {shown.picUrl && (
+          <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+            <img
+              src={shown.picUrl}
+              alt=""
+              aria-hidden="true"
+              className="size-full scale-110 object-cover opacity-20 blur-[90px]"
             />
+            <div className="absolute inset-0 bg-background/75" />
           </div>
-
-          <h1 className="type-title-1 mt-6 text-balance">{shown.name}</h1>
-          {shown.artist.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-              {shown.artist.map((a) => (
-                <Link
-                  key={a}
-                  to="/artist/$name"
-                  params={{ name: a }}
-                  className="type-callout text-ios-tint"
-                >
-                  {a}
-                </Link>
-              ))}
+        )}
+        <div className="mx-auto flex min-h-[calc(100dvh-var(--chrome-inset))] max-w-xl items-center justify-center px-4 py-6 sm:px-6 sm:py-10">
+          <motion.article
+            initial={{ opacity: 0, y: 16, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+            className="w-full overflow-hidden rounded-[2rem] border border-white/10 bg-card/75 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-7">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-2xl bg-primary/15 text-primary">
+                  <Music2 className="size-5" strokeWidth={2.2} />
+                </span>
+                <span className="text-base font-bold tracking-tight">muis</span>
+              </div>
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-muted-foreground">
+                آهنگ به اشتراک گذاشته‌شده
+              </span>
             </div>
-          )}
-          {shown.album && (
-            <Link
-              to="/album/$name"
-              params={{ name: shown.album }}
-              className="type-footnote mt-1 block truncate text-ios-label-secondary"
-            >
-              {shown.album}
-            </Link>
-          )}
 
-          <div className="mt-8 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => (isCurrent ? togglePlay() : playTrack(shown, [shown]))}
-              className="press grid size-16 shrink-0 place-items-center rounded-full bg-ios-tint text-white shadow-xl shadow-black/30"
-              aria-label={isCurrent && isPlaying ? "توقف" : "پخش"}
-            >
-              {isCurrent && isPlaying ? (
-                <Pause className="size-7 fill-current" strokeWidth={0} />
-              ) : (
-                <Play className="size-7 translate-x-px fill-current" strokeWidth={0} />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/now-playing" })}
-              className="btn btn-gray flex-1"
-            >
-              صفحه‌ی پخش
-            </button>
-          </div>
+            <div className="px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8">
+              <div className="mx-auto w-full max-w-[min(68vw,300px)] sm:max-w-[320px]">
+                <div className="relative">
+                  <div className="absolute -inset-3 rounded-[2rem] bg-primary/10 blur-2xl" />
+                  <Artwork
+                    track={shown}
+                    size={640}
+                    className="relative aspect-square w-full rounded-[1.5rem] shadow-xl shadow-black/25 ring-1 ring-white/10"
+                    rounded="rounded-[1.5rem]"
+                  />
+                </div>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              void shareTrack(shown)
-                .then((copied) => {
-                  if (copied) toast.success("لینک کپی شد");
-                  else toast.error("کپی لینک انجام نشد؛ مجوز کلیپ‌بورد را بررسی کنید");
-                })
-                .catch(() => toast.error("کپی لینک انجام نشد"));
-            }}
-            className="press type-footnote mt-3 w-full rounded-xl px-3 py-3 text-ios-label-secondary"
-          >
-            کپی لینک این آهنگ
-          </button>
+              <div className="mx-auto mt-7 max-w-md text-center">
+                <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
+                  {shown.name}
+                </h1>
+                {shown.artist.length > 0 && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-x-2 gap-y-1">
+                    {shown.artist.map((a) => (
+                      <Link
+                        key={a}
+                        to="/artist/$name"
+                        params={{ name: a }}
+                        className="text-base text-primary transition-opacity hover:opacity-80"
+                      >
+                        {a}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {shown.album && (
+                  <Link
+                    to="/album/$name"
+                    params={{ name: shown.album }}
+                    className="mt-1.5 inline-block max-w-full truncate text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {shown.album}
+                  </Link>
+                )}
+              </div>
 
-          <Link
-            to="/explore"
-            className="press type-subheadline mt-6 flex items-center justify-center gap-2 py-2 text-ios-label-secondary"
-          >
-            <Search className="size-4" strokeWidth={2} />
-            جستجوی آهنگ‌های دیگر
-          </Link>
-        </motion.div>
+              <div className="mx-auto mt-7 grid max-w-md grid-cols-[1fr_1.35fr] gap-3">
+                <button
+                  type="button"
+                  onClick={() => (isCurrent ? togglePlay() : playTrack(shown, [shown]))}
+                  className="press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-4 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-transform"
+                  aria-label={isCurrent && isPlaying ? "توقف" : "پخش"}
+                >
+                  {isCurrent && isPlaying ? (
+                    <Pause className="size-5 fill-current" strokeWidth={0} />
+                  ) : (
+                    <Play className="size-5 translate-x-px fill-current" strokeWidth={0} />
+                  )}
+                  {isCurrent && isPlaying ? "در حال پخش" : "پخش آهنگ"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/now-playing" })}
+                  className="press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 font-medium transition-colors hover:bg-white/[0.08]"
+                >
+                  صفحه‌ی پخش
+                  <span aria-hidden="true" className="text-muted-foreground">↗</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  void shareTrack(shown)
+                    .then((copied) => {
+                      if (copied) toast.success("لینک کپی شد");
+                      else toast.error("کپی لینک انجام نشد؛ مجوز کلیپ‌بورد را بررسی کنید");
+                    })
+                    .catch(() => toast.error("کپی لینک انجام نشد"));
+                }}
+                className="press mx-auto mt-3 flex min-h-12 w-full max-w-md items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+              >
+                <Copy className="size-4" strokeWidth={1.8} />
+                کپی لینک این آهنگ
+              </button>
+            </div>
+
+            <div className="border-t border-white/10 px-5 py-4 sm:px-7">
+              <Link
+                to="/explore"
+                className="press flex items-center justify-center gap-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Search className="size-4" strokeWidth={2} />
+                کشف و جستجوی آهنگ‌های دیگر
+              </Link>
+            </div>
+          </motion.article>
+        </div>
       </div>
     </AppShell>
   );
