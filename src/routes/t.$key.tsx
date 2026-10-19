@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Link2 as LinkIcon, Loader2, Play, Pause, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { Artwork } from "@/components/music/Artwork";
-import { decodeTrackShareKey } from "@/lib/share-link";
+import { decodeTrackShareKey, shareTrack } from "@/lib/share-link";
 import { trackKey } from "@/lib/types";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
@@ -43,11 +43,16 @@ function SharedTrackPage() {
   const active = usePlayer((s) => s.queue[s.index]);
   const togglePlay = usePlayer((s) => s.togglePlay);
   const playTrack = usePlayer((s) => s.playTrack);
+  const autoPlayedKey = useRef("");
 
   useEffect(() => {
-    if (resolved) playTrack(resolved, [resolved]);
-    // Only auto-plays on arrival; re-running on every store update would
-    // restart the track.
+    if (!resolved) return;
+    const resolvedKey = trackKey(resolved);
+    // React StrictMode can run mount effects twice in development. Do not
+    // reset playback to 0 on the duplicate pass for the same shared track.
+    if (autoPlayedKey.current === resolvedKey) return;
+    autoPlayedKey.current = resolvedKey;
+    playTrack(resolved, [resolved]);
   }, [resolved, playTrack]);
 
   const shown = libraryTrack ?? resolved;
@@ -150,10 +155,12 @@ function SharedTrackPage() {
           <button
             type="button"
             onClick={() => {
-              void navigator.clipboard
-                ?.writeText(window.location.href)
-                .then(() => toast.success("لینک کپی شد"))
-                .catch(() => toast.error("کپی نشد"));
+              void shareTrack(shown)
+                .then((copied) => {
+                  if (copied) toast.success("لینک کپی شد");
+                  else toast.error("کپی لینک انجام نشد؛ مجوز کلیپ‌بورد را بررسی کنید");
+                })
+                .catch(() => toast.error("کپی لینک انجام نشد"));
             }}
             className="press type-footnote mt-3 w-full rounded-xl px-3 py-3 text-ios-label-secondary"
           >
