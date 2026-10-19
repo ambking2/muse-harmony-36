@@ -1382,21 +1382,15 @@
   --material-alpha: 42%;
 }
 
-/* A soft, fading glass canopy behind fixed screen controls. It lets page
-   content scroll underneath while keeping the controls legible without drawing
-   a hard-edged header bar. */
+/* Transparent top blur: fade the blur, not a white surface. */
 .screen-top-frost {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in oklch, var(--color-ios-grouped) 82%, transparent) 0%,
-    color-mix(in oklch, var(--color-ios-grouped) 52%, transparent) 42%,
-    color-mix(in oklch, var(--color-ios-grouped) 18%, transparent) 72%,
-    transparent 100%
-  );
-  -webkit-backdrop-filter: blur(26px) saturate(165%);
-  backdrop-filter: blur(26px) saturate(165%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 48%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 48%, transparent 100%);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(28px) saturate(155%);
+  backdrop-filter: blur(28px) saturate(155%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, rgb(0 0 0 / 0.82) 48%, rgb(0 0 0 / 0.42) 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, rgb(0 0 0 / 0.82) 48%, rgb(0 0 0 / 0.42) 70%, transparent 100%);
 }
 :root[data-glass="off"] .screen-top-frost {
   -webkit-backdrop-filter: none;
