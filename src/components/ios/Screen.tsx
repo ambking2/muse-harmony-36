@@ -82,7 +82,9 @@ export function Screen({
   return (
     <>
       {hasBar && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
+        <>
+          <div aria-hidden="true" className="screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32" />
+          <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
           <div
             ref={barRef}
             className="pointer-events-auto flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),0.75rem)]"
@@ -94,7 +96,8 @@ export function Screen({
               </div>
             )}
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       <div className="mx-auto w-full max-w-3xl px-4">
