@@ -49,72 +49,69 @@ export function IdleScreen({
         </Section>
       )}
 
-      <section className="card mb-8 overflow-hidden">
-        <div className="px-5 pb-2 pt-5">
-          <h2 className="type-footnote text-ios-label-secondary">جستجوهای اخیر</h2>
-        </div>
-        <div className="inset-divided">
-          {searchHistory.length === 0 ? (
-            <Row plain icon={Clock} tone="slate" label="هنوز جستجویی نکرده‌اید" />
-          ) : (
-            <>
-              {recent.map((query) => (
-                <Row
-                  key={query}
-                  plain
-                  icon={Clock}
-                  tone="slate"
-                  label={query}
-                  onClick={() => onPick(query)}
-                />
-              ))}
-              {older > 0 && (
-                <Row
-                  plain
-                  icon={ArrowUpLeft}
-                  tone="blue"
-                  label="همه‌ی جستجوها"
-                  detail={`${searchHistory.length.toLocaleString("fa-IR")} جستجوی ثبت‌شده`}
-                  to="/search-history"
-                />
-              )}
-            </>
-          )}
-        </div>
+      <Section
+        title="جستجوهای اخیر"
+        action={
+          searchHistory.length > 0 ? (
+            <Link
+              to="/search-history"
+              className="press type-footnote rounded-lg px-2 py-2 text-ios-tint"
+            >
+              همه
+            </Link>
+          ) : undefined
+        }
+      >
+        {searchHistory.length === 0 ? (
+          <Row icon={Clock} tone="slate" label="هنوز جستجویی نکرده‌اید" />
+        ) : (
+          <>
+            {recent.map((query) => (
+              <Row
+                key={query}
+                icon={Clock}
+                tone="slate"
+                label={query}
+                onClick={() => onPick(query)}
+              />
+            ))}
+            {older > 0 && (
+              <Row
+                icon={ArrowUpLeft}
+                tone="blue"
+                label="همه‌ی جستجوها"
+                detail={`${searchHistory.length.toLocaleString("fa-IR")} جستجوی ثبت‌شده`}
+                to="/search-history"
+              />
+            )}
+          </>
+        )}
+      </Section>
 
-        <div className="inset-divided border-t border-ios-separator">
-          <div className="px-5 pb-2 pt-5">
-            <h2 className="type-footnote text-ios-label-secondary">جستجوهای محبوب</h2>
-          </div>
-          {POPULAR.map((query) => (
-            <Row
-              key={query}
-              plain
-              icon={Sparkles}
-              tone="orange"
-              label={query}
-              onClick={() => onPick(query)}
-            />
-          ))}
-        </div>
+      <Section title="جستجوهای محبوب">
+        {POPULAR.map((query) => (
+          <Row
+            key={query}
+            icon={Sparkles}
+            tone="orange"
+            label={query}
+            onClick={() => onPick(query)}
+          />
+        ))}
+      </Section>
 
-        <div className="inset-divided border-t border-ios-separator">
-          <div className="px-5 pb-2 pt-5">
-            <h2 className="type-footnote text-ios-label-secondary">خواننده‌های ایرانی</h2>
-          </div>
-          {artists.map((artist) => (
-            <Row
-              key={artist.latin}
-              plain
-              icon={Mic2}
-              tone="sky"
-              label={artist.fa}
-              detail={artist.latin}
-              to={`/artist/${encodeURIComponent(artist.fa)}`}
-            />
-          ))}
-        </div>
-      </section>
+      <Section title="خواننده‌های ایرانی">
+        {artists.map((artist) => (
+          <Row
+            key={artist.latin}
+            icon={Mic2}
+            tone="sky"
+            label={artist.fa}
+            detail={artist.latin}
+            to={`/artist/${encodeURIComponent(artist.fa)}`}
+          />
+        ))}
+      </Section>
 
       <div className="pb-4 text-center">
         <Link to="/studio" className="type-footnote text-ios-label-tertiary">
