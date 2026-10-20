@@ -60,7 +60,7 @@ export function NewPlaylistDialog() {
           className="type-body min-h-11 rounded-xl bg-ios-fill px-3 outline-none placeholder:text-ios-label-tertiary focus-visible:ring-2 focus-visible:ring-ios-tint"
         />
 
-        <AlertDialogFooter className="flex-row-reverse gap-2 sm:justify-start">
+        <AlertDialogFooter className="flex-row-reverse items-stretch gap-2 sm:justify-start [&>button]:m-0 [&>button]:inline-flex [&>button]:h-11 [&>button]:min-h-11 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-xl [&>button]:px-4 [&>button]:py-0 [&>button]:text-sm [&>button]:leading-none">
           <AlertDialogCancel className="btn btn-gray flex-1">انصراف</AlertDialogCancel>
           <AlertDialogAction
             onClick={submit}
