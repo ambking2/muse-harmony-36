@@ -1592,3 +1592,18 @@ button:disabled,
 [role="button"][aria-disabled="true"] {
   cursor: not-allowed;
 }
+
+
+/* Keep the transport controls optically centered on tall, narrow phones. */
+@media (max-width: 480px) and (min-height: 720px) {
+  .now-playing-transport {
+    transform: translateY(-0.6rem);
+  }
+}
+
+/* Short portrait screens need the controls lifted a little more to avoid the bottom inset. */
+@media (max-height: 740px) and (orientation: portrait) {
+  .now-playing-transport {
+    transform: translateY(-0.85rem);
+  }
+}
