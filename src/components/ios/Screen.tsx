@@ -81,9 +81,11 @@ export function Screen({
 
   return (
     <>
+      {/* Keep the same disappearing-content frost on home too, even though
+          home intentionally has no fixed back/actions bar. */}
+      <div aria-hidden="true" className="screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32" />
       {hasBar && (
         <>
-          <div aria-hidden="true" className="screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32" />
           <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
           <div
             ref={barRef}
