@@ -1372,6 +1372,50 @@
   }
 }
 
+/*
+ * Touch-device rendering budget.
+ *
+ * Keep the same animation choreography, glass surfaces and bevels on phones.
+ * Mid-range mobile GPUs struggle more with large blur kernels than with the
+ * transforms themselves, so only reduce blur radius/saturation on touch
+ * viewports. The effects stay visible and animated; they are simply cheaper
+ * to composite while scrolling.
+ */
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  :root {
+    --panel-blur: 9px;
+    --material-blur: 16px;
+    --lens-blur: 8px;
+    --glass-sat: 150%;
+  }
+
+  /* The dock has its own stronger desktop lens settings; tune those too. */
+  :root:not([data-glass="off"]) .dock-hero {
+    --lens-blur: 14px;
+    --glass-sat: 165%;
+    --material-alpha: 42%;
+  }
+
+  /* Smaller blur kernels keep the animated ambient layers without dropping
+     their movement, artwork colours or soft edges. */
+  .mesh {
+    filter: blur(32px) saturate(125%);
+  }
+
+  .mesh-accent {
+    filter: blur(36px);
+  }
+
+  .ambient-art {
+    filter: blur(38px) saturate(135%);
+  }
+
+  .screen-top-frost {
+    -webkit-backdrop-filter: blur(14px) saturate(145%);
+    backdrop-filter: blur(14px) saturate(145%);
+  }
+}
+
 /* The dock is the one glass object the thumb rests on, so it frosts deeper
    than the default chrome: more blur, more saturation, and a quieter
    surface — but only while glass mode is on. Scoped to :root:not(...) so the
