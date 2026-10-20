@@ -173,15 +173,21 @@ function AccountLibrarySync() {
   return null;
 }
 
+/** The shape Chrome hands to beforeinstallprompt; not in the DOM lib yet. */
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 /** First-visit PWA install prompt, with browser-specific fallback instructions. */
 function WebAppInstallPrompt() {
   const [visible, setVisible] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [ios, setIos] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<InstallPromptEvent | null>(null);
 
   useEffect(() => {
-    const w = window as Window & { __muisInstallPrompt?: any };
+    const w = window as Window & { __muisInstallPrompt?: InstallPromptEvent | null };
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -193,7 +199,9 @@ function WebAppInstallPrompt() {
 
     try {
       if (localStorage.getItem("muis-install-dismissed") === "1") return;
-    } catch {}
+    } catch {
+      /* private mode: treat as never dismissed */
+    }
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault();
@@ -206,7 +214,9 @@ function WebAppInstallPrompt() {
       setDeferredPrompt(null);
       try {
         localStorage.removeItem("muis-install-dismissed");
-      } catch {}
+      } catch {
+        /* nothing to clear */
+      }
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
     window.addEventListener("appinstalled", onInstalled);
@@ -227,7 +237,9 @@ function WebAppInstallPrompt() {
     setHelpOpen(false);
     try {
       localStorage.setItem("muis-install-dismissed", "1");
-    } catch {}
+    } catch {
+      /* private mode: the prompt will simply return next visit */
+    }
   };
 
   const install = async () => {
