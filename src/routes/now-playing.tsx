@@ -191,7 +191,7 @@ function NowPlaying() {
 
   return (
     <AppShell>
-      <div className="now-playing-screen relative h-[100dvh] min-h-0 overflow-hidden text-foreground">
+      <div className="now-playing-screen relative h-full min-h-0 overflow-hidden text-foreground">
         {/* Blurred background from the artwork, tinted by the extracted accent. */}
         <div className="pointer-events-none fixed inset-0 -z-10">
           {art && (
@@ -212,7 +212,7 @@ function NowPlaying() {
           />
         </div>
 
-        <div className="now-playing-layout mx-auto flex h-full max-w-lg flex-col px-6 pb-[calc(var(--chrome-inset)+env(safe-area-inset-bottom)+0.25rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
+        <div className="now-playing-layout mx-auto flex h-full min-h-0 max-w-lg flex-col px-6 pb-[calc(var(--tabbar-inset)+0.5rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
@@ -378,7 +378,7 @@ function NowPlaying() {
             >
               <motion.div
                 layoutId={`artwork-${key}`}
-                className="relative aspect-square max-h-[min(34dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
+                className="relative aspect-square max-h-[min(32dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
               >
                 {art ? (
                   <img
