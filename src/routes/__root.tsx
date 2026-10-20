@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -279,6 +280,16 @@ function WebAppInstallPrompt() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  // Remember the last in-app screen before opening the full player.
+  useEffect(() => {
+    if (typeof window === "undefined" || location.pathname === "/now-playing") return;
+    try {
+      window.sessionStorage.setItem("muse:last-app-route", location.pathname + location.search);
+    } catch {
+      // Navigation still works if storage is unavailable.
+    }
+  }, [location.pathname, location.search]);
   const hydrateDownloads = useLibrary((s) => s.hydrateDownloads);
 
   // The inline head script has already put the saved glass mode on the root
