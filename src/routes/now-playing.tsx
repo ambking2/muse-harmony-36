@@ -434,7 +434,7 @@ function NowPlaying() {
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="mx-auto mt-2 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
+          <div className="now-playing-transport mx-auto mt-1 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
