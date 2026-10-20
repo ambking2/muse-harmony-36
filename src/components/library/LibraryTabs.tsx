@@ -9,6 +9,7 @@ import { TILE_CLASS, tileFor } from "@/lib/tile";
 import { cn } from "@/lib/utils";
 import type { Playlist, Track } from "@/lib/types";
 import { trackKey } from "@/lib/types";
+import { resolveTrackForPlayback } from "@/lib/download";
 
 /** The saved songs, with a single control to play them all. */
 export function SongsTab({ songs, filtering }: { songs: Track[]; filtering: boolean }) {
@@ -33,7 +34,7 @@ export function SongsTab({ songs, filtering }: { songs: Track[]; filtering: bool
       {songs.length > 1 && (
         <button
           type="button"
-          onClick={() => playQueue(songs, 0)}
+          onClick={() => playQueue(songs.map(resolveTrackForPlayback), 0)}
           className="btn btn-filled mb-4 w-full"
         >
           <Play className="size-4 fill-current" strokeWidth={0} />
