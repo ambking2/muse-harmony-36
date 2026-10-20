@@ -3,6 +3,7 @@ import { getStreamUrl } from "./gdmusic";
 import type { DownloadItem, Quality, Track } from "./types";
 import { useLibrary } from "@/stores/library";
 import { saveAudioBlob } from "./offline";
+import { trackKey } from "./types";
 
 const inflight = new Map<string, AbortController>();
 
@@ -94,6 +95,20 @@ export function isDownloading(id: string) {
 /** Re-trigger a paused/failed download with the same settings. */
 export function retryDownload(item: DownloadItem) {
   return downloadTrack(item.track, item.br as Quality);
+}
+
+/** Resolve a saved track to the current session's valid local object URL. */
+export function resolveTrackForPlayback(track: Track): Track {
+  const local = useLibrary.getState().downloads.find(
+    (item) =>
+      item.status === "done" &&
+      !!item.blobUrl &&
+      trackKey(item.track) === trackKey(track),
+  );
+  // Object URLs are session-specific. A URL persisted in library metadata is
+  // stale after reload, so discard it unless it is backed by a hydrated download.
+  const { srcUrl: _staleSrcUrl, ...networkTrack } = track;
+  return local?.blobUrl ? { ...networkTrack, srcUrl: local.blobUrl } : networkTrack;
 }
 
 /** Play a finished download from its local bytes instead of the network. */
