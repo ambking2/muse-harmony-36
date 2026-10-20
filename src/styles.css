@@ -1402,10 +1402,8 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, rgb(0 0 0 / 0.82) 48%, rgb(0 0 0 / 0.42) 70%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 30%, rgb(0 0 0 / 0.82) 48%, rgb(0 0 0 / 0.42) 70%, transparent 100%);
 }
-:root[data-glass="off"] .screen-top-frost {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
+/* The top content fade is navigation chrome, not a glass-material toggle.
+   Keep it active in light/dark and glass-on/off modes. */
 
 /* A circular glass button — the header's back and create controls, the dock's
    search circle at a thumb-sized 44pt. Same material recipe, no spotlight. */
