@@ -672,31 +672,52 @@ function Lyrics({
 function SleepSection() {
   const sleepAt = usePlayer((s) => s.sleepAt);
   const setSleep = usePlayer((s) => s.setSleepMinutes);
-  const remainingSeconds = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 1000)) : 0;
-  const [seconds, setSeconds] = useState(remainingSeconds || 300);
+  const [now, setNow] = useState(() => Date.now());
+  const remainingSeconds = sleepAt ? Math.max(0, Math.ceil((sleepAt - now) / 1000)) : 0;
+  const [seconds, setSeconds] = useState(() => remainingSeconds || 300);
 
+  // Keep the countdown fresh without tying slider state to every timer tick.
   useEffect(() => {
-    if (sleepAt) setSeconds(Math.min(3600, Math.max(1, remainingSeconds)));
-  }, [sleepAt, remainingSeconds]);
+    if (!sleepAt) return;
+    const id = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(id);
+  }, [sleepAt]);
+
+  // When an existing timer is opened, initialize the slider once for that timer.
+  useEffect(() => {
+    if (sleepAt) setSeconds(Math.max(1, Math.min(3600, Math.ceil((sleepAt - Date.now()) / 1000))));
+  }, [sleepAt]);
 
   const formatSleepDuration = (totalSeconds: number) => {
-    if (totalSeconds < 60) return `${totalSeconds} ثانیه`;
-    const minutes = Math.floor(totalSeconds / 60);
-    const rest = totalSeconds % 60;
+    const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const rest = safeSeconds % 60;
+    if (minutes === 0) return `${rest} ثانیه`;
     if (rest === 0) return `${minutes} دقیقه`;
     return `${minutes} دقیقه و ${rest} ثانیه`;
+  };
+  const durationText = (value: number) => (
+    <span dir="rtl" style={{ unicodeBidi: "isolate", display: "inline-block" }}>
+      {formatSleepDuration(value)}
+    </span>
+  );
+  const applyTimer = (value: number) => {
+    const safeValue = Math.max(1, Math.min(3600, Math.round(value)));
+    setSeconds(safeValue);
+    setSleep(safeValue / 60);
+    toast.success(`تایمر خواب روی ${formatSleepDuration(safeValue)} تنظیم شد`);
   };
 
   return (
     <div className="px-3 py-3">
       <p className="type-footnote mb-3 flex items-center gap-1.5 text-ios-label-secondary">
         <Timer className="size-3.5" /> تایمر خواب
-        {sleepAt && <span className="ltr-nums">· {formatSleepDuration(remainingSeconds)} مانده</span>}
+        {sleepAt && <span className="mr-1">· {durationText(remainingSeconds)} مانده</span>}
       </p>
       <div className="glass rounded-2xl p-3">
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="text-xs text-ios-label-secondary">مدت زمان</span>
-          <span className="text-sm font-semibold ltr-nums">{formatSleepDuration(seconds)}</span>
+          <span className="text-sm font-semibold">{durationText(seconds)}</span>
         </div>
         <Slider
           value={[seconds]}
@@ -704,47 +725,17 @@ function SleepSection() {
           max={3600}
           step={1}
           onValueChange={(value) => setSeconds(value[0])}
-          onValueCommit={(value) => {
-            setSleep(value[0] / 60);
-            toast.success(`تایمر خواب روی ${formatSleepDuration(value[0])} تنظیم شد`);
-          }}
+          onValueCommit={(value) => applyTimer(value[0])}
           aria-label="مدت تایمر خواب بر حسب ثانیه"
         />
-        <div className="mt-2 flex justify-between text-[11px] text-ios-label-tertiary ltr-nums">
-          <span>۱ ثانیه</span>
-          <span>۱ ساعت</span>
+        <div className="mt-2 flex justify-between text-[11px] text-ios-label-tertiary">
+          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>۱ ثانیه</span>
+          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>۱ ساعت</span>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <button
-            onClick={() => {
-              setSeconds(300);
-              setSleep(5);
-              toast.success("تایمر خواب روی ۵ دقیقه تنظیم شد");
-            }}
-            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
-          >
-            ۵ دقیقه
-          </button>
-          <button
-            onClick={() => {
-              setSeconds(1800);
-              setSleep(30);
-              toast.success("تایمر خواب روی ۳۰ دقیقه تنظیم شد");
-            }}
-            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
-          >
-            ۳۰ دقیقه
-          </button>
-          <button
-            onClick={() => {
-              setSeconds(3600);
-              setSleep(60);
-              toast.success("تایمر خواب روی ۱ ساعت تنظیم شد");
-            }}
-            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
-          >
-            ۱ ساعت
-          </button>
+          <button onClick={() => applyTimer(300)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۵ دقیقه</button>
+          <button onClick={() => applyTimer(1800)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۳۰ دقیقه</button>
+          <button onClick={() => applyTimer(3600)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۱ ساعت</button>
         </div>
         {sleepAt && (
           <button
