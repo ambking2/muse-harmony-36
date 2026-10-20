@@ -1573,3 +1573,17 @@
     backdrop-filter: blur(12px) saturate(140%);
   }
 }
+
+/* Global control baseline: every button inherits the same box model and
+   text metrics. Components may choose a visual variant, but should not
+   independently change baseline geometry and alignment. */
+button,
+[role="button"] {
+  box-sizing: border-box;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
