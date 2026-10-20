@@ -221,7 +221,7 @@ function NowPlaying() {
               <DropdownMenuContent
                 align="start"
                 sideOffset={10}
-                className="material-thick max-h-[70svh] w-72 origin-top overflow-y-auto rounded-2xl border-ios-separator p-2"
+                className="material-thick max-h-[72svh] w-[min(17rem,calc(100vw-2rem))] origin-top overflow-y-auto rounded-3xl border-ios-separator p-1.5 shadow-2xl"
               >
                 <div className="inset-divided">
                   <SheetRow
@@ -258,7 +258,7 @@ function NowPlaying() {
                       }
                       toggleFav(track);
                     }}
-                    className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
+                    className="flex w-full items-center gap-3 px-2 py-2 text-start"
                   >
                     <SheetIcon>
                       <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
@@ -270,7 +270,7 @@ function NowPlaying() {
                   <TrackMenu track={track}>
                     <button
                       type="button"
-                      className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
+                      className="flex w-full items-center gap-3 px-2 py-2 text-start"
                     >
                       <SheetIcon>
                         <Plus className="size-5" strokeWidth={2} />
@@ -287,7 +287,7 @@ function NowPlaying() {
                       loadingText="در حال دانلود…"
                       successText="دانلود شد"
                       disabled={downloaded}
-                      className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3 text-start text-sm font-medium"
+                      className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
                     >
                       <SheetIcon>
                         {isOffline || downloaded ? (
@@ -305,7 +305,7 @@ function NowPlaying() {
                       onAction={share}
                       loadingText="در حال کپی…"
                       successText="کپی شد"
-                      className="w-full justify-start gap-3.5 rounded-2xl px-3 py-3 text-start text-sm font-medium"
+                      className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
                     >
                       <SheetIcon>
                         <Share2 className="size-5" strokeWidth={2} />
@@ -520,7 +520,7 @@ function onChangeQuality(set: (q: Quality) => void, br: Quality) {
 
 function SheetIcon({ children }: { children: React.ReactNode }) {
   return (
-    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-ios-fill text-ios-tint">
+    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-ios-fill text-ios-tint">
       {children}
     </span>
   );
@@ -557,7 +557,7 @@ function SheetRow({
         to={to}
         params={params}
         onClick={onNavigate}
-        className="flex w-full items-center gap-3.5 px-2 py-3 text-start transition hover:text-primary"
+        className="flex w-full items-center gap-3 px-2 py-2 text-start transition hover:text-primary"
       >
         {inner}
       </Link>
@@ -567,7 +567,7 @@ function SheetRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3.5 px-2 py-3 text-start"
+      className="flex w-full items-center gap-3 px-2 py-2 text-start"
     >
       {inner}
     </button>
@@ -674,7 +674,7 @@ function SleepSection() {
   const setSleep = usePlayer((s) => s.setSleepMinutes);
   const remaining = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
   return (
-    <div className="px-5 py-4">
+    <div className="px-3 py-3">
       <p className="type-footnote mb-2 flex items-center gap-1.5 text-ios-label-secondary">
         <Timer className="size-3.5" /> تایمر خواب
         {sleepAt && <span className="ltr-nums">· {remaining} دقیقه مانده</span>}
