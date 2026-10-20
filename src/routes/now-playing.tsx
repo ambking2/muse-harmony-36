@@ -672,33 +672,87 @@ function Lyrics({
 function SleepSection() {
   const sleepAt = usePlayer((s) => s.sleepAt);
   const setSleep = usePlayer((s) => s.setSleepMinutes);
-  const remaining = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
+  const remainingSeconds = sleepAt ? Math.max(0, Math.ceil((sleepAt - Date.now()) / 1000)) : 0;
+  const [seconds, setSeconds] = useState(remainingSeconds || 300);
+
+  useEffect(() => {
+    if (sleepAt) setSeconds(Math.min(3600, Math.max(1, remainingSeconds)));
+  }, [sleepAt, remainingSeconds]);
+
+  const formatSleepDuration = (totalSeconds: number) => {
+    if (totalSeconds < 60) return `${totalSeconds} ثانیه`;
+    const minutes = Math.floor(totalSeconds / 60);
+    const rest = totalSeconds % 60;
+    if (rest === 0) return `${minutes} دقیقه`;
+    return `${minutes} دقیقه و ${rest} ثانیه`;
+  };
+
   return (
     <div className="px-3 py-3">
-      <p className="type-footnote mb-2 flex items-center gap-1.5 text-ios-label-secondary">
+      <p className="type-footnote mb-3 flex items-center gap-1.5 text-ios-label-secondary">
         <Timer className="size-3.5" /> تایمر خواب
-        {sleepAt && <span className="ltr-nums">· {remaining} دقیقه مانده</span>}
+        {sleepAt && <span className="ltr-nums">· {formatSleepDuration(remainingSeconds)} مانده</span>}
       </p>
-      <div className="glass grid grid-cols-3 gap-1.5 rounded-2xl p-1.5">
-        {[5, 10, 15, 30, 45, 60].map((m) => (
+      <div className="glass rounded-2xl p-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-xs text-ios-label-secondary">مدت زمان</span>
+          <span className="text-sm font-semibold ltr-nums">{formatSleepDuration(seconds)}</span>
+        </div>
+        <Slider
+          value={[seconds]}
+          min={1}
+          max={3600}
+          step={1}
+          onValueChange={(value) => setSeconds(value[0])}
+          onValueCommit={(value) => {
+            setSleep(value[0] / 60);
+            toast.success(`تایمر خواب روی ${formatSleepDuration(value[0])} تنظیم شد`);
+          }}
+          aria-label="مدت تایمر خواب بر حسب ثانیه"
+        />
+        <div className="mt-2 flex justify-between text-[11px] text-ios-label-tertiary ltr-nums">
+          <span>۱ ثانیه</span>
+          <span>۱ ساعت</span>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
           <button
-            key={m}
             onClick={() => {
-              setSleep(m);
-              toast.success(`تا ${m} دقیقه دیگر متوقف می‌شود`);
+              setSeconds(300);
+              setSleep(5);
+              toast.success("تایمر خواب روی ۵ دقیقه تنظیم شد");
             }}
-            className={cn(
-              "rounded-xl py-2.5 text-sm font-semibold transition ltr-nums hover:bg-white/10",
-              sleepAt && "opacity-80",
-            )}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
           >
-            {m}
+            ۵ دقیقه
           </button>
-        ))}
+          <button
+            onClick={() => {
+              setSeconds(1800);
+              setSleep(30);
+              toast.success("تایمر خواب روی ۳۰ دقیقه تنظیم شد");
+            }}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
+          >
+            ۳۰ دقیقه
+          </button>
+          <button
+            onClick={() => {
+              setSeconds(3600);
+              setSleep(60);
+              toast.success("تایمر خواب روی ۱ ساعت تنظیم شد");
+            }}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
+          >
+            ۱ ساعت
+          </button>
+        </div>
         {sleepAt && (
           <button
-            onClick={() => setSleep(null)}
-            className="col-span-3 rounded-xl py-2 text-sm text-destructive"
+            onClick={() => {
+              setSleep(null);
+              setSeconds(300);
+            }}
+            className="mt-2 w-full rounded-xl py-2 text-sm text-destructive"
           >
             لغو تایمر
           </button>
