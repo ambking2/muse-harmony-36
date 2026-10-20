@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { TrackMenuLazy } from "./TrackMenuLazy";
 import { Equalizer } from "../player/QueueSheet";
 import { useLibrary } from "@/stores/library";
+import { resolveTrackForPlayback } from "@/lib/download";
 
 /**
  * One track in a list.
@@ -51,7 +52,7 @@ export function TrackRow({
 
   const toggle = () => {
     if (active) togglePlay();
-    else playTrack(track, list ?? [track]);
+    else playTrack(resolveTrackForPlayback(track), (list ?? [track]).map(resolveTrackForPlayback));
   };
 
   const label = active
