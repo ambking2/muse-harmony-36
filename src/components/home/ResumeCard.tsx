@@ -8,6 +8,7 @@ import { standard } from "@/lib/design/motion";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import type { Track } from "@/lib/types";
+import { resolveTrackForPlayback } from "@/lib/download";
 
 /**
  * The continue-listening card at the top of home.
@@ -82,7 +83,13 @@ export function ResumeCard() {
         <div className="mt-4 flex gap-2">
           <button
             type="button"
-            onClick={() => (isCurrent ? togglePlay() : playTrack(resume!, [resume!]))}
+            onClick={() => {
+              if (isCurrent) togglePlay();
+              else {
+                const playable = resolveTrackForPlayback(resume!);
+                playTrack(playable, [playable]);
+              }
+            }}
             className="btn btn-filled flex-1"
           >
             {playing ? (
@@ -94,7 +101,10 @@ export function ResumeCard() {
           </button>
           <button
             type="button"
-            onClick={() => playTrack(resume!, [resume!])}
+            onClick={() => {
+              const playable = resolveTrackForPlayback(resume!);
+              playTrack(playable, [playable]);
+            }}
             aria-label="پخش از اول"
             className="btn btn-gray"
           >
