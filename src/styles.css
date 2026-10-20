@@ -1437,6 +1437,11 @@
   box-shadow: 0 5px 16px oklch(0 0 0 / 0.18);
 }
 
+.screen-top-frost-idle {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 .screen-top-frost {
   background: transparent;
   border: 0;
