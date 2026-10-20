@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
@@ -49,6 +49,20 @@ export function Screen({
   const hasBar = showBack || Boolean(actions);
   const barRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const [homeHasScrolled, setHomeHasScrolled] = useState(false);
+
+  // On the home screen, keep the title crisp on first entry. Enable the top
+  // frost only after the user starts scrolling the content beneath it.
+  useEffect(() => {
+    if (pathname !== "/") {
+      setHomeHasScrolled(false);
+      return;
+    }
+    const update = () => setHomeHasScrolled(window.scrollY > 12);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [pathname]);
 
   // The controls arrive as one gesture (Rapport's `Ls` head timeline): the
   // back circle slides in from the reading edge, the actions follow a beat
@@ -83,7 +97,7 @@ export function Screen({
     <>
       {/* Keep the same disappearing-content frost on home too, even though
           home intentionally has no fixed back/actions bar. */}
-      <div aria-hidden="true" className="screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32" />
+      <div aria-hidden="true" className={cn("screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32", pathname === "/" && !homeHasScrolled && "screen-top-frost-idle")} />
       {hasBar && (
         <>
           <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
