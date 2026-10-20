@@ -399,7 +399,7 @@ function NowPlaying() {
             </motion.div>
 
             {/* Meta — the name and who sings it; the album lives in the menu. */}
-            <div className="mt-2 shrink-0 text-center">
+            <div className="mt-1 shrink-0 text-center">
               <h1 className="type-title-2 truncate">{track.name}</h1>
               <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
                 {track.artist.map((a) => (
@@ -416,7 +416,7 @@ function NowPlaying() {
             </div>
 
             {/* Progress */}
-            <div className="mt-6">
+            <div className="mt-3">
               <Waveform current={currentTime} duration={duration} />
               <Slider
                 value={[Math.min(currentTime, duration || 0)]}
@@ -434,7 +434,7 @@ function NowPlaying() {
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="now-playing-transport mx-auto mt-1 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
+          <div className="now-playing-transport mx-auto mt-0 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
