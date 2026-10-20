@@ -94,8 +94,17 @@ function NowPlaying() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [lyricsOpen, setLyricsOpen] = useState(false);
   const minimize = () => {
-    if (window.history.length > 1) router.history.back();
-    else void router.navigate({ to: "/" });
+    // Return to the last app screen, not the browser's previous history entry.
+    let destination = "/";
+    try {
+      const remembered = window.sessionStorage.getItem("muse:last-app-route");
+      if (remembered && remembered !== "/now-playing" && !remembered.startsWith("/now-playing?")) {
+        destination = remembered;
+      }
+    } catch {
+      // Fall back to the home screen if storage is unavailable.
+    }
+    void router.navigate({ to: destination as "/", replace: true });
   };
 
   const pic = useQuery({
