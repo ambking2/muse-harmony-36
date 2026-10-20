@@ -1546,3 +1546,30 @@
   );
   border: 1px solid oklch(1 0 0 / 0.32);
 }
+
+/* Final mobile overrides must come after component-level material rules. Some later rules
+   (notably the dock lens and the global top-frost rule) otherwise restore desktop
+   blur values after the first touch-device budget block. Keep all animations intact. */
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  :root:not([data-glass="off"]) {
+    --panel-blur: 7px;
+    --material-blur: 12px;
+    --lens-blur: 6px;
+    --glass-sat: 140%;
+  }
+
+  :root:not([data-glass="off"]) .dock-hero {
+    --lens-blur: 12px;
+    --glass-sat: 155%;
+  }
+
+  .screen-top-frost {
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+
+  .glass-btn {
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+}
