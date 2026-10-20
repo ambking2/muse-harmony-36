@@ -200,7 +200,7 @@ function NowPlaying() {
               alt=""
               aria-hidden
               decoding="async"
-              className="size-full object-cover opacity-50 blur-3xl saturate-150"
+              className="size-full object-cover opacity-50 blur-2xl saturate-125 max-sm:blur-lg"
             />
           )}
           <div
@@ -217,144 +217,144 @@ function NowPlaying() {
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
             <div className="material specular flex items-center gap-0 overflow-hidden rounded-2xl border border-ios-separator">
-            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
-                  aria-label="امکانات آهنگ"
-                >
-                  <Ellipsis className="size-5" strokeWidth={2} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                sideOffset={10}
-                className="material-thick max-h-[72svh] w-[min(17rem,calc(100vw-2rem))] origin-top overflow-y-auto rounded-3xl border-ios-separator p-1.5 shadow-2xl"
-              >
-                <div className="inset-divided">
-                  <SheetRow
-                    icon={<Type className="size-5" strokeWidth={2} />}
-                    label="متن ترانه"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setLyricsOpen(true);
-                    }}
-                  />
-                  <SheetRow
-                    icon={<ListMusic className="size-5" strokeWidth={2} />}
-                    label="صف پخش"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      queueRegistry.openAll();
-                    }}
-                  />
-                  {track.album && (
-                    <SheetRow
-                      icon={<Disc3 className="size-5" strokeWidth={2} />}
-                      label={`آلبوم ${track.album}`}
-                      to={`/album/$name`}
-                      params={{ name: track.album }}
-                      onNavigate={() => setMenuOpen(false)}
-                    />
-                  )}
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    onClick={(event) => {
-                      if (!isFav) {
-                        floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
-                        iconPop(event.currentTarget);
-                      }
-                      toggleFav(track);
-                    }}
-                    className="flex w-full items-center gap-3 px-2 py-2 text-start"
+                    className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
+                    aria-label="امکانات آهنگ"
                   >
-                    <SheetIcon>
-                      <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
-                    </SheetIcon>
-                    <span className="flex-1 truncate text-sm font-medium">
-                      {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-                    </span>
+                    <Ellipsis className="size-5" strokeWidth={2} />
                   </button>
-                  <TrackMenu track={track}>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  sideOffset={10}
+                  className="material-thick max-h-[72svh] w-[min(17rem,calc(100vw-2rem))] origin-top overflow-y-auto rounded-3xl border-ios-separator p-1.5 shadow-2xl"
+                >
+                  <div className="inset-divided">
+                    <SheetRow
+                      icon={<Type className="size-5" strokeWidth={2} />}
+                      label="متن ترانه"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setLyricsOpen(true);
+                      }}
+                    />
+                    <SheetRow
+                      icon={<ListMusic className="size-5" strokeWidth={2} />}
+                      label="صف پخش"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        queueRegistry.openAll();
+                      }}
+                    />
+                    {track.album && (
+                      <SheetRow
+                        icon={<Disc3 className="size-5" strokeWidth={2} />}
+                        label={`آلبوم ${track.album}`}
+                        to={`/album/$name`}
+                        params={{ name: track.album }}
+                        onNavigate={() => setMenuOpen(false)}
+                      />
+                    )}
                     <button
                       type="button"
+                      onClick={(event) => {
+                        if (!isFav) {
+                          floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                          iconPop(event.currentTarget);
+                        }
+                        toggleFav(track);
+                      }}
                       className="flex w-full items-center gap-3 px-2 py-2 text-start"
                     >
                       <SheetIcon>
-                        <Plus className="size-5" strokeWidth={2} />
+                        <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
                       </SheetIcon>
                       <span className="flex-1 truncate text-sm font-medium">
-                        افزودن به پلی‌لیست و بیشتر
+                        {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
                       </span>
                     </button>
-                  </TrackMenu>
-                  <div className="py-1.5">
-                    <LoadingButton
-                      variant="glass"
-                      onAction={() => downloadTrack(track, quality)}
-                      loadingText="در حال دانلود…"
-                      successText="دانلود شد"
-                      disabled={downloaded}
-                      className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
-                    >
-                      <SheetIcon>
-                        {isOffline || downloaded ? (
-                          <WifiOff className="size-5" strokeWidth={2} />
-                        ) : (
-                          <Download className="size-5" strokeWidth={2} />
-                        )}
-                      </SheetIcon>
-                      {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
-                    </LoadingButton>
-                  </div>
-                  <div className="py-1.5">
-                    <LoadingButton
-                      variant="glass"
-                      onAction={share}
-                      loadingText="در حال کپی…"
-                      successText="کپی شد"
-                      className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
-                    >
-                      <SheetIcon>
-                        <Share2 className="size-5" strokeWidth={2} />
-                      </SheetIcon>
-                      اشتراک‌گذاری آهنگ
-                    </LoadingButton>
-                  </div>
-                </div>
-
-                <div className="px-1 pt-1">
-                  <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
-                  <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
-                    {QUALITIES.map((q) => (
+                    <TrackMenu track={track}>
                       <button
-                        key={q.br}
-                        onClick={() => onChangeQuality(setQuality, q.br as Quality)}
-                        className={cn(
-                          "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
-                          quality === q.br
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground",
-                        )}
+                        type="button"
+                        className="flex w-full items-center gap-3 px-2 py-2 text-start"
                       >
-                        {q.br === 999 ? "FLAC" : q.br}
+                        <SheetIcon>
+                          <Plus className="size-5" strokeWidth={2} />
+                        </SheetIcon>
+                        <span className="flex-1 truncate text-sm font-medium">
+                          افزودن به پلی‌لیست و بیشتر
+                        </span>
                       </button>
-                    ))}
+                    </TrackMenu>
+                    <div className="py-1.5">
+                      <LoadingButton
+                        variant="glass"
+                        onAction={() => downloadTrack(track, quality)}
+                        loadingText="در حال دانلود…"
+                        successText="دانلود شد"
+                        disabled={downloaded}
+                        className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
+                      >
+                        <SheetIcon>
+                          {isOffline || downloaded ? (
+                            <WifiOff className="size-5" strokeWidth={2} />
+                          ) : (
+                            <Download className="size-5" strokeWidth={2} />
+                          )}
+                        </SheetIcon>
+                        {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
+                      </LoadingButton>
+                    </div>
+                    <div className="py-1.5">
+                      <LoadingButton
+                        variant="glass"
+                        onAction={share}
+                        loadingText="در حال کپی…"
+                        successText="کپی شد"
+                        className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
+                      >
+                        <SheetIcon>
+                          <Share2 className="size-5" strokeWidth={2} />
+                        </SheetIcon>
+                        اشتراک‌گذاری آهنگ
+                      </LoadingButton>
+                    </div>
                   </div>
-                </div>
 
-                <SleepSection />
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <button
-              type="button"
-              onClick={minimize}
-              className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
-              aria-label="بستن صفحه پخش"
-            >
-              <ChevronDown className="size-5" strokeWidth={2.2} />
-            </button>
+                  <div className="px-1 pt-1">
+                    <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
+                    <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
+                      {QUALITIES.map((q) => (
+                        <button
+                          key={q.br}
+                          onClick={() => onChangeQuality(setQuality, q.br as Quality)}
+                          className={cn(
+                            "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
+                            quality === q.br
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {q.br === 999 ? "FLAC" : q.br}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <SleepSection />
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button
+                type="button"
+                onClick={minimize}
+                className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
+                aria-label="بستن صفحه پخش"
+              >
+                <ChevronDown className="size-5" strokeWidth={2.2} />
+              </button>
             </div>
 
             <button
@@ -738,13 +738,32 @@ function SleepSection() {
           aria-label="مدت تایمر خواب بر حسب ثانیه"
         />
         <div className="mt-2 flex justify-between text-[11px] text-ios-label-tertiary">
-          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>۱ ثانیه</span>
-          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>۱ ساعت</span>
+          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>
+            ۱ ثانیه
+          </span>
+          <span dir="rtl" style={{ unicodeBidi: "isolate" }}>
+            ۱ ساعت
+          </span>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <button onClick={() => applyTimer(300)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۵ دقیقه</button>
-          <button onClick={() => applyTimer(1800)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۳۰ دقیقه</button>
-          <button onClick={() => applyTimer(3600)} className="glass flex-1 rounded-xl py-2 text-xs font-medium">۱ ساعت</button>
+          <button
+            onClick={() => applyTimer(300)}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
+          >
+            ۵ دقیقه
+          </button>
+          <button
+            onClick={() => applyTimer(1800)}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
+          >
+            ۳۰ دقیقه
+          </button>
+          <button
+            onClick={() => applyTimer(3600)}
+            className="glass flex-1 rounded-xl py-2 text-xs font-medium"
+          >
+            ۱ ساعت
+          </button>
         </div>
         {sleepAt && (
           <button

@@ -27,7 +27,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="ناوبری اصلی"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),1.25rem)]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.5rem)]"
     >
       <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
         <div

@@ -92,7 +92,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0b0810" },
+      { name: "theme-color", media: "(prefers-color-scheme: light)", content: "#eff0f5" },
+      { name: "theme-color", media: "(prefers-color-scheme: dark)", content: "#0b0810" },
       { title: "muis — پخش‌کننده‌ی موسیقی فارسی" },
       {
         name: "description",
@@ -172,8 +173,6 @@ function AccountLibrarySync() {
   return null;
 }
 
-
-
 /** First-visit PWA install prompt, with browser-specific fallback instructions. */
 function WebAppInstallPrompt() {
   const [visible, setVisible] = useState(false);
@@ -183,9 +182,11 @@ function WebAppInstallPrompt() {
 
   useEffect(() => {
     const w = window as Window & { __muisInstallPrompt?: any };
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    const isIOS =
+      /iphone|ipad|ipod/i.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     setIos(isIOS);
     if (isStandalone) return;
@@ -203,7 +204,9 @@ function WebAppInstallPrompt() {
     const onInstalled = () => {
       setVisible(false);
       setDeferredPrompt(null);
-      try { localStorage.removeItem("muis-install-dismissed"); } catch {}
+      try {
+        localStorage.removeItem("muis-install-dismissed");
+      } catch {}
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
     window.addEventListener("appinstalled", onInstalled);
@@ -222,7 +225,9 @@ function WebAppInstallPrompt() {
   const dismiss = () => {
     setVisible(false);
     setHelpOpen(false);
-    try { localStorage.setItem("muis-install-dismissed", "1"); } catch {}
+    try {
+      localStorage.setItem("muis-install-dismissed", "1");
+    } catch {}
   };
 
   const install = async () => {
@@ -240,15 +245,25 @@ function WebAppInstallPrompt() {
   if (!visible) return null;
   return (
     <div className="muis-install-overlay" role="presentation">
-      <section className="muis-install-card" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="muis-install-title">
+      <section
+        className="muis-install-card"
+        dir="rtl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="muis-install-title"
+      >
         <div className="muis-install-handle" aria-hidden="true" />
-        <button className="muis-install-close" onClick={dismiss} aria-label="بستن اعلان نصب"><X size={18} /></button>
+        <button className="muis-install-close" onClick={dismiss} aria-label="بستن اعلان نصب">
+          <X size={18} />
+        </button>
         <div className="muis-install-heading">
-          <div className="muis-install-icon"><Smartphone size={24} /></div>
-        <div className="muis-install-copy">
-          <span className="muis-install-eyebrow">تجربه بهتر با muis</span>
-          <h2 id="muis-install-title">موسیقی همیشه دم دستت باشه</h2>
-          <p>وب‌اپ muis رو نصب کن تا مثل یک برنامه، مستقیم از صفحهٔ اصلی بازش کنی.</p>
+          <div className="muis-install-icon">
+            <Smartphone size={24} />
+          </div>
+          <div className="muis-install-copy">
+            <span className="muis-install-eyebrow">تجربه بهتر با muis</span>
+            <h2 id="muis-install-title">موسیقی همیشه دم دستت باشه</h2>
+            <p>وب‌اپ muis رو نصب کن تا مثل یک برنامه، مستقیم از صفحهٔ اصلی بازش کنی.</p>
           </div>
         </div>
         {!helpOpen ? (
@@ -260,8 +275,13 @@ function WebAppInstallPrompt() {
           <div className="muis-install-help">
             {ios ? (
               <>
-                <p><Share size={17} /> ۱. در Safari روی دکمهٔ اشتراک‌گذاری بزن.</p>
-                <p><span className="muis-install-plus">＋</span> ۲. گزینهٔ «افزودن به صفحهٔ اصلی» را انتخاب کن.</p>
+                <p>
+                  <Share size={17} /> ۱. در Safari روی دکمهٔ اشتراک‌گذاری بزن.
+                </p>
+                <p>
+                  <span className="muis-install-plus">＋</span> ۲. گزینهٔ «افزودن به صفحهٔ اصلی» را
+                  انتخاب کن.
+                </p>
                 <p>۳. روی «افزودن» بزن تا muis نصب شود.</p>
               </>
             ) : (
@@ -272,7 +292,9 @@ function WebAppInstallPrompt() {
             )}
           </div>
         )}
-        <button className="btn btn-gray muis-install-later" onClick={dismiss}>فعلاً نه</button>
+        <button className="btn btn-gray muis-install-later" onClick={dismiss}>
+          فعلاً نه
+        </button>
       </section>
     </div>
   );
