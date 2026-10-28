@@ -2,6 +2,8 @@ import { Link, useRouterState } from "@tanstack/react-router";
 
 import { DOCK_ITEMS, SEARCH_ITEM, tabForPath } from "@/lib/design/tabs";
 import { cn } from "@/lib/utils";
+import { Glass } from "glisse";
+import { useLiquid } from "@/lib/liquid";
 
 /**
  * The dock — one slab of frosted glass, and one circle beside it.
@@ -18,6 +20,7 @@ import { cn } from "@/lib/utils";
 export function TabBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const current = tabForPath(pathname);
+  const liquid = useLiquid();
 
   const glassRing = cn(
     "material lens specular dock-hero pointer-events-auto relative overflow-hidden",
