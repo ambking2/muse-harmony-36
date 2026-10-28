@@ -1,4 +1,3 @@
-@import "glisse/dist/styles.css";
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -1626,29 +1625,21 @@ button:disabled,
   }
 
   .mesh {
-    inset: -10%;
-    /* 44px, not less: below that the blob edges stop melting into the wash
-       and the top of the page reads as a band (seen on the library). */
-    filter: blur(44px) saturate(135%);
-    background:
-      radial-gradient(38rem 38rem at 18% 22%, oklch(0.45 0.19 285 / 0.38), transparent 62%),
-      radial-gradient(34rem 34rem at 82% 18%, oklch(0.45 0.17 205 / 0.32), transparent 64%),
-      radial-gradient(40rem 40rem at 62% 88%, oklch(0.45 0.19 330 / 0.26), transparent 66%);
+    inset: -8%;
+    filter: blur(28px) saturate(135%);
   }
 
   .mesh-accent {
-    inset: -10%;
-    filter: blur(48px);
+    inset: -8%;
+    filter: blur(34px);
     /* The accent drift is 96 seconds slow — a still frame is identical, so
        the mid-range phone stops compositing it forever. */
     animation: none;
-    opacity: 0.4;
   }
 
   .ambient-art {
-    inset: -8%;
-    filter: blur(44px) saturate(140%);
-    opacity: 0.42;
+    inset: -6%;
+    filter: blur(34px) saturate(140%);
   }
 
   /* Cards stop re-sampling the backdrop while scrolling: same tint, solid

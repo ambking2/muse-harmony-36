@@ -30,17 +30,16 @@ export function TabBar() {
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.5rem)]"
     >
       <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
-        <Glass
+        <div
           className={cn(
-            liquid && "lg-glass dock-hero",
+            glassRing,
             "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[2.25rem] px-2 py-1.5",
-            !liquid && glassRing,
           )}
         >
           {DOCK_ITEMS.map((item) => (
             <TabLink key={item.tab} item={item} active={current === item.tab} />
           ))}
-        </Glass>
+        </div>
 
         <Link
           to={SEARCH_ITEM.to}
