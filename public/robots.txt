@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://muse-harmony-36.ambking.workers.dev/sitemap.xml
