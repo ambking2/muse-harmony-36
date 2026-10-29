@@ -1,23 +1,49 @@
+import { useMemo, useState } from "react";
 import { ListMusic } from "lucide-react";
 
 import { PlaylistCard } from "@/components/music/PlaylistCard";
-import { FEATURED_PLAYLISTS } from "@/lib/featured";
+import { FEATURED_PLAYLISTS, type PlaylistGroup } from "@/lib/featured";
 
-/** Every tile opens a provider playlist with a real track list, not a search. */
+const GROUPS: PlaylistGroup[] = ["همه", "ایرانی", "حال‌وهوا", "موقعیت", "سبک", "بین‌المللی"];
+
+/** Every tile opens a provider playlist with a track list, never a search. */
 export function PlaylistDiscovery() {
+  const [activeGroup, setActiveGroup] = useState<PlaylistGroup>("همه");
+  const playlists = useMemo(
+    () => activeGroup === "همه"
+      ? FEATURED_PLAYLISTS
+      : FEATURED_PLAYLISTS.filter((playlist) => playlist.group === activeGroup),
+    [activeGroup],
+  );
+
   return (
     <section className="mt-7">
       <div className="mb-3 flex items-center justify-between px-4">
         <div>
           <h2 className="type-title-2">پلی‌لیست‌ها</h2>
           <p className="type-footnote mt-1 text-ios-label-secondary">
-            وارد هر مجموعه شوید تا آهنگ‌های آن را ببینید و پخش کنید.
+            هر کارت یک فهرست آهنگ جداگانه است؛ واردش شوید تا آهنگ‌ها را ببینید و پخش کنید.
           </p>
         </div>
         <ListMusic className="size-5 text-ios-tint" aria-hidden />
       </div>
+
+      <div className="no-scrollbar mb-3 flex gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label="فیلتر پلی‌لیست‌ها">
+        {GROUPS.map((group) => (
+          <button
+            key={group}
+            type="button"
+            onClick={() => setActiveGroup(group)}
+            aria-pressed={activeGroup === group}
+            className={`press shrink-0 rounded-full px-4 py-2 text-sm transition-colors ${activeGroup === group ? "bg-ios-tint text-white" : "panel text-ios-label-secondary"}`}
+          >
+            {group}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 gap-3 px-3 sm:grid-cols-3">
-        {FEATURED_PLAYLISTS.map((playlist) => (
+        {playlists.map((playlist) => (
           <PlaylistCard key={playlist.id} playlist={playlist} />
         ))}
       </div>
