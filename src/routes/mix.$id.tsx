@@ -21,7 +21,7 @@ function MixPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["mix", id],
     staleTime: 60 * 60_000,
     queryFn: () => getPlaylist("netease", id),
@@ -48,13 +48,22 @@ function MixPage() {
               title="آهنگ‌های این پلی‌لیست دریافت نشد"
               description="سرویس موسیقی این فهرست را برنگرداند. به صفحه کشف برگردید و یک پلی‌لیست دیگر را امتحان کنید."
               action={
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/explore" })}
-                  className="btn btn-filled"
-                >
-                  برگشت به پلی‌لیست‌ها
-                </button>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="btn btn-filled"
+                  >
+                    تلاش دوباره
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/explore" })}
+                    className="btn btn-gray"
+                  >
+                    برگشت به پلی‌لیست‌ها
+                  </button>
+                </div>
               }
             />
           )}
