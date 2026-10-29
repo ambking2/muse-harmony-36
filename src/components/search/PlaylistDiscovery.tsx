@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ListMusic, Play, Shuffle, Loader2 } from "lucide-react";
 
 import { TrackThumb } from "@/components/search/Rails";
 import { searchSmart } from "@/lib/gdmusic";
-import type { Track } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 
 /**
@@ -85,7 +85,7 @@ export function PlaylistDiscovery({ onPick }: { onPick: (query: string) => void 
 }
 
 function CategoryBrowser({ onPick }: { onPick: (query: string) => void }) {
-  const [group, setGroup] = ReactUseState<(typeof GROUPS)[number]>("همه");
+  const [group, setGroup] = useState<(typeof GROUPS)[number]>("همه");
   const visible = group === "همه" ? COLLECTIONS : COLLECTIONS.filter((item) => item.group === group);
 
   return (
@@ -171,5 +171,3 @@ function PlayableCollection({ collection }: { collection: (typeof FEATURED)[numb
   );
 }
 
-// Kept as a local alias so this feature adds no new dependency.
-import { useState as ReactUseState } from "react";
