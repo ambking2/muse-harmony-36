@@ -7,7 +7,6 @@ import { FEATURED_PLAYLISTS, type PlaylistGroup } from "@/lib/featured";
 const GROUPS: PlaylistGroup[] = [
   "همه",
   "ایرانی",
-  "حال‌وهوا",
   "سبک",
   "بین‌المللی",
 ];
