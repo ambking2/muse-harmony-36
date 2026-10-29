@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ListMusic, Play, Shuffle, Loader2 } from "lucide-react";
 
 import { TrackThumb } from "@/components/search/Rails";
+import { PlaylistCard } from "@/components/music/PlaylistCard";
+import { FEATURED_PLAYLISTS } from "@/lib/featured";
 import { searchSmart } from "@/lib/gdmusic";
 import { usePlayer } from "@/stores/player";
 
@@ -59,7 +61,7 @@ export function PlaylistDiscovery({ onPick }: { onPick: (query: string) => void 
           <div>
             <h2 className="type-title-2">کشف پلی‌لیست‌ها</h2>
             <p className="type-footnote mt-1 text-ios-label-secondary">
-              برای هر حال‌وهوا، یک مسیر تازه برای شنیدن موسیقی
+              دسته‌بندی‌ها برای جست‌وجوی آهنگ‌اند؛ پلی‌لیست‌های واقعی پایین‌تر قرار دارند.
             </p>
           </div>
           <ListMusic className="size-5 text-ios-tint" aria-hidden />
@@ -69,14 +71,14 @@ export function PlaylistDiscovery({ onPick }: { onPick: (query: string) => void 
 
       <section>
         <div className="mb-3 px-4">
-          <h2 className="type-title-2">منتخب برای شروع</h2>
+          <h2 className="type-title-2">پلی‌لیست‌های واقعی</h2>
           <p className="type-footnote mt-1 text-ios-label-secondary">
-            مجموعه‌ها از آهنگ‌های واقعی کاتالوگ ساخته می‌شوند.
+            فهرست آهنگ‌ها از سرویس موسیقی دریافت می‌شود؛ برای دیدن و پخش، وارد پلی‌لیست شوید.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 px-3 sm:grid-cols-3">
-          {FEATURED.map((collection) => (
-            <PlayableCollection key={collection.query} collection={collection} />
+          {FEATURED_PLAYLISTS.map((playlist) => (
+            <PlaylistCard key={playlist.id} playlist={playlist} />
           ))}
         </div>
       </section>
