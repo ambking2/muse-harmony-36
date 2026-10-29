@@ -2,7 +2,7 @@
  * Provider-backed collections. Each ID points to a public NetEase playlist
  * or chart; the detail route fetches its real tracks from the music service.
  */
-export type PlaylistGroup = "همه" | "ایرانی" | "حال‌وهوا" | "موقعیت" | "سبک" | "بین‌المللی";
+export type PlaylistGroup = "همه" | "ایرانی" | "حال‌وهوا" | "سبک" | "بین‌المللی";
 
 export interface FeaturedPlaylist {
   id: string;
