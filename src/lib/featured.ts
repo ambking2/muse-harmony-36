@@ -8,6 +8,7 @@ export interface FeaturedPlaylist {
   title: string;
   blurb: string;
   emoji: string;
+  group: string;
 }
 
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
