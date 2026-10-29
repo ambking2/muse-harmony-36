@@ -30,6 +30,7 @@ function MixPage() {
   const curated = FEATURED_PLAYLISTS.find((p) => p.id === id);
   const tracks = data?.tracks ?? [];
   const coverTrack = tracks[0];
+  const unavailable = isError || (data === null && !isLoading);
 
   return (
     <AppShell>
@@ -41,18 +42,18 @@ function MixPage() {
             </div>
           )}
 
-          {isError && (
+          {unavailable && (
             <EmptyState
               icon={ListMusic}
-              title="این پلی‌لیست در دسترس نیست"
-              description="شاید حذف شده باشد یا سرویس پاسخ ندهد."
+              title="آهنگ‌های این پلی‌لیست دریافت نشد"
+              description="سرویس موسیقی این فهرست را برنگرداند. به صفحه کشف برگردید و یک پلی‌لیست دیگر را امتحان کنید."
               action={
                 <button
                   type="button"
                   onClick={() => navigate({ to: "/explore" })}
                   className="btn btn-filled"
                 >
-                  رفتن به جستجو
+                  برگشت به پلی‌لیست‌ها
                 </button>
               }
             />
@@ -76,11 +77,11 @@ function MixPage() {
                 <div className="min-w-0 flex-1 text-center sm:text-right">
                   <p className="type-footnote text-ios-label-secondary">پلی‌لیست</p>
                   <h1 className="type-title-1 mt-1 text-balance">
-                    {data.name || curated?.title || "بدون نام"}
+                    {curated?.title || data.name || "بدون نام"}
                   </h1>
-                  {curated?.blurb && (
+                  {(curated?.blurb || data.name) && (
                     <p className="type-subheadline mt-2 text-ios-label-secondary">
-                      {curated.blurb}
+                      {curated?.blurb || data.name}
                     </p>
                   )}
                   <p className="type-footnote mt-2 text-ios-label-secondary ltr-nums">
@@ -90,30 +91,33 @@ function MixPage() {
                   <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
                     <button
                       type="button"
+                      disabled={tracks.length === 0}
                       onClick={() => usePlayer.getState().playQueue(tracks, 0)}
-                      className="btn btn-filled"
+                      className="btn btn-filled disabled:pointer-events-none disabled:opacity-50"
                     >
                       <Play className="size-4 fill-current" strokeWidth={0} />
                       پخش
                     </button>
                     <button
                       type="button"
+                      disabled={tracks.length === 0}
                       onClick={() => {
                         usePlayer.getState().playQueue(tracks, 0);
                         usePlayer.getState().toggleShuffle();
                       }}
-                      className="btn btn-gray"
+                      className="btn btn-gray disabled:pointer-events-none disabled:opacity-50"
                     >
                       <Shuffle className="size-4" strokeWidth={2} />
                       تصادفی
                     </button>
                     <button
                       type="button"
+                      disabled={tracks.length === 0}
                       onClick={() => {
                         usePlayer.getState().addTracks(tracks);
                         toast.success("به صف اضافه شد");
                       }}
-                      className="btn btn-gray"
+                      className="btn btn-gray disabled:pointer-events-none disabled:opacity-50"
                       aria-label="افزودن به صف"
                     >
                       <ListMusic className="size-4" strokeWidth={2} />
@@ -122,12 +126,18 @@ function MixPage() {
                 </div>
               </div>
 
-              {tracks.length > 0 && (
+              {tracks.length > 0 ? (
                 <Section className="mt-6" title={`${tracks.length.toLocaleString("fa-IR")} آهنگ`}>
                   {tracks.map((t, i) => (
                     <TrackRow key={`${t.id}-${i}`} track={t} list={tracks} index={i} showIndex />
                   ))}
                 </Section>
+              ) : (
+                <EmptyState
+                  icon={ListMusic}
+                  title="این فهرست آهنگی ندارد"
+                  description="در حال حاضر آهنگی از این پلی‌لیست برنگشته است."
+                />
               )}
             </div>
           )}
