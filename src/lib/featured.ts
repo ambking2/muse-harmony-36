@@ -1,7 +1,7 @@
 /**
  * Real public NetEase playlist IDs used by the provider playlist endpoint.
- * Keep these as provider IDs (not search queries), so each card opens a
- * collection whose tracks are loaded from the catalogue and can be queued.
+ * Each card opens a provider playlist; tracks are fetched from the catalogue,
+ * not synthesized from search results.
  */
 export interface FeaturedPlaylist {
   id: string;
@@ -38,7 +38,7 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "3778678",
     title: "ترانه‌های پرطرفدار",
-    blurb: "فهرست محبوب‌های روز سرویس موسیقی",
+    blurb: "فهرست محبوب‌های سرویس موسیقی",
     emoji: "🔥",
   },
   {
@@ -60,9 +60,15 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
     emoji: "🎙️",
   },
   {
-    id: "60198",
-    title: "پاپ بین‌المللی",
-    blurb: "منتخب موسیقی پاپ بین‌المللی",
-    emoji: "🌍",
+    id: "10520166",
+    title: "موسیقی الکترونیک",
+    blurb: "منتخب موسیقی الکترونیک",
+    emoji: "🪩",
+  },
+  {
+    id: "71385702",
+    title: "موسیقی انیمه و بازی",
+    blurb: "موسیقی انیمه، بازی و آثار تصویری",
+    emoji: "🎮",
   },
 ];
