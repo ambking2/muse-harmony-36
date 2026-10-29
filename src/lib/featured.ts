@@ -1,7 +1,9 @@
 /**
- * Provider-backed music collections. Each card points to a public NetEase
- * playlist ID; the detail page requests the provider's actual track list.
- * These are collection references, not locally fabricated song records.
+ * Curated collections backed by real NetEase playlist IDs.
+ *
+ * Each card opens the provider playlist endpoint; tracks are loaded from the
+ * catalogue at runtime, rather than being fabricated from search results.
+ * Keep entries here only when the ID belongs to a known public playlist.
  */
 export interface FeaturedPlaylist {
   id: string;
@@ -13,8 +15,8 @@ export interface FeaturedPlaylist {
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "168971630",
-    title: "پاپ و پاپ‌-راک فارسی",
-    blurb: "مجموعه‌ای از پاپ‌های فارسی",
+    title: "پاپ و پاپ‌راک فارسی",
+    blurb: "سیروان خسروی، میلاد بابایی و دیگر پاپ‌های محبوب",
     emoji: "🎧",
   },
   {
@@ -26,67 +28,85 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "7223191024",
     title: "موسیقی سنتی ایران",
-    blurb: "موسیقی سنتی و سازهای ایرانی",
+    blurb: "حال‌وهوای موسیقی سنتی و سازهای ایرانی",
     emoji: "🪕",
   },
   {
     id: "4895623116",
     title: "عود و نی",
-    blurb: "موسیقی بی‌کلام با عود و نی",
+    blurb: "موسیقی سازی و ملودی‌های آرام",
     emoji: "🎼",
   },
   {
-    id: "3778678",
-    title: "ترانه‌های پرطرفدار",
-    blurb: "جدول آهنگ‌های محبوب نت‌ایز",
-    emoji: "🔥",
+    id: "2829883282",
+    title: "پاپ چینی و آسیایی",
+    blurb: "منتخب موسیقی پاپ چینی",
+    emoji: "🌏",
   },
   {
-    id: "3779629",
-    title: "تازه‌های موسیقی",
-    blurb: "جدول آهنگ‌های تازه منتشرشده",
-    emoji: "✨",
-  },
-  {
-    id: "19723756",
-    title: "آهنگ‌های در حال اوج",
-    blurb: "جدول آهنگ‌هایی که محبوبیتشان رو به افزایش است",
-    emoji: "📈",
-  },
-  {
-    id: "2884035",
-    title: "آثار مستقل",
-    blurb: "جدول موسیقی اورجینال و مستقل",
-    emoji: "🎙️",
-  },
-  {
-    id: "991319590",
-    title: "پاپ غربی",
-    blurb: "آهنگ‌های محبوب غربی",
+    id: "2829816518",
+    title: "پاپ انگلیسی و غربی",
+    blurb: "موسیقی پاپ بین‌المللی",
     emoji: "🌍",
   },
   {
-    id: "745956260",
+    id: "2829896389",
+    title: "پاپ ژاپنی",
+    blurb: "ترانه‌های پاپ ژاپنی",
+    emoji: "🇯🇵",
+  },
+  {
+    id: "991319590",
+    title: "رپ و هیپ‌هاپ",
+    blurb: "مجموعه‌ای از قطعه‌های رپ",
+    emoji: "🎤",
+  },
+  {
+    id: "1978921795",
     title: "الکترونیک و رقص",
-    blurb: "موسیقی الکترونیک پرانرژی",
+    blurb: "ریتم‌های الکترونیک پرانرژی",
     emoji: "🪩",
   },
   {
-    id: "71385702",
-    title: "انیمه و بازی",
-    blurb: "موسیقی مرتبط با انیمه و بازی‌های ویدیویی",
-    emoji: "🎮",
+    id: "5059633707",
+    title: "راک",
+    blurb: "منتخب موسیقی راک",
+    emoji: "🎸",
   },
   {
-    id: "10520166",
-    title: "موسیقی کره‌ای",
-    blurb: "مجموعه‌ای از موسیقی کره‌ای",
-    emoji: "🇰🇷",
-  },
-  {
-    id: "21845217",
-    title: "فولک و آکوستیک",
-    blurb: "آهنگ‌های فولک و آکوستیک",
+    id: "71384707",
+    title: "موسیقی کلاسیک",
+    blurb: "قطعه‌های کلاسیک برای شنیدن با تمرکز",
     emoji: "🎻",
+  },
+  {
+    id: "2900343697",
+    title: "موسیقی فیلم و سریال",
+    blurb: "ترانه‌های برگزیده از آثار تصویری",
+    emoji: "🎬",
+  },
+  {
+    id: "2829821753",
+    title: "تمرکز و مطالعه",
+    blurb: "موسیقی پس‌زمینه برای کار و مطالعه",
+    emoji: "📚",
+  },
+  {
+    id: "2890501416",
+    title: "آرامش و خواب",
+    blurb: "صداهای آرام برای استراحت",
+    emoji: "🌙",
+  },
+  {
+    id: "3778678",
+    title: "ترانه‌های محبوب",
+    blurb: "فهرست پربازدید موسیقی در کاتالوگ",
+    emoji: "🔥",
+  },
+  {
+    id: "3455816",
+    title: "ترانه‌های کلاسیک کانتونی",
+    blurb: "آهنگ‌های خاطره‌انگیز کانتونی",
+    emoji: "📻",
   },
 ];
