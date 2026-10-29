@@ -1,14 +1,14 @@
 /**
- * Real public NetEase playlist IDs used by the provider playlist endpoint.
- * Each card opens a provider playlist; tracks are fetched from the catalogue,
- * not synthesized from search results.
+ * Provider-backed public NetEase playlists.
+ *
+ * These cards link to provider playlist IDs. The detail page loads real tracks
+ * from the catalogue; no songs are fabricated from search results.
  */
 export interface FeaturedPlaylist {
   id: string;
   title: string;
   blurb: string;
   emoji: string;
-  group: string;
 }
 
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
@@ -57,7 +57,7 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "2884035",
     title: "موسیقی مستقل و اورجینال",
-    blurb: "فهرست آثار اورجینال",
+    blurb: "آثار اورجینال و مستقل",
     emoji: "🎙️",
   },
   {
@@ -79,76 +79,27 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
     emoji: "🎤",
   },
   {
-    id: "123033556",
-    title: "موسیقی متن و سینمایی",
-    blurb: "موسیقی برای فیلم و سریال",
-    emoji: "🎬",
-  },
-  {
-    id: "2023401535",
-    title: "موسیقی آرام و شبانه",
-    blurb: "انتخابی برای شب و استراحت",
-    emoji: "🌙",
-  },
-
-  {
-    id: "2250011882",
-    title: "الکترونیک و دنس",
-    blurb: "ریتم‌های الکترونیک و مناسب مهمانی",
-    emoji: "🪩",
-  },
-  {
-    id: "2809513713",
-    title: "پاپ و هیت‌های غربی",
-    blurb: "ترانه‌های محبوب پاپ بین‌المللی",
+    id: "60198",
+    title: "پاپ بین‌المللی",
+    blurb: "منتخب موسیقی پاپ بین‌المللی",
     emoji: "🌍",
   },
   {
-    id: "2617766278",
-    title: "موسیقی انیمه",
-    blurb: "قطعه‌های موسیقی انیمه و آثار ژاپنی",
-    emoji: "🎌",
+    id: "180106",
+    title: "موسیقی بریتانیایی",
+    blurb: "منتخب موسیقی و ترانه‌های بریتانیایی",
+    emoji: "🇬🇧",
   },
   {
-    id: "5051609",
-    title: "راک",
-    blurb: "مجموعه‌ای از موسیقی راک",
-    emoji: "🎸",
+    id: "21845217",
+    title: "هیت‌های غربی",
+    blurb: "ترانه‌های محبوب بین‌المللی",
+    emoji: "🌎",
   },
   {
-    id: "71384707",
-    title: "موسیقی کلاسیک",
-    blurb: "قطعه‌های کلاسیک برای شنیدن با تمرکز",
-    emoji: "🎻",
-  },
-  {
-    id: "2829779628",
-    title: "موسیقی برای ورزش",
-    blurb: "ریتم‌های پرانرژی برای تمرین و فعالیت",
-    emoji: "💪",
-  },
-  {
-    id: "2945028696",
-    title: "نوستالژی و آهنگ‌های قدیمی",
-    blurb: "ترانه‌هایی با حال‌وهوای خاطره‌انگیز",
-    emoji: "📻",
-  },
-  {
-    id: "2920647537",
-    title: "عاشقانه‌های آرام",
-    blurb: "ترانه‌های ملایم برای لحظه‌های آرام",
-    emoji: "❤️",
-  },
-  {
-    id: "2829807251",
-    title: "موسیقی جاده و سفر",
-    blurb: "همراهی موسیقی برای مسیرهای طولانی",
-    emoji: "🚘",
-  },
-  {
-    id: "2888212971",
-    title: "میکس دی‌جی",
-    blurb: "انتخابی از موسیقی دی‌جی و ریتم‌های رقص",
-    emoji: "🎛️",
+    id: "745956260",
+    title: "تازه‌های موسیقی غربی",
+    blurb: "تازه‌های پاپ و موسیقی بین‌المللی",
+    emoji: "🆕",
   },
 ];
