@@ -1,9 +1,7 @@
 /**
- * Curated collections backed by real NetEase playlist IDs.
- *
- * Each card opens the provider playlist endpoint; tracks are loaded from the
- * catalogue at runtime, rather than being fabricated from search results.
- * Keep entries here only when the ID belongs to a known public playlist.
+ * Real public NetEase playlist IDs used by the provider playlist endpoint.
+ * Keep these as provider IDs (not search queries), so each card opens a
+ * collection whose tracks are loaded from the catalogue and can be queued.
  */
 export interface FeaturedPlaylist {
   id: string;
@@ -16,97 +14,55 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "168971630",
     title: "پاپ و پاپ‌راک فارسی",
-    blurb: "سیروان خسروی، میلاد بابایی و دیگر پاپ‌های محبوب",
+    blurb: "مجموعه‌ای از پاپ و پاپ‌راک",
     emoji: "🎧",
   },
   {
     id: "877430953",
-    title: "گلوله‌های پاپ",
-    blurb: "مجموعه‌ای از صداهای پاپ معاصر",
+    title: "گلچین پاپ",
+    blurb: "ترانه‌های پاپ منتخب",
     emoji: "💿",
   },
   {
     id: "7223191024",
     title: "موسیقی سنتی ایران",
-    blurb: "حال‌وهوای موسیقی سنتی و سازهای ایرانی",
+    blurb: "موسیقی سنتی و سازهای ایرانی",
     emoji: "🪕",
   },
   {
     id: "4895623116",
     title: "عود و نی",
-    blurb: "موسیقی سازی و ملودی‌های آرام",
+    blurb: "موسیقی سازی و بی‌کلام",
     emoji: "🎼",
   },
   {
-    id: "2829883282",
-    title: "پاپ چینی و آسیایی",
-    blurb: "منتخب موسیقی پاپ چینی",
-    emoji: "🌏",
-  },
-  {
-    id: "2829816518",
-    title: "پاپ انگلیسی و غربی",
-    blurb: "موسیقی پاپ بین‌المللی",
-    emoji: "🌍",
-  },
-  {
-    id: "2829896389",
-    title: "پاپ ژاپنی",
-    blurb: "ترانه‌های پاپ ژاپنی",
-    emoji: "🇯🇵",
-  },
-  {
-    id: "991319590",
-    title: "رپ و هیپ‌هاپ",
-    blurb: "مجموعه‌ای از قطعه‌های رپ",
-    emoji: "🎤",
-  },
-  {
-    id: "1978921795",
-    title: "الکترونیک و رقص",
-    blurb: "ریتم‌های الکترونیک پرانرژی",
-    emoji: "🪩",
-  },
-  {
-    id: "5059633707",
-    title: "راک",
-    blurb: "منتخب موسیقی راک",
-    emoji: "🎸",
-  },
-  {
-    id: "71384707",
-    title: "موسیقی کلاسیک",
-    blurb: "قطعه‌های کلاسیک برای شنیدن با تمرکز",
-    emoji: "🎻",
-  },
-  {
-    id: "2900343697",
-    title: "موسیقی فیلم و سریال",
-    blurb: "ترانه‌های برگزیده از آثار تصویری",
-    emoji: "🎬",
-  },
-  {
-    id: "2829821753",
-    title: "تمرکز و مطالعه",
-    blurb: "موسیقی پس‌زمینه برای کار و مطالعه",
-    emoji: "📚",
-  },
-  {
-    id: "2890501416",
-    title: "آرامش و خواب",
-    blurb: "صداهای آرام برای استراحت",
-    emoji: "🌙",
-  },
-  {
     id: "3778678",
-    title: "ترانه‌های محبوب",
-    blurb: "فهرست پربازدید موسیقی در کاتالوگ",
+    title: "ترانه‌های پرطرفدار",
+    blurb: "فهرست محبوب‌های روز سرویس موسیقی",
     emoji: "🔥",
   },
   {
-    id: "3455816",
-    title: "ترانه‌های کلاسیک کانتونی",
-    blurb: "آهنگ‌های خاطره‌انگیز کانتونی",
-    emoji: "📻",
+    id: "3779629",
+    title: "تازه‌های موسیقی",
+    blurb: "آهنگ‌های تازه در فهرست جدیدترین‌ها",
+    emoji: "✨",
+  },
+  {
+    id: "19723756",
+    title: "آهنگ‌های رو به رشد",
+    blurb: "ترانه‌هایی که در جدول صعود می‌کنند",
+    emoji: "📈",
+  },
+  {
+    id: "2884035",
+    title: "موسیقی مستقل و اورجینال",
+    blurb: "فهرست آثار اورجینال",
+    emoji: "🎙️",
+  },
+  {
+    id: "60198",
+    title: "پاپ بین‌المللی",
+    blurb: "منتخب موسیقی پاپ بین‌المللی",
+    emoji: "🌍",
   },
 ];
