@@ -1,12 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ListMusic, Play, Shuffle, Loader2 } from "lucide-react";
+import { ListMusic } from "lucide-react";
 
-import { TrackThumb } from "@/components/search/Rails";
 import { PlaylistCard } from "@/components/music/PlaylistCard";
 import { FEATURED_PLAYLISTS } from "@/lib/featured";
-import { searchSmart } from "@/lib/gdmusic";
-import { usePlayer } from "@/stores/player";
 
 /**
  * Browse collections built from live catalogue results. These are playable
@@ -124,52 +120,6 @@ function CategoryBrowser({ onPick }: { onPick: (query: string) => void }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function PlayableCollection({ collection }: { collection: (typeof FEATURED)[number] }) {
-  const playQueue = usePlayer((state) => state.playQueue);
-  const toggleShuffle = usePlayer((state) => state.toggleShuffle);
-  const { data: tracks = [], isLoading, isError } = useQuery({
-    queryKey: ["playlist-discovery", collection.query],
-    queryFn: () => searchSmart(collection.query, { count: 18, iranianFirst: true }),
-    staleTime: 30 * 60_000,
-    gcTime: 60 * 60_000,
-    retry: 1,
-  });
-
-  const start = (shuffle: boolean) => {
-    if (!tracks.length) return;
-    playQueue(tracks, 0);
-    if (shuffle) toggleShuffle();
-  };
-
-  return (
-    <article className="panel overflow-hidden">
-      <button type="button" onClick={() => start(false)} disabled={!tracks.length} className="press relative block w-full text-right" aria-label={`پخش پلی‌لیست ${collection.title}`}>
-        <div className="relative aspect-square overflow-hidden bg-ios-fill">
-          {tracks[0] ? (
-            <TrackThumb track={tracks[0]} className="size-full rounded-none object-cover" />
-          ) : (
-            <div className="grid size-full place-items-center bg-gradient-to-br from-ios-tint/20 to-ios-indigo/20 text-4xl" aria-hidden>
-              {collection.emoji}
-            </div>
-          )}
-          <span className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 text-white">
-            <span className="text-sm font-medium">{isLoading ? "در حال آماده‌سازی…" : isError ? "بارگذاری ناموفق" : `${tracks.length.toLocaleString("fa-IR")} آهنگ`}</span>
-            {isLoading ? <Loader2 className="size-5 animate-spin" /> : <Play className="size-5 fill-current" strokeWidth={0} />}
-          </span>
-        </div>
-      </button>
-      <div className="p-3">
-        <div className="type-headline truncate">{collection.title}</div>
-        <p className="type-footnote mt-1 line-clamp-2 text-ios-label-secondary">{collection.query}</p>
-        <button type="button" onClick={() => start(true)} disabled={!tracks.length} className="btn btn-gray mt-3 w-full justify-center disabled:opacity-45">
-          <Shuffle className="size-4" />
-          پخش تصادفی
-        </button>
-      </div>
-    </article>
   );
 }
 
