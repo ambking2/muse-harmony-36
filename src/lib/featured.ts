@@ -1,7 +1,7 @@
 /**
- * Real provider-backed collections. Each card points at a public NetEase
- * playlist ID, so the detail page loads the provider's actual track list.
- * Avoid search-query cards here: a playlist must open with real tracks.
+ * Provider-backed music collections. Each card points to a public NetEase
+ * playlist ID; the detail page requests the provider's actual track list.
+ * These are collection references, not locally fabricated song records.
  */
 export interface FeaturedPlaylist {
   id: string;
@@ -14,73 +14,79 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "168971630",
     title: "پاپ و پاپ‌-راک فارسی",
-    blurb: "سیروان خسروی، میلاد بابایی و دیگر پاپ‌های محبوب",
+    blurb: "مجموعه‌ای از پاپ‌های فارسی",
     emoji: "🎧",
   },
   {
     id: "877430953",
     title: "گلوله‌های پاپ",
-    blurb: "احمد solo، حمید ناظریان و مجموعه‌ای از صداهای معاصر",
+    blurb: "مجموعه‌ای از صداهای پاپ معاصر",
     emoji: "💿",
   },
   {
     id: "7223191024",
     title: "موسیقی سنتی ایران",
-    blurb: "رضا شجاعی، حسین علیزاده و مقام‌های کلاسیک",
+    blurb: "موسیقی سنتی و سازهای ایرانی",
     emoji: "🪕",
   },
   {
     id: "4895623116",
     title: "عود و نی",
-    blurb: "فرشید بزرگی، جلیل شهناز و موسیقی بی‌کلام ایرانی",
+    blurb: "موسیقی بی‌کلام با عود و نی",
     emoji: "🎼",
   },
   {
     id: "3778678",
     title: "ترانه‌های پرطرفدار",
-    blurb: "فهرست آهنگ‌های محبوب و پرشنونده",
+    blurb: "جدول آهنگ‌های محبوب نت‌ایز",
     emoji: "🔥",
   },
   {
+    id: "3779629",
+    title: "تازه‌های موسیقی",
+    blurb: "جدول آهنگ‌های تازه منتشرشده",
+    emoji: "✨",
+  },
+  {
+    id: "19723756",
+    title: "آهنگ‌های در حال اوج",
+    blurb: "جدول آهنگ‌هایی که محبوبیتشان رو به افزایش است",
+    emoji: "📈",
+  },
+  {
+    id: "2884035",
+    title: "آثار مستقل",
+    blurb: "جدول موسیقی اورجینال و مستقل",
+    emoji: "🎙️",
+  },
+  {
     id: "991319590",
-    title: "رپ و هیپ‌هاپ",
-    blurb: "انتخاب‌هایی از موسیقی رپ",
-    emoji: "🎤",
-  },
-  {
-    id: "1978921795",
-    title: "الکترونیک و رقص",
-    blurb: "ریتم‌های الکترونیک برای بالا بردن انرژی",
-    emoji: "🪩",
-  },
-  {
-    id: "71384707",
-    title: "موسیقی کلاسیک",
-    blurb: "قطعه‌های کلاسیک برای گوش دادن با تمرکز",
-    emoji: "🎻",
+    title: "پاپ غربی",
+    blurb: "آهنگ‌های محبوب غربی",
+    emoji: "🌍",
   },
   {
     id: "745956260",
+    title: "الکترونیک و رقص",
+    blurb: "موسیقی الکترونیک پرانرژی",
+    emoji: "🪩",
+  },
+  {
+    id: "71385702",
+    title: "انیمه و بازی",
+    blurb: "موسیقی مرتبط با انیمه و بازی‌های ویدیویی",
+    emoji: "🎮",
+  },
+  {
+    id: "10520166",
     title: "موسیقی کره‌ای",
-    blurb: "ترانه‌های منتخب از موسیقی کره",
+    blurb: "مجموعه‌ای از موسیقی کره‌ای",
     emoji: "🇰🇷",
   },
   {
-    id: "2900343697",
-    title: "موسیقی فیلم",
-    blurb: "ترانه‌ها و قطعه‌های محبوب از دنیای سینما",
-    emoji: "🎬",
-  },
-  {
-    id: "2860790063",
-    title: "صدای مستقل",
-    blurb: "مجموعه‌ای از هنرمندان مستقل",
-    emoji: "🌙",
-  },
-  {
-    id: "2809513713",
-    title: "پاپ بین‌المللی",
-    blurb: "آهنگ‌های پاپ محبوب از هنرمندان جهان",
-    emoji: "🌍",
+    id: "21845217",
+    title: "فولک و آکوستیک",
+    blurb: "آهنگ‌های فولک و آکوستیک",
+    emoji: "🎻",
   },
 ];
