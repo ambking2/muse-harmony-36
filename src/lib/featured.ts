@@ -1,13 +1,6 @@
 /**
- * Real, human-curated Iranian collections from the provider's own catalogue.
- *
- * Search can only return what matches a query string, and this app's whole
- * point is Iranian music — which the providers index under Latin names, so
- * search alone reliably finds the artist but never the surrounding collection.
- * The playlist endpoint is the one place that returns hand-picked lists.
- *
- * Every id here has been checked against the live endpoint; ids that return a
- * truncated or reshaped payload are left out rather than shipped broken.
+ * Real public NetEase playlist IDs. Each card opens a provider playlist;
+ * tracks are fetched from the catalogue, not synthesized from search results.
  */
 export interface FeaturedPlaylist {
   id: string;
@@ -19,26 +12,62 @@ export interface FeaturedPlaylist {
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
   {
     id: "168971630",
-    title: "پاپ و پاپ‌-rock فارسی",
-    blurb: "سیروان خسروی، میلاد بابایی و دیگر پاپ‌های محبوب",
+    title: "پاپ و پاپ‌راک فارسی",
+    blurb: "مجموعه‌ای از پاپ و پاپ‌راک",
     emoji: "🎧",
   },
   {
     id: "877430953",
-    title: "گلوله‌های پاپ",
-    blurb: "احمد solo، حمید ناظریان و مجموعه‌ای از صداهای معاصر",
+    title: "گلچین پاپ",
+    blurb: "ترانه‌های پاپ منتخب",
     emoji: "💿",
   },
   {
     id: "7223191024",
     title: "موسیقی سنتی ایران",
-    blurb: "رضا شجاعی، حسین علیزاده و مقام‌های کلاسیک",
+    blurb: "موسیقی سنتی و سازهای ایرانی",
     emoji: "🪕",
   },
   {
     id: "4895623116",
     title: "عود و نی",
-    blurb: "فرشید بزرگی، جلیل شهناز و الفا شریعتی — بی‌کلام ایرانی",
+    blurb: "موسیقی سازی و بی‌کلام",
     emoji: "🎼",
+  },
+  {
+    id: "3778678",
+    title: "ترانه‌های پرطرفدار",
+    blurb: "فهرست محبوب‌های سرویس موسیقی",
+    emoji: "🔥",
+  },
+  {
+    id: "3779629",
+    title: "تازه‌های موسیقی",
+    blurb: "آهنگ‌های تازه در فهرست جدیدترین‌ها",
+    emoji: "✨",
+  },
+  {
+    id: "19723756",
+    title: "آهنگ‌های رو به رشد",
+    blurb: "ترانه‌هایی که در جدول صعود می‌کنند",
+    emoji: "📈",
+  },
+  {
+    id: "2884035",
+    title: "موسیقی مستقل و اورجینال",
+    blurb: "فهرست آثار اورجینال",
+    emoji: "🎙️",
+  },
+  {
+    id: "10520166",
+    title: "موسیقی الکترونیک",
+    blurb: "مجموعه‌ای برای حال‌وهوای الکترونیک",
+    emoji: "🪩",
+  },
+  {
+    id: "71385702",
+    title: "موسیقی انیمه و بازی",
+    blurb: "موسیقی برای انیمه، بازی و آثار تصویری",
+    emoji: "🎮",
   },
 ];
