@@ -158,7 +158,7 @@ function Explore() {
             <IdleScreen suggestions={suggestions.map((alias) => alias.fa)} onPick={setQuery} />
             <LaneRail lanes={LANES} onPick={setQuery} />
             <CollectionRail />
-            <PlaylistDiscovery onPick={setQuery} />
+            <PlaylistDiscovery />
           </div>
         ) : (
           <div className="mt-6">
