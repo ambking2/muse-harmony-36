@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
 import { shareTrack } from "@/lib/share-link";
@@ -85,7 +84,6 @@ export function NowPlayingOverlay() {
   const inLibrary = library.some((item) => trackKey(item) === key);
 
   const [lyricsOpen, setLyricsOpen] = useState(false);
-  const [playlistOpen, setPlaylistOpen] = useState(false);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [sleepOpen, setSleepOpen] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
@@ -223,7 +221,34 @@ export function NowPlayingOverlay() {
                   "separator",
                   { label: "پخش بعدی", icon: <ListPlus />, onSelect: () => playNext(track) },
                   { label: "افزودن به صف", icon: <ListMusic />, onSelect: () => addToQueue(track) },
-                  { label: "افزودن به پلی‌لیست", icon: <Plus />, onSelect: () => setPlaylistOpen(true) },
+                  {
+                    label: "ساخت پلی‌لیست جدید",
+                    icon: <Plus />,
+                    onSelect: () => {
+                      const name = window.prompt("نام پلی‌لیست جدید را وارد کن");
+                      if (!name?.trim()) return;
+                      const created = createPlaylist(name.trim());
+                      addToPlaylist(created.id, track);
+                      toast.success(`به «${created.name}» اضافه شد`);
+                    },
+                  },
+                  ...(playlists.length ? ["separator" as const] : []),
+                  ...playlists.map((playlist) => {
+                    const exists = playlist.trackKeys.includes(key);
+                    return {
+                      label: exists ? `حذف از «${playlist.name}»` : `افزودن به «${playlist.name}»`,
+                      icon: exists ? <Trash2 /> : <Plus />,
+                      onSelect: () => {
+                        if (exists) {
+                          removeFromPlaylist(playlist.id, key);
+                          toast.success(`از «${playlist.name}» حذف شد`);
+                        } else {
+                          addToPlaylist(playlist.id, track);
+                          toast.success(`به «${playlist.name}» اضافه شد`);
+                        }
+                      },
+                    };
+                  }),
                   {
                     label: inLibrary ? "حذف از کتابخانه" : "افزودن به کتابخانه",
                     icon: <Library /> ,
@@ -406,49 +431,6 @@ export function NowPlayingOverlay() {
           </div>
         </div>
       </div>
-
-      <Dialog open={playlistOpen} onOpenChange={setPlaylistOpen}>
-        <DialogContent className="material-thick max-h-[80svh] gap-3 overflow-y-auto rounded-sheet p-5">
-          <DialogHeader><DialogTitle className="type-title-3">افزودن به پلی‌لیست</DialogTitle></DialogHeader>
-          <div className="max-h-64 space-y-1 overflow-y-auto">
-            {playlists.map((playlist) => {
-              const exists = playlist.trackKeys.includes(key);
-              return (
-                <button key={playlist.id} type="button"
-                  onClick={() => {
-                    if (exists) {
-                      removeFromPlaylist(playlist.id, key);
-                      toast.success(`از «${playlist.name}» حذف شد`);
-                    } else {
-                      addToPlaylist(playlist.id, track);
-                      toast.success(`به «${playlist.name}» اضافه شد`);
-                    }
-                    setPlaylistOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-start transition hover:bg-ios-fill">
-                  {exists ? (
-                    <Trash2 className="size-5 shrink-0 text-destructive" />
-                  ) : (
-                    <ListMusic className="size-5 shrink-0 text-ios-tint" />
-                  )}
-                  <span className="min-w-0 flex-1 truncate text-sm">{playlist.name}</span>
-                  <span className={cn("text-xs", exists ? "text-destructive" : "text-ios-tint")}>
-                    {exists ? "حذف آهنگ" : "افزودن"}
-                  </span>
-                </button>
-              );
-            })}
-            {playlists.length === 0 && <p className="py-3 text-center text-sm text-muted-foreground">هنوز پلی‌لیستی نساخته‌اید.</p>}
-          </div>
-          <div className="flex gap-2">
-            <input value={newPlaylistName} onChange={(event) => setNewPlaylistName(event.target.value)}
-              placeholder="نام پلی‌لیست جدید" className="min-w-0 flex-1 rounded-xl border border-ios-separator bg-ios-fill/50 px-3 py-2 text-sm outline-none focus:border-ios-tint" />
-            <button type="button" disabled={!newPlaylistName.trim()}
-              onClick={() => { const created = createPlaylist(newPlaylistName.trim()); addToPlaylist(created.id, track); setNewPlaylistName(""); setPlaylistOpen(false); toast.success(`به «${created.name}» اضافه شد`); }}
-              className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">ساخت</button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={qualityOpen} onOpenChange={setQualityOpen}>
         <DialogContent className="material-thick gap-3 rounded-sheet p-5">
