@@ -9,10 +9,10 @@ import type { Track } from "@/lib/types";
  */
 const TrackMenu = lazy(() => import("./TrackMenu").then((m) => ({ default: m.TrackMenu })));
 
-export function TrackMenuLazy({ track, children }: { track: Track; children: ReactNode }) {
+export function TrackMenuLazy({ track, playlistId, children }: { track: Track; playlistId?: string; children: ReactNode }) {
   return (
     <Suspense fallback={children}>
-      <TrackMenu track={track}>{children}</TrackMenu>
+      <TrackMenu track={track} playlistId={playlistId}>{children}</TrackMenu>
     </Suspense>
   );
 }
