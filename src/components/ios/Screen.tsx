@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import { Button as GlisseButton } from "glisse";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -161,31 +162,40 @@ function BackButton({ to }: { to?: string }) {
 
   const face = <ChevronRight className="size-5 rotate-180 rtl:rotate-0" strokeWidth={2.2} />;
 
-  if (to) {
-    return (
-      <Link
-        to={to}
-        data-back
-        aria-label="بازگشت"
-        className="glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
-      >
-        <span className="lens-bend" aria-hidden="true" />
-        <span className="refract" aria-hidden="true" />
-        <span className="relative z-10">{face}</span>
-      </Link>
-    );
-  }
-  return (
+  const legacyBack = to ? (
+    <Link
+      to={to}
+      data-back
+      aria-label="بازگشت"
+      className="muis-legacy-back glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
+    >
+      <span className="lens-bend" aria-hidden="true" />
+      <span className="refract" aria-hidden="true" />
+      <span className="relative z-10">{face}</span>
+    </Link>
+  ) : (
     <button
       type="button"
       onClick={go}
       data-back
       aria-label="بازگشت"
-      className="glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
+      className="muis-legacy-back glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
     >
       <span className="lens-bend" aria-hidden="true" />
       <span className="refract" aria-hidden="true" />
       <span className="relative z-10">{face}</span>
     </button>
+  );
+
+  return (
+    <>
+      {legacyBack}
+      <GlisseButton
+        aria-label="بازگشت"
+        className="muis-glisse-back"
+        icon={face}
+        onClick={go}
+      />
+    </>
   );
 }
