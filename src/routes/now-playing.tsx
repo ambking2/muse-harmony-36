@@ -215,7 +215,7 @@ export function NowPlayingOverlay() {
           />
         </div>
 
-        <div className="now-playing-layout mx-auto flex h-full min-h-0 max-w-lg flex-col px-6 pb-[calc(var(--tabbar-inset)+0.5rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
+        <div className="now-playing-layout mx-auto flex h-full min-h-0 max-w-lg flex-col px-6 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
