@@ -1736,14 +1736,17 @@ button:disabled,
   width: 24px;
   height: 24px;
 }
-.muis-glisse-back {
+.muis-glisse-back,
+.muis-glisse-create {
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
   padding: 0;
   border-radius: 50%;
   color: var(--lg-foreground);
 }
-.muis-glisse-back > svg {
+.muis-glisse-back > svg,
+.muis-glisse-create > svg {
   width: 21px;
   height: 21px;
 }
@@ -1831,18 +1834,28 @@ button:disabled,
 
 :root[data-glass="off"] .muis-glisse-tabbar,
 :root[data-glass="off"] .muis-glisse-search,
+:root[data-glass="off"] .muis-glisse-back,
+:root[data-glass="off"] .muis-glisse-create,
 :root[data-glass="off"] .muis-glisse-tabbar *,
 :root[data-glass="off"] .muis-glisse-search *,
+:root[data-glass="off"] .muis-glisse-back *,
+:root[data-glass="off"] .muis-glisse-create *,
 :root[data-glass="off"] .muis-glisse-tabbar *::before,
 :root[data-glass="off"] .muis-glisse-tabbar *::after,
 :root[data-glass="off"] .muis-glisse-search::before,
-:root[data-glass="off"] .muis-glisse-search::after {
+:root[data-glass="off"] .muis-glisse-search::after,
+:root[data-glass="off"] .muis-glisse-back::before,
+:root[data-glass="off"] .muis-glisse-back::after,
+:root[data-glass="off"] .muis-glisse-create::before,
+:root[data-glass="off"] .muis-glisse-create::after {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
 
 :root[data-glass="off"] .muis-glisse-tabbar,
-:root[data-glass="off"] .muis-glisse-search {
+:root[data-glass="off"] .muis-glisse-search,
+:root[data-glass="off"] .muis-glisse-back,
+:root[data-glass="off"] .muis-glisse-create {
   background: var(--ios-surface) !important;
   box-shadow: 0 5px 16px oklch(0.3 0.02 268 / 0.09) !important;
 }
