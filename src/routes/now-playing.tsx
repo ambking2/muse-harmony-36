@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button as GlisseButton, Menu as GlisseMenu } from "glisse";
-import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { usePlayer } from "@/stores/player";
 import { useLibrary } from "@/stores/library";
@@ -41,11 +40,7 @@ export const Route = createFileRoute("/now-playing")({
 });
 
 function NowPlayingRoute() {
-  return (
-    <AppShell>
-      <NowPlayingOverlay />
-    </AppShell>
-  );
+  return <NowPlayingOverlay />;
 }
 
 export function NowPlayingOverlay() {
