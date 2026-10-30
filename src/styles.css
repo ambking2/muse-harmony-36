@@ -1891,7 +1891,7 @@ button:disabled,
 
 /* App-wide Glisse segmented controls (library, settings and other screens). */
 .muis-glisse-segmented.lg-segmented {
-  direction: rtl;
+  direction: ltr;
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
