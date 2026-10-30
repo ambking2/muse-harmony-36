@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Play } from "lucide-react";
+import { Heart, ListMusic, Play } from "lucide-react";
 import { useMemo } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -154,19 +154,10 @@ function FavoritesRail() {
  *  section costs no network calls at all. */
 function Collections() {
   return (
-    <Section
-      title="پلی‌لیست‌های ایرانی"
-      action={
-        <Link to="/explore" className="type-footnote text-ios-tint">
-          همه
-        </Link>
-      }
-    >
-      <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-4">
-        {FEATURED_PLAYLISTS.map((playlist) => (
-          <PlaylistCard key={playlist.id} playlist={playlist} />
-        ))}
-      </div>
-    </Section>
+    <Rail title="پلی‌لیست‌های ایرانی" icon={ListMusic}>
+      {FEATURED_PLAYLISTS.map((playlist) => (
+        <PlaylistCard key={playlist.id} playlist={playlist} className="w-52 shrink-0" />
+      ))}
+    </Rail>
   );
 }
