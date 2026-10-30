@@ -1,4 +1,4 @@
-import { House, Library, Search, UserRound, type LucideIcon } from "lucide-react";
+import { House, LibraryBig, Search, UserRound, type LucideIcon } from "lucide-react";
 
 /**
  * The app's destinations.
@@ -35,7 +35,7 @@ export interface TabItem {
 /** The three items inside the floating dock, in RTL reading order. */
 export const DOCK_ITEMS: readonly TabItem[] = [
   { tab: Tab.Home, to: "/", label: "خانه", icon: House },
-  { tab: Tab.Library, to: "/library", label: "کتابخانه", icon: Library },
+  { tab: Tab.Library, to: "/library", label: "کتابخانه", icon: LibraryBig },
   { tab: Tab.Account, to: "/profile", label: "پروفایل", icon: UserRound },
 ] as const;
 
