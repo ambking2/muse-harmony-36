@@ -79,6 +79,7 @@ export function NowPlayingOverlay() {
   const removeFromLibrary = useLibrary((s) => s.removeFromLibrary);
   const createPlaylist = useLibrary((s) => s.createPlaylist);
   const addToPlaylist = useLibrary((s) => s.addToPlaylist);
+  const removeFromPlaylist = useLibrary((s) => s.removeFromPlaylist);
   const playNext = usePlayer((s) => s.playNext);
   const addToQueue = usePlayer((s) => s.addToQueue);
   const inLibrary = library.some((item) => trackKey(item) === key);
@@ -413,12 +414,27 @@ export function NowPlayingOverlay() {
             {playlists.map((playlist) => {
               const exists = playlist.trackKeys.includes(key);
               return (
-                <button key={playlist.id} type="button" disabled={exists}
-                  onClick={() => { addToPlaylist(playlist.id, track); toast.success(`به «${playlist.name}» اضافه شد`); setPlaylistOpen(false); }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-start transition hover:bg-ios-fill disabled:opacity-45">
-                  <ListMusic className="size-5 shrink-0 text-ios-tint" />
+                <button key={playlist.id} type="button"
+                  onClick={() => {
+                    if (exists) {
+                      removeFromPlaylist(playlist.id, key);
+                      toast.success(`از «${playlist.name}» حذف شد`);
+                    } else {
+                      addToPlaylist(playlist.id, track);
+                      toast.success(`به «${playlist.name}» اضافه شد`);
+                    }
+                    setPlaylistOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-start transition hover:bg-ios-fill">
+                  {exists ? (
+                    <Trash2 className="size-5 shrink-0 text-destructive" />
+                  ) : (
+                    <ListMusic className="size-5 shrink-0 text-ios-tint" />
+                  )}
                   <span className="min-w-0 flex-1 truncate text-sm">{playlist.name}</span>
-                  {exists && <Check className="size-4 text-ios-tint" /> }
+                  <span className={cn("text-xs", exists ? "text-destructive" : "text-ios-tint")}>
+                    {exists ? "حذف آهنگ" : "افزودن"}
+                  </span>
                 </button>
               );
             })}
