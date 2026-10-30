@@ -102,6 +102,7 @@ export function Rail({
         ref={railRef}
         className="no-scrollbar flex cursor-grab gap-3 overflow-x-auto px-4 select-none active:cursor-grabbing"
         onPointerDown={(event) => {
+          suppressClick.current = false;
           if (event.pointerType !== "mouse" || event.button !== 0) return;
           drag.current = {
             pointerId: event.pointerId,
