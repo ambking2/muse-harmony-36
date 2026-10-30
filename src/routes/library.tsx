@@ -90,13 +90,17 @@ function LibraryPage() {
         actions={<NewPlaylistDialog />}
       >
         <div className="sticky top-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem)] z-30 -mx-4 mt-4 space-y-3 border-b border-ios-separator/60 bg-background/80 px-4 py-3 backdrop-blur-xl">
-          <Segmented value={tab} onChange={setTab} options={TABS} />
+          <div className="flex justify-start">
+            <Segmented value={tab} onChange={setTab} options={TABS} />
+          </div>
           {(tab === "songs" || tab === "history") && (
-            <SearchField
-              value={filter}
-              onChange={setFilter}
-              placeholder={tab === "songs" ? "فیلتر در کتابخانه" : "فیلتر در تاریخچه"}
-            />
+            <div className="mx-auto w-full max-w-xl">
+              <SearchField
+                value={filter}
+                onChange={setFilter}
+                placeholder={tab === "songs" ? "فیلتر در کتابخانه" : "فیلتر در تاریخچه"}
+              />
+            </div>
           )}
         </div>
 
