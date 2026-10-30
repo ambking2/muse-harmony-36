@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { Screen } from "@/components/ios/Screen";
 import { Section } from "@/components/ios/Section";
-import { getPlaylist } from "@/lib/gdmusic";
+import { getPlaylist, searchSmart } from "@/lib/gdmusic";
 import { FEATURED_PLAYLISTS } from "@/lib/featured";
 import { TrackRow } from "@/components/music/TrackRow";
 import { Artwork } from "@/components/music/Artwork";
@@ -20,14 +20,20 @@ export const Route = createFileRoute("/mix/$id")({
 function MixPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const curated = FEATURED_PLAYLISTS.find((p) => p.id === id);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mix", id],
     staleTime: 60 * 60_000,
-    queryFn: () => getPlaylist("netease", id),
+    queryFn: async () => {
+      if (curated?.query) {
+        const tracks = await searchSmart(curated.query, { count: 30, iranianFirst: true });
+        if (!tracks.length) return null;
+        return { id, name: curated.title, cover: tracks[0]?.pic_id ?? "", tracks };
+      }
+      return getPlaylist("netease", id);
+    },
   });
-
-  const curated = FEATURED_PLAYLISTS.find((p) => p.id === id);
   const tracks = data?.tracks ?? [];
   const coverTrack = tracks[0];
   const unavailable = isError || (data === null && !isLoading);
