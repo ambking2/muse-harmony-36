@@ -235,7 +235,7 @@ export function NowPlayingOverlay() {
                   "separator",
                   { label: "اشتراک‌گذاری آهنگ", icon: <Share2 />, onSelect: () => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد")) },
                 ]}
-              />/DropdownMenu>
+              />
               <button
                 type="button"
                 onClick={minimize}
@@ -395,7 +395,58 @@ export function NowPlayingOverlay() {
         </div>
       </div>
 
-      {/* Lyrics, in their own dialog so the main screen stays clear. */}
+      <Dialog open={playlistOpen} onOpenChange={setPlaylistOpen}>
+        <DialogContent className="material-thick max-h-[80svh] gap-3 overflow-y-auto rounded-sheet p-5">
+          <DialogHeader><DialogTitle className="type-title-3">افزودن به پلی‌لیست</DialogTitle></DialogHeader>
+          <div className="max-h-64 space-y-1 overflow-y-auto">
+            {playlists.map((playlist) => {
+              const exists = playlist.trackKeys.includes(key);
+              return (
+                <button key={playlist.id} type="button" disabled={exists}
+                  onClick={() => { addToPlaylist(playlist.id, track); toast.success(`به «${playlist.name}» اضافه شد`); setPlaylistOpen(false); }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-start transition hover:bg-ios-fill disabled:opacity-45">
+                  <ListMusic className="size-5 shrink-0 text-ios-tint" />
+                  <span className="min-w-0 flex-1 truncate text-sm">{playlist.name}</span>
+                  {exists && <Check className="size-4 text-ios-tint" /> }
+                </button>
+              );
+            })}
+            {playlists.length === 0 && <p className="py-3 text-center text-sm text-muted-foreground">هنوز پلی‌لیستی نساخته‌اید.</p>}
+          </div>
+          <div className="flex gap-2">
+            <input value={newPlaylistName} onChange={(event) => setNewPlaylistName(event.target.value)}
+              placeholder="نام پلی‌لیست جدید" className="min-w-0 flex-1 rounded-xl border border-ios-separator bg-ios-fill/50 px-3 py-2 text-sm outline-none focus:border-ios-tint" />
+            <button type="button" disabled={!newPlaylistName.trim()}
+              onClick={() => { const created = createPlaylist(newPlaylistName.trim()); addToPlaylist(created.id, track); setNewPlaylistName(""); setPlaylistOpen(false); toast.success(`به «${created.name}» اضافه شد`); }}
+              className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">ساخت</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={qualityOpen} onOpenChange={setQualityOpen}>
+        <DialogContent className="material-thick gap-3 rounded-sheet p-5">
+          <DialogHeader><DialogTitle className="type-title-3">کیفیت صدا</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-2">
+            {QUALITIES.map((q) => (
+              <button key={q.br} type="button" aria-pressed={quality === q.br}
+                onClick={() => { setQuality(q.br as Quality); setQualityOpen(false); }}
+                className={cn("rounded-xl border px-3 py-3 text-sm font-semibold transition", quality === q.br ? "border-primary bg-primary text-primary-foreground" : "border-ios-separator bg-ios-fill/40")}>
+                {q.br === 999 ? "FLAC" : `${q.br} kbps`}
+                {quality === q.br && <Check className="mr-2 inline size-4" /> }
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={sleepOpen} onOpenChange={setSleepOpen}>
+        <DialogContent className="material-thick gap-3 rounded-sheet p-5">
+          <DialogHeader><DialogTitle className="type-title-3">تایمر خواب</DialogTitle></DialogHeader>
+          <SleepSection />
+        </DialogContent>
+      </Dialog>
+
+            {/* Lyrics, in their own dialog so the main screen stays clear. */}
       <Dialog open={lyricsOpen} onOpenChange={setLyricsOpen}>
         <DialogContent className="material-thick max-h-[85svh] gap-3 overflow-y-auto rounded-sheet p-5">
           <DialogHeader>
@@ -430,62 +481,6 @@ export function NowPlayingOverlay() {
 /** Keeps the picker's call sites honest without dragging types around. */
 function onChangeQuality(set: (q: Quality) => void, br: Quality) {
   set(br);
-}
-
-function SheetIcon({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-ios-fill text-ios-tint">
-      {children}
-    </span>
-  );
-}
-
-/**
- * One row of the song menu. Either a button (onClick) or a router link (to +
- * params); the two shapes never mix on one row.
- */
-function SheetRow({
-  icon,
-  label,
-  onClick,
-  to,
-  params,
-  onNavigate,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  to?: string;
-  params?: Record<string, string>;
-  onNavigate?: () => void;
-}) {
-  const inner = (
-    <>
-      <SheetIcon>{icon}</SheetIcon>
-      <span className="flex-1 truncate text-sm font-medium">{label}</span>
-    </>
-  );
-  if (to) {
-    return (
-      <Link
-        to={to}
-        params={params}
-        onClick={onNavigate}
-        className="flex w-full items-center gap-3 px-2 py-2 text-start transition hover:text-primary"
-      >
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 px-2 py-2 text-start"
-    >
-      {inner}
-    </button>
-  );
 }
 
 /** Static pseudo-random bars, scaled by playback progress. */
