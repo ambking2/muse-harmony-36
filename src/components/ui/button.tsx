@@ -41,7 +41,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const classes = cn("muis-glisse-button", buttonVariants({ variant, size, className }));
     if (asChild) return <Slot className={classes} ref={ref} {...props} />;
-    return <GlisseButton className={classes} {...props} />;
+    return <GlisseButton ref={ref} className={classes} {...props} />;
 
   },
 );
