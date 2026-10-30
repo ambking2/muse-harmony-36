@@ -158,7 +158,7 @@ function Explore() {
             scaleX: searchHeaderCompact ? 0.88 : 1,
           }}
           transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.7 }}
-          style={{ transformOrigin: "left center", marginRight: searchHeaderCompact ? 12 : 0 }}
+          style={{ transformOrigin: "left center", x: searchHeaderCompact ? 12 : 0 }}
         >
           <div className="mx-auto w-full max-w-xl">
             <SearchField
