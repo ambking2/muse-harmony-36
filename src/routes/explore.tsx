@@ -152,15 +152,13 @@ function Explore() {
             one control worth having in the hand while reading them is the one
             that changes them — so it rides above the list on a frosted bar
             that lets rows pass under it, rather than scrolling away. */}
-        <motion.div
-          className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 px-4"
-          animate={{
-            scaleX: searchHeaderCompact ? 0.88 : 1,
-          }}
-          transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.7 }}
-          style={{ transformOrigin: "left center", x: searchHeaderCompact ? 12 : 0 }}
-        >
-          <div className="mx-auto w-full max-w-xl">
+        <div className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 px-4">
+          <motion.div
+            className="w-full max-w-xl"
+            animate={{ width: searchHeaderCompact ? "calc(100% - 72px)" : "100%" }}
+            transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.7 }}
+            style={{ marginLeft: 0, marginRight: "auto" }}
+          >
             <SearchField
               value={query}
               onChange={setQuery}
@@ -168,8 +166,8 @@ function Explore() {
               placeholder="نام آهنگ، خواننده یا آلبوم"
               className={searchHeaderCompact ? "search-field-compact" : undefined}
             />
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         <RecognizeSearchCard />
 
