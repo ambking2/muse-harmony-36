@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { Button as GlisseButton } from "glisse";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { usePlayer } from "@/stores/player";
@@ -261,24 +262,6 @@ export function NowPlayingOverlay() {
                         onNavigate={() => setMenuOpen(false)}
                       />
                     )}
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        if (!isFav) {
-                          floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
-                          iconPop(event.currentTarget);
-                        }
-                        toggleFav(track);
-                      }}
-                      className="flex w-full items-center gap-3 px-2 py-2 text-start"
-                    >
-                      <SheetIcon>
-                        <Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={2} />
-                      </SheetIcon>
-                      <span className="flex-1 truncate text-sm font-medium">
-                        {isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-                      </span>
-                    </button>
                     <TrackMenu track={track}>
                       <button
                         type="button"
@@ -415,6 +398,22 @@ export function NowPlayingOverlay() {
                     {a}
                   </Link>
                 ))}
+              </div>
+              <div className="mt-2 flex justify-center">
+                <GlisseButton
+                  type="button"
+                  className={cn("muis-glisse-player-favorite", isFav && "is-favorite")}
+                  icon={<Heart className={cn("size-5", isFav && "fill-current")} strokeWidth={1.9} />}
+                  aria-label={isFav ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+                  aria-pressed={isFav}
+                  onClick={(event) => {
+                    if (!isFav) {
+                      floatUp(event.currentTarget, "به علاقه‌مندی‌ها اضافه شد");
+                      iconPop(event.currentTarget);
+                    }
+                    toggleFav(track);
+                  }}
+                />
               </div>
             </div>
 
