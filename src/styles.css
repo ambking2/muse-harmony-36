@@ -1699,9 +1699,10 @@ button:disabled,
 }
 
 .muis-glisse-dock-inner {
-  direction: ltr;
+  direction: rtl;
 }
 .muis-glisse-tabbar {
+  direction: ltr;
   --lg-tab-height: 52px;
   --lg-tab-width: 72px;
   --lg-tab-selected: var(--ios-tint);
