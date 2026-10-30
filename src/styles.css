@@ -2312,3 +2312,71 @@ body:has(.muis-player-playlist-dialog[data-state="open"]) [data-radix-dialog-ove
     -webkit-backdrop-filter: blur(12px);
   }
 }
+
+
+/* ─── Glass-mode performance tuning ────────────────────────────────────────
+   Keep the Liquid Glass look and its interactions, but lower the cost of
+   repeatedly sampling and warping the page underneath translucent surfaces. */
+:root:not([data-glass="off"]) {
+  --material-blur: 10px;
+  --panel-blur: 6px;
+  --lens-blur: 5px;
+  --glass-sat: 125%;
+  --lg-glass-bend: 0.28;
+  --lg-glass-dispersion: 0.12;
+  --lg-blur: 1px;
+}
+
+:root:not([data-glass="off"]) .muis-glisse-mini-player,
+:root:not([data-glass="off"]) .muis-glisse-dock-inner,
+:root:not([data-glass="off"]) .muis-glisse-search,
+:root:not([data-glass="off"]) .muis-glisse-input.lg-input,
+:root:not([data-glass="off"]) .muis-glisse-button,
+:root:not([data-glass="off"]) .muis-glisse-player-favorite,
+:root:not([data-glass="off"]) .muis-glisse-player-share,
+:root:not([data-glass="off"]) .muis-glisse-tabbar {
+  --lg-glass-bend: 0.28;
+  --lg-glass-dispersion: 0.12;
+  --lg-blur: 1px;
+}
+
+:root:not([data-glass="off"]) .lens > .lens-bend,
+:root:not([data-glass="off"]) .dock-hero > .lens-bend,
+:root:not([data-glass="off"]) .screen-back-button > .lens-bend {
+  -webkit-backdrop-filter: blur(5px) saturate(125%) !important;
+  backdrop-filter: blur(5px) saturate(125%) !important;
+}
+
+:root:not([data-glass="off"]) .refract,
+:root:not([data-glass="off"]) .dock-hero > .refract,
+:root:not([data-glass="off"]) .screen-back-button > .refract {
+  filter: none !important;
+}
+
+:root:not([data-glass="off"]) .glass,
+:root:not([data-glass="off"]) .glass-strong,
+:root:not([data-glass="off"]) .toaster [data-sonner-toast] {
+  -webkit-backdrop-filter: blur(8px) saturate(125%);
+  backdrop-filter: blur(8px) saturate(125%);
+}
+
+:root:not([data-glass="off"]) .toaster [data-sonner-toast] {
+  backdrop-filter: blur(8px) saturate(1.15);
+  -webkit-backdrop-filter: blur(8px) saturate(1.15);
+}
+
+@media (hover: none) and (pointer: coarse), (max-width: 1024px) {
+  :root:not([data-glass="off"]) {
+    --material-blur: 6px;
+    --panel-blur: 0px;
+    --lens-blur: 0px;
+    --glass-sat: 110%;
+  }
+
+  :root:not([data-glass="off"]) .glass,
+  :root:not([data-glass="off"]) .glass-strong,
+  :root:not([data-glass="off"]) .toaster [data-sonner-toast] {
+    -webkit-backdrop-filter: blur(5px) saturate(110%);
+    backdrop-filter: blur(5px) saturate(110%);
+  }
+}
