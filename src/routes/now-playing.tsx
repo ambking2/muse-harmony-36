@@ -292,7 +292,7 @@ export function NowPlayingOverlay() {
             </button>
           </header>
 
-          <div className="flex min-h-0 flex-1 flex-col justify-start gap-0 overflow-hidden pt-3">
+          <div className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-hidden pt-5 pb-8">
             {/* Cover */}
             <motion.div
               key={key}
@@ -324,7 +324,7 @@ export function NowPlayingOverlay() {
             </motion.div>
 
             {/* Track details stay on the left; the favorite action sits opposite on the right. */}
-            <div className="mt-1 flex shrink-0 items-center justify-between gap-4" dir="ltr">
+            <div className="mt-5 flex shrink-0 items-center justify-between gap-4" dir="ltr">
               <div className="min-w-0 flex-1 text-left">
                 <h1 className="type-title-2 truncate">{track.name}</h1>
                 <div className="mt-0.5 flex min-w-0 flex-wrap justify-start gap-x-2">
@@ -359,7 +359,7 @@ export function NowPlayingOverlay() {
             </div>
 
             {/* Progress */}
-            <div className="mt-2">
+            <div className="mt-5">
               <Waveform current={currentTime} duration={duration} />
               <Slider
                 value={[Math.min(currentTime, duration || 0)]}
@@ -372,12 +372,11 @@ export function NowPlayingOverlay() {
               <div className="type-footnote mt-1 flex justify-between tabular-nums text-ios-label-secondary ltr-nums">
                 <span>{formatTime(currentTime)}</span>
                 <span>-{formatTime(remaining)}</span>
-              </div>
             </div>
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="now-playing-transport mx-auto mt-4 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
+          <div className="now-playing-transport mx-auto mt-3 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
@@ -429,6 +428,7 @@ export function NowPlayingOverlay() {
             >
               {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
             </button>
+          </div>
           </div>
         </div>
       </div>
