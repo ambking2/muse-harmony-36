@@ -296,22 +296,24 @@ export function NowPlayingOverlay() {
               </motion.div>
             </motion.div>
 
-            {/* Meta — the name and who sings it; the album lives in the menu. */}
-            <div className="mt-1 shrink-0 text-center">
-              <h1 className="type-title-2 truncate">{track.name}</h1>
-              <div className="mt-0.5 flex flex-wrap justify-center gap-x-2">
-                {track.artist.map((a) => (
-                  <Link
-                    key={a}
-                    to="/artist/$name"
-                    params={{ name: a }}
-                    className="max-w-full truncate text-sm text-muted-foreground transition hover:text-primary"
-                  >
-                    {a}
-                  </Link>
-                ))}
+            {/* Track details stay on the left; the favorite action sits opposite on the right. */}
+            <div className="mt-1 flex shrink-0 items-center justify-between gap-4" dir="ltr">
+              <div className="min-w-0 flex-1 text-left">
+                <h1 className="type-title-2 truncate">{track.name}</h1>
+                <div className="mt-0.5 flex min-w-0 flex-wrap justify-start gap-x-2">
+                  {track.artist.map((a) => (
+                    <Link
+                      key={a}
+                      to="/artist/$name"
+                      params={{ name: a }}
+                      className="max-w-full truncate text-sm text-muted-foreground transition hover:text-primary"
+                    >
+                      {a}
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <div className="mt-2 flex justify-center">
+              <div className="shrink-0">
                 <GlisseButton
                   type="button"
                   className={cn("muis-glisse-player-favorite", isFav && "is-favorite")}
