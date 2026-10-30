@@ -79,7 +79,7 @@ export function TabBar() {
             className="muis-glisse-tabbar"
             value={current}
             link={RouterAnchor}
-            items={DOCK_ITEMS.map((item) => ({
+            items={[...DOCK_ITEMS].reverse().map((item) => ({
               value: item.tab,
               label: item.label,
               href: item.to,
