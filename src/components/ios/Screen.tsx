@@ -50,16 +50,12 @@ export function Screen({
   const hasBar = showBack || Boolean(actions);
   const barRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const [homeHasScrolled, setHomeHasScrolled] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
-  // On the home screen, keep the title crisp on first entry. Enable the top
-  // frost only after the user starts scrolling the content beneath it.
+  // Keep the top of every screen clear on entry. Enable the fading frost
+  // after scrolling, and remove it again when the user returns to the top.
   useEffect(() => {
-    if (pathname !== "/") {
-      setHomeHasScrolled(false);
-      return;
-    }
-    const update = () => setHomeHasScrolled(window.scrollY > 12);
+    const update = () => setHasScrolled(window.scrollY > 12);
     update();
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
@@ -96,9 +92,8 @@ export function Screen({
 
   return (
     <>
-      {/* Keep the same disappearing-content frost on home too, even though
-          home intentionally has no fixed back/actions bar. */}
-      <div aria-hidden="true" className={cn("screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32", pathname === "/" && !homeHasScrolled && "screen-top-frost-idle")} />
+      {/* Shared top-edge fade on every screen; it stays clear at scroll-top. */}
+      <div aria-hidden="true" className={cn("screen-top-frost pointer-events-none fixed inset-x-0 top-0 z-30 h-32", !hasScrolled && "screen-top-frost-idle")} />
       {hasBar && (
         <>
           <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
