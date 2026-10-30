@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { ListMusic, Mic2, type LucideIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -59,13 +60,66 @@ export function Rail({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const railRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ pointerId: number; startX: number; startScroll: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      const active = drag.current;
+      const rail = railRef.current;
+      if (!active || !rail || event.pointerId !== active.pointerId) return;
+      const delta = event.clientX - active.startX;
+      if (!active.moved && Math.abs(delta) < 5) return;
+      active.moved = true;
+      rail.dataset.dragging = "true";
+      rail.scrollLeft = active.startScroll - delta;
+      event.preventDefault();
+    };
+    const end = (event: PointerEvent) => {
+      if (!drag.current || event.pointerId !== drag.current.pointerId) return;
+      suppressClick.current = drag.current.moved;
+      drag.current = null;
+      if (railRef.current) delete railRef.current.dataset.dragging;
+    };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+    };
+  }, []);
+
   return (
     <section className="mb-8">
       <div className="mb-3 flex items-center justify-between px-4">
         <h2 className="type-footnote text-ios-label-secondary">{title}</h2>
         {action}
       </div>
-      <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{children}</div>
+      <div
+        ref={railRef}
+        className="no-scrollbar flex cursor-grab gap-3 overflow-x-auto px-4 select-none active:cursor-grabbing"
+        onPointerDown={(event) => {
+          if (event.pointerType !== "mouse" || event.button !== 0) return;
+          drag.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startScroll: event.currentTarget.scrollLeft,
+            moved: false,
+          };
+        }}
+        onClickCapture={(event) => {
+          if (!suppressClick.current) return;
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClick.current = false;
+        }}
+        onDragStart={(event) => event.preventDefault()}
+      >
+        {children}
+      </div>
     </section>
   );
 }
