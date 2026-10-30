@@ -55,7 +55,8 @@ export function Screen({
   // Keep the top of every screen clear on entry. Enable the fading frost
   // after scrolling, and remove it again when the user returns to the top.
   useEffect(() => {
-    const update = () => setHasScrolled(window.scrollY > 40);
+    const update = () => setHasScrolled(window.scrollY > (pathname === "/" ? 88 : 40));
+    setHasScrolled(false);
     update();
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
