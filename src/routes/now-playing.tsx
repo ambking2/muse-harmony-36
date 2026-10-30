@@ -26,6 +26,7 @@ import {
   SkipBack, SkipForward, SlidersHorizontal, Timer, Music, Type,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
