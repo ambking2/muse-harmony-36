@@ -3,6 +3,7 @@
  * or chart; the detail route fetches its real tracks from the music service.
  */
 export type PlaylistGroup = "همه" | "ایرانی" | "سبک" | "بین‌المللی";
+// Persian-themed collections are added in this branch.
 
 export interface FeaturedPlaylist {
   id: string;
