@@ -614,10 +614,11 @@ function SleepSection() {
 
   return (
     <div className="px-3 py-3">
-      <p className="type-footnote mb-3 flex items-center gap-1.5 text-ios-label-secondary">
-        <Timer className="size-3.5" /> تایمر خواب
-        {sleepAt && <span className="mr-1">· {durationText(remainingSeconds)} مانده</span>}
-      </p>
+      {sleepAt && (
+        <p className="type-footnote mb-3 flex items-center gap-1.5 text-ios-label-secondary">
+          <Timer className="size-3.5" /> {durationText(remainingSeconds)} مانده
+        </p>
+      )}
       <div className="glass rounded-2xl p-3">
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="text-xs text-ios-label-secondary">مدت زمان</span>
