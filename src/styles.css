@@ -1689,17 +1689,14 @@ button:disabled,
 /* ─── Glisse: the actual Liquid Glass engine ───────────────────────────────
    The library owns the refraction, chromatic split, lens rim and spring
    interaction. Keep the old controls mounted only as the glass-off fallback. */
-:root:not([data-glass="off"]) .muis-legacy-dock,
-:root:not([data-glass="off"]) .muis-legacy-back {
-  display: none !important;
-}
-:root[data-glass="off"] .muis-glisse-dock,
-:root[data-glass="off"] .muis-glisse-back {
-  display: none !important;
-}
+/* The Glisse dock is the single navigation dock in every app appearance mode.
+   Its own optical material remains enabled even when page-wide glass is off. */
 
 .muis-glisse-dock-inner {
   direction: rtl;
+  /* Keep the dock's optical treatment independent from the global glass switch. */
+  --lg-lens-shine: 1.35;
+  --lg-rim-shine: 0.32;
 }
 .muis-glisse-tabbar {
   direction: ltr;
