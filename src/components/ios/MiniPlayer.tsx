@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Pause, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { Glass } from "glisse";
 
 import { getPicUrl, picKey } from "@/lib/gdmusic";
 import { crossfade, morph, snappy, swapIcon, swapLine } from "@/lib/design/motion";
@@ -69,7 +70,7 @@ export function MiniPlayer() {
           transition={morph}
           className="fixed inset-x-0 bottom-[calc(var(--tabbar-inset)+0.5rem)] z-40 px-3"
         >
-          <div className="material lens specular dock-hero relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-[2.25rem] border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
+          <Glass className="muis-glisse-mini-player material lens specular dock-hero relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-[2.25rem] border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
             <Link
               to="/now-playing"
               className="press relative flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-tile ps-1 pe-2"
@@ -196,7 +197,7 @@ export function MiniPlayer() {
             <div aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-ios-label/25">
               <motion.div className="h-full origin-left bg-ios-tint" style={{ scaleX: progress }} />
             </div>
-          </div>
+          </Glass>
         </motion.div>
       )}
     </AnimatePresence>
