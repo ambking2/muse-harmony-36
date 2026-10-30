@@ -1954,7 +1954,7 @@ button:disabled,
   max-width: none;
   height: 56px;
   min-height: 56px;
-  padding: 0 16px;
+  padding: 0 16px 0 48px;
   border: 1px solid var(--ios-separator);
   border-radius: 18px;
   color: var(--ios-label);
