@@ -1594,19 +1594,7 @@ button:disabled,
 }
 
 
-/* Keep the transport controls optically centered on tall, narrow phones. */
-@media (max-width: 480px) and (min-height: 720px) {
-  .now-playing-transport {
-    transform: translateY(-0.6rem);
-  }
-}
-
-/* Short portrait screens need the controls lifted a little more to avoid the bottom inset. */
-@media (max-height: 740px) and (orientation: portrait) {
-  .now-playing-transport {
-    transform: translateY(-0.85rem);
-  }
-}
+/* Full player spacing is handled by its flex layout and safe-area padding. */
 
 /* ─── Low-power profile (phones and mid-range GPUs) ────────────────────────
    The three fixed atmosphere layers (mesh, mesh-accent, ambient-art) are the
