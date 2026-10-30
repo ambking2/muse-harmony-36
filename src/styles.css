@@ -1891,12 +1891,13 @@ button:disabled,
 
 /* App-wide Glisse segmented controls (library, settings and other screens). */
 .muis-glisse-segmented.lg-segmented {
-  direction: ltr;
-  display: flex;
-  width: 100%;
+  direction: rtl;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   --lg-tab-height: 40px;
-  --lg-tab-width: calc(100% / var(--lg-tabs));
+  --lg-tab-width: 104px;
   --lg-tab-inset: 0px;
   --lg-thumb-inset: 2px;
   --lg-lens-grow-x: 16px;
@@ -1907,9 +1908,9 @@ button:disabled,
 }
 
 .muis-glisse-segmented .lg-tab-labels {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
-  width: auto;
+  width: fit-content;
 }
 
 .muis-glisse-segmented .lg-tab {
