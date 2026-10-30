@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { Input } from "glisse";
 import { Search, X } from "lucide-react";
 import { useState, type RefObject } from "react";
 
@@ -6,8 +7,8 @@ import { snappy } from "@/lib/design/motion";
 import { cn } from "@/lib/utils";
 
 /**
- * Search field as a raised, rounded material surface. Focus is shown with a
- * restrained tint ring; the glass itself follows the app-wide glass setting.
+ * Search and filter field using Glisse's real refracting Input surface.
+ * Keeps the app's controlled value API, Persian placeholder and clear action.
  */
 export function SearchField({
   value,
@@ -30,42 +31,32 @@ export function SearchField({
     <motion.div
       animate={{ scale: focused ? 1.01 : 1 }}
       transition={snappy}
-      className={cn(
-        "material specular flex min-h-14 items-center gap-3 rounded-2xl border px-4 transition-[border-color,box-shadow] duration-200",
-        focused
-          ? "border-ios-tint ring-2 ring-ios-tint/15"
-          : "border-ios-separator",
-        className,
-      )}
+      className={cn("w-full", className)}
     >
-      <motion.span
-        animate={{ scale: focused ? 1.08 : 1 }}
-        transition={snappy}
-        className="flex shrink-0"
-        aria-hidden
-      >
-        <Search
-          className={cn(
-            "size-5 transition-colors duration-200",
-            focused ? "text-ios-tint" : "text-ios-label-secondary",
-          )}
-          strokeWidth={2.2}
-        />
-      </motion.span>
-      <input
+      <Input
         ref={inputRef}
-        type="search"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onValueChange={onChange}
         onKeyDown={onKeyDown}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder={placeholder}
+        type="text"
+        dir="auto"
         enterKeyHint="search"
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        className="type-body min-w-0 flex-1 bg-transparent outline-none placeholder:text-ios-label-tertiary"
+        icon={
+          <Search
+            className={cn(
+              "size-5 transition-colors duration-200",
+              focused ? "text-ios-tint" : "text-ios-label-secondary",
+            )}
+            strokeWidth={2.2}
+          />
+        }
+        className="muis-glisse-input"
       />
       <AnimatePresence>
         {value && (
@@ -79,7 +70,8 @@ export function SearchField({
             transition={snappy}
             onClick={() => onChange("")}
             aria-label="پاک کردن"
-            className="press grid size-8 shrink-0 place-items-center rounded-full bg-ios-fill-strong text-ios-label-secondary"
+            className="press absolute"
+            style={{ display: "none" }}
           >
             <X className="size-3.5" strokeWidth={2.5} />
           </motion.button>
