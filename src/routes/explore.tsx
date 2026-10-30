@@ -153,7 +153,7 @@ function Explore() {
             that changes them — so it rides above the list on a frosted bar
             that lets rows pass under it, rather than scrolling away. */}
         <motion.div
-          className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 mt-4 px-4"
+          className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 px-4"
           animate={{
             scale: searchHeaderCompact ? 0.94 : 1,
             paddingRight: searchHeaderCompact ? 56 : 16,
