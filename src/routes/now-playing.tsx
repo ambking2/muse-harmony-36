@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Button as GlisseButton } from "glisse";
+import { Button as GlisseButton, Menu as GlisseMenu } from "glisse";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ios/EmptyState";
 import { usePlayer } from "@/stores/player";
@@ -21,26 +21,9 @@ import {
 import { trackKey } from "@/lib/types";
 import type { LyricLine, Quality } from "@/lib/types";
 import {
-  ChevronDown,
-  Disc3,
-  Ellipsis,
-  Heart,
-  ListMusic,
-  Pause,
-  Play,
-  Plus,
-  Repeat,
-  Repeat1,
-  Share2,
-  Shuffle,
-  SkipBack,
-  SkipForward,
-  Timer,
-  Download,
-  Music,
-  Type,
-  WifiOff,
-  Loader2,
+  Check, ChevronDown, Disc3, Download, Ellipsis, Heart, Library, ListMusic,
+  ListPlus, Mic2, Pause, Play, Plus, Repeat, Repeat1, Share2, Shuffle,
+  SkipBack, SkipForward, SlidersHorizontal, Timer, Music, Type,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -49,13 +32,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LoadingButton } from "@/components/ui/loading-button";
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
 import { shareTrack } from "@/lib/share-link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { TrackMenu } from "@/components/music/TrackMenu";
 import { floatUp, iconPop } from "@/lib/design/motion-gsap";
 
 export const Route = createFileRoute("/now-playing")({
@@ -97,12 +78,21 @@ export function NowPlayingOverlay() {
   const isFav = favorites.includes(key);
   const isOffline = !!track?.srcUrl;
   const downloaded = downloads.some((d) => d.id.startsWith(`${key}:`) && d.status === "done");
+  const library = useLibrary((s) => s.library);
+  const playlists = useLibrary((s) => s.playlists);
+  const addToLibrary = useLibrary((s) => s.addToLibrary);
+  const removeFromLibrary = useLibrary((s) => s.removeFromLibrary);
+  const createPlaylist = useLibrary((s) => s.createPlaylist);
+  const addToPlaylist = useLibrary((s) => s.addToPlaylist);
+  const playNext = usePlayer((s) => s.playNext);
+  const addToQueue = usePlayer((s) => s.addToQueue);
+  const inLibrary = library.some((item) => trackKey(item) === key);
 
-  // The screen carries two controls and nothing else: collapse to wherever the
-  // user came from (the mini player takes over), and the sheet for everything
-  // secondary.
-  const [menuOpen, setMenuOpen] = useState(false);
   const [lyricsOpen, setLyricsOpen] = useState(false);
+  const [playlistOpen, setPlaylistOpen] = useState(false);
+  const [qualityOpen, setQualityOpen] = useState(false);
+  const [sleepOpen, setSleepOpen] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
   const minimize = () => setExpanded(false);
 
   const pic = useQuery({
