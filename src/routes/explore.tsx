@@ -156,7 +156,6 @@ function Explore() {
           className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 px-4"
           animate={{
             scaleX: searchHeaderCompact ? 0.88 : 1,
-            scaleY: searchHeaderCompact ? 0.92 : 1,
           }}
           transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.7 }}
           style={{ transformOrigin: "left center", marginRight: searchHeaderCompact ? 12 : 0 }}
