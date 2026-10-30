@@ -254,7 +254,10 @@ export function NowPlayingOverlay() {
 
             <button
               type="button"
-              onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد"))}
+              onClick={() => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد", {
+                description: "دوباره تلاش کن یا دسترسی کپی لینک را بررسی کن.",
+                duration: 3200,
+              }))}
               className="glass-btn press text-ios-label-secondary"
               aria-label="اشتراک‌گذاری آهنگ"
             >
