@@ -24,7 +24,6 @@ import {
   ListMusic,
   Mic2,
   Disc3,
-  Check,
 } from "lucide-react";
 import { downloadTrack } from "@/lib/download";
 import { shareTrack } from "@/lib/share-link";
