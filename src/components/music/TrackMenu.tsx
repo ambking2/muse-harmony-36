@@ -33,12 +33,13 @@ import { useNavigate } from "@tanstack/react-router";
 import { QUALITIES } from "@/lib/gdmusic";
 import { cn } from "@/lib/utils";
 
-export function TrackMenu({ track, children }: { track: Track; children: ReactNode }) {
+export function TrackMenu({ track, playlistId, children }: { track: Track; playlistId?: string; children: ReactNode }) {
   const navigate = useNavigate();
   const addToQueue = usePlayer((s) => s.addToQueue);
   const playNext = usePlayer((s) => s.playNext);
   const addToLibrary = useLibrary((s) => s.addToLibrary);
   const removeFromLibrary = useLibrary((s) => s.removeFromLibrary);
+  const removeFromPlaylist = useLibrary((s) => s.removeFromPlaylist);
   const toggleFav = useLibrary((s) => s.toggleFavorite);
   const favorites = useLibrary((s) => s.favorites);
   const playlists = useLibrary((s) => s.playlists);
@@ -74,6 +75,17 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
           <Heart className={cn("ml-2 size-4", isFav && "fill-current text-primary")} />
           {isFav ? "حذف از علاقه‌مندی" : "علاقه‌مندی"}
         </DropdownMenuItem>
+        {playlistId && (
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onSelect={() => {
+              removeFromPlaylist(playlistId, k);
+              toast.success("آهنگ از این پلی‌لیست حذف شد");
+            }}
+          >
+            <Trash2 className="ml-2 size-4" /> حذف از این پلی‌لیست
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
