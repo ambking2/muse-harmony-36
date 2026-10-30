@@ -143,12 +143,14 @@ function Explore() {
             that changes them — so it rides above the list on a frosted bar
             that lets rows pass under it, rather than scrolling away. */}
         <div className="sticky top-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem)] z-30 -mx-4 mt-4 px-4 py-2">
-          <SearchField
-            value={query}
-            onChange={setQuery}
-            inputRef={inputRef}
-            placeholder="نام آهنگ، خواننده یا آلبوم"
-          />
+          <div className="mx-auto w-full max-w-xl">
+            <SearchField
+              value={query}
+              onChange={setQuery}
+              inputRef={inputRef}
+              placeholder="نام آهنگ، خواننده یا آلبوم"
+            />
+          </div>
         </div>
 
         <RecognizeSearchCard />
