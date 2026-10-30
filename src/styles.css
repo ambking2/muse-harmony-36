@@ -2143,6 +2143,18 @@ button.press:active {
   --lg-rim-shine: 0.38;
   --lg-blur: 2px;
 }
+.muis-glisse-player-share {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--lg-foreground);
+  --lg-glass-bend: 0.58;
+  --lg-glass-dispersion: 0.5;
+  --lg-rim-shine: 0.38;
+  --lg-blur: 2px;
+}
 .muis-glisse-player-favorite.is-favorite { color: var(--ios-tint); }
 .dark .muis-glisse-player-favorite { --lg-rim-shine: 0.2; }
 
@@ -2150,7 +2162,8 @@ button.press:active {
   button.press { transition: none; }
 }
 :root[data-glass="off"] .muis-glisse-button,
-:root[data-glass="off"] .muis-glisse-player-favorite {
+:root[data-glass="off"] .muis-glisse-player-favorite,
+:root[data-glass="off"] .muis-glisse-player-share {
   --lg-glass: var(--ios-surface);
   --lg-glass-active: var(--ios-surface-raised);
   --lg-lens: transparent;
@@ -2164,7 +2177,9 @@ button.press:active {
 :root[data-glass="off"] .muis-glisse-button::before,
 :root[data-glass="off"] .muis-glisse-button::after,
 :root[data-glass="off"] .muis-glisse-player-favorite::before,
-:root[data-glass="off"] .muis-glisse-player-favorite::after {
+:root[data-glass="off"] .muis-glisse-player-favorite::after,
+:root[data-glass="off"] .muis-glisse-player-share::before,
+:root[data-glass="off"] .muis-glisse-player-share::after {
   opacity: 0 !important;
 }
 @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
@@ -2193,6 +2208,13 @@ button.press:active {
 .muis-player-glisse-menu {
   position: relative;
   z-index: 70;
+}
+/* The playlist dialog is portaled to body, so it must sit above the z-80 player overlay. */
+body:has(.muis-player-playlist-dialog[data-state="open"]) [data-radix-dialog-overlay] {
+  z-index: 90 !important;
+}
+.muis-player-playlist-dialog {
+  z-index: 100 !important;
 }
 .muis-player-glisse-menu .lg-menu-card {
   width: min(236px, calc(100vw - 32px));
