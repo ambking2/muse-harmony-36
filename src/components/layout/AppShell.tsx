@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { MiniPlayer } from "@/components/ios/MiniPlayer";
+import { usePlayer } from "@/stores/player";
 import { TabBar } from "@/components/ios/TabBar";
 import { Toaster } from "@/components/ui/sonner";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard";
@@ -17,6 +18,9 @@ import type { OpenerRegistry } from "@/lib/ui-control";
 
 const QueueSheet = lazy(() =>
   import("../player/QueueSheet").then((m) => ({ default: m.QueueSheet })),
+);
+const FullPlayer = lazy(() =>
+  import("../../routes/now-playing").then((m) => ({ default: m.NowPlayingOverlay })),
 );
 const CommandPalette = lazy(() =>
   import("../CommandPalette").then((m) => ({ default: m.CommandPalette })),
@@ -45,6 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => armMotion(), []);
 
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const playerExpanded = usePlayer((state) => state.isExpanded);
   const isStandalone = STANDALONE.has(pathname);
 
   // Move the page to the top on navigation (single-page app behaviour).
@@ -103,6 +108,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           same track twice on one screen is noise, not navigation. */}
       {!isStandalone && <MiniPlayer />}
       <TabBar />
+      <AnimatePresence>
+        {playerExpanded && (
+          <Suspense fallback={null}>
+            <FullPlayer />
+          </Suspense>
+        )}
+      </AnimatePresence>
       <Toaster position="top-center" richColors closeButton />
     </div>
   );
