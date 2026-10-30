@@ -44,6 +44,7 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
   const playlists = useLibrary((s) => s.playlists);
   const createPlaylist = useLibrary((s) => s.createPlaylist);
   const addToPlaylist = useLibrary((s) => s.addToPlaylist);
+  const removeFromPlaylist = useLibrary((s) => s.removeFromPlaylist);
   const library = useLibrary((s) => s.library);
 
   const k = trackKey(track);
@@ -96,18 +97,22 @@ export function TrackMenu({ track, children }: { track: Track; children: ReactNo
               return (
                 <DropdownMenuItem
                   key={p.id}
-                  disabled={already}
                   onSelect={() => {
-                    addToPlaylist(p.id, track);
-                    toast.success(`به «${p.name}» اضافه شد`);
+                    if (already) {
+                      removeFromPlaylist(p.id, k);
+                      toast.success(`از «${p.name}» حذف شد`);
+                    } else {
+                      addToPlaylist(p.id, track);
+                      toast.success(`به «${p.name}» اضافه شد`);
+                    }
                   }}
                 >
                   {already ? (
-                    <Check className="ml-2 size-4 text-primary" />
+                    <Trash2 className="ml-2 size-4 text-destructive" />
                   ) : (
-                    <span className="ml-2 w-4" />
+                    <Plus className="ml-2 size-4" />
                   )}
-                  <span className="truncate">{p.name}</span>
+                  <span className="truncate">{already ? `حذف از ${p.name}` : p.name}</span>
                 </DropdownMenuItem>
               );
             })}
