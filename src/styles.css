@@ -2199,3 +2199,32 @@ button.press:active {
 .search-field-compact .muis-glisse-input input {
   font-size: 14px;
 }
+/* The full player's menu is Glisse's own morphing menu. Keep its original
+   glass, spring, gesture plate and row geometry; only constrain tall menus
+   to the viewport so every action remains reachable on compact phones. */
+.muis-player-glisse-menu {
+  position: relative;
+  z-index: 70;
+}
+.muis-player-glisse-menu .lg-menu-card {
+  max-height: min(72svh, 620px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.muis-player-glisse-menu .lg-menu-card::-webkit-scrollbar {
+  display: none;
+}
+.muis-player-glisse-menu .lg-menu-item {
+  direction: rtl;
+  text-align: right;
+  white-space: nowrap;
+}
+.screen-top-frost {
+  opacity: 1;
+  transition: opacity 220ms ease, backdrop-filter 220ms ease, -webkit-backdrop-filter 220ms ease;
+}
+.screen-top-frost-idle {
+  opacity: 0;
+}
