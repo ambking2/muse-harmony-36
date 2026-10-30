@@ -2380,3 +2380,16 @@ body:has(.muis-player-playlist-dialog[data-state="open"]) [data-radix-dialog-ove
     backdrop-filter: blur(5px) saturate(110%);
   }
 }
+
+
+/* Slightly richer Liquid Glass on the dock only; keep the lighter global profile for performance. */
+:root:not([data-glass="off"]) .muis-glisse-dock-inner {
+  --lg-glass-bend: 0.38;
+  --lg-glass-dispersion: 0.18;
+  --lg-blur: 2px;
+  --lg-rim-shine: 0.46;
+}
+.dark :root:not([data-glass="off"]) .muis-glisse-dock-inner,
+:root.dark:not([data-glass="off"]) .muis-glisse-dock-inner {
+  --lg-rim-shine: 0.28;
+}
