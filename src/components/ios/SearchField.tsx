@@ -31,7 +31,7 @@ export function SearchField({
     <motion.div
       animate={{ scale: focused ? 1.01 : 1 }}
       transition={snappy}
-      className={cn("w-full", className)}
+      className={cn("relative w-full", className)}
     >
       <Input
         ref={inputRef}
@@ -56,7 +56,7 @@ export function SearchField({
             strokeWidth={2.2}
           />
         }
-        className="muis-glisse-input"
+        className="muis-glisse-input pl-10"
       />
       <AnimatePresence>
         {value && (
@@ -70,8 +70,7 @@ export function SearchField({
             transition={snappy}
             onClick={() => onChange("")}
             aria-label="پاک کردن"
-            className="press absolute"
-            style={{ display: "none" }}
+            className="press absolute left-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full bg-ios-fill-strong text-ios-label-secondary"
           >
             <X className="size-3.5" strokeWidth={2.5} />
           </motion.button>
