@@ -1744,6 +1744,37 @@ button:disabled,
   height: 21px;
 }
 
+/* Glisse light appearance: use a bright, frosted surface in day mode.
+   These tokens intentionally mirror the app's existing light palette. */
+:root {
+  --lg-foreground: rgb(28 28 30);
+  --lg-muted: rgb(60 60 67 / 0.62);
+  --lg-glass: rgb(255 255 255 / 0.68);
+  --lg-glass-active: rgb(255 255 255 / 0.88);
+  --lg-edge: rgb(0 0 0 / 0.07);
+  --lg-drop: transparent;
+  --lg-selection: rgb(0 0 0 / 0.07);
+  --lg-lens: rgb(255 255 255 / 0.38);
+  --lg-lens-drop: transparent;
+  --lg-segment-track: rgb(0 0 0 / 0.045);
+  --lg-segment-thumb: rgb(255 255 255 / 0.82);
+  --lg-segment-label: rgb(28 28 30);
+  --lg-segment-lens: transparent;
+  --lg-surface: rgb(255 255 255 / 0.9);
+  --lg-surface-edge: rgb(0 0 0 / 0.08);
+  --lg-shadow: rgb(30 40 60 / 0.14);
+  --lg-highlight: rgb(255 255 255 / 0.72);
+  --lg-separator: rgb(60 60 67 / 0.16);
+  --lg-destructive: #ff3b30;
+  --lg-track: rgb(60 60 67 / 0.22);
+  --lg-rail: rgb(0 0 0 / 0.06);
+  --lg-on: #30a46c;
+  --lg-fill: var(--ios-tint);
+  --lg-ring: rgb(0 0 0 / 0.2);
+  --lg-lens-shine: 1;
+  --lg-rim-shine: 0.2;
+}
+
 /* Glisse ships with its own light/dark tokens; map the app's existing .dark
    switch onto those tokens so no second appearance setting is introduced. */
 .dark {
