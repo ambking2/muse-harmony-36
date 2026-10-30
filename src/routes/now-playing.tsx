@@ -521,7 +521,7 @@ export function NowPlayingOverlay() {
           />
         </DialogContent>
       </Dialog>
-    </AppShell>
+    </motion.div>
   );
 }
 
