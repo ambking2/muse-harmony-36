@@ -2161,3 +2161,27 @@ button.press:active {
 @media (prefers-reduced-motion: reduce) {
   button.press { transition: none; }
 }
+:root[data-glass="off"] .muis-glisse-button,
+:root[data-glass="off"] .muis-glisse-player-favorite {
+  --lg-glass: var(--ios-surface);
+  --lg-glass-active: var(--ios-surface-raised);
+  --lg-lens: transparent;
+  --lg-lens-shine: 0;
+  --lg-rim-shine: 0;
+  background: var(--ios-surface) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root[data-glass="off"] .muis-glisse-button::before,
+:root[data-glass="off"] .muis-glisse-button::after,
+:root[data-glass="off"] .muis-glisse-player-favorite::before,
+:root[data-glass="off"] .muis-glisse-player-favorite::after {
+  opacity: 0 !important;
+}
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  button.press {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
