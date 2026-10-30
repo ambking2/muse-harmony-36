@@ -1701,7 +1701,8 @@ button:disabled,
   --lg-rim-shine: 0.38;
 }
 
-.dark .muis-glisse-dock-inner {
+.dark .muis-glisse-dock-inner,
+.dark .muis-glisse-search {
   --lg-rim-shine: 0.2;
 }
 .muis-glisse-tabbar {
@@ -1731,11 +1732,23 @@ button:disabled,
   padding: 0;
   border-radius: 50%;
   color: var(--lg-foreground);
+  /* Match the dock's refraction, dispersion and rim instead of rendering
+     the search control as a merely frosted circular button. */
+  --lg-glass-bend: 0.58;
+  --lg-glass-dispersion: 0.5;
+  --lg-rim-shine: 0.38;
+  --lg-blur: 2px;
 }
 .muis-glisse-search > svg {
   width: 24px;
   height: 24px;
 }
+/* Hide the pre-Glisse header control if an older cached page chunk
+   still mounts it beside the new Glisse back button. */
+.muis-legacy-back {
+  display: none !important;
+}
+
 .muis-glisse-back,
 .muis-glisse-create {
   width: 44px;
