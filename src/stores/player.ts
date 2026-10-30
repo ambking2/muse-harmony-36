@@ -9,6 +9,7 @@ interface PlayerState {
   index: number;
   isPlaying: boolean;
   isBuffering: boolean;
+  isExpanded: boolean;
   currentTime: number;
   duration: number;
   volume: number;
@@ -31,6 +32,7 @@ interface PlayerState {
   next: () => void;
   prev: () => void;
   setPlaying: (p: boolean) => void;
+  setExpanded: (expanded: boolean) => void;
   togglePlay: () => void;
   setTime: (t: number) => void;
   setDuration: (d: number) => void;
@@ -71,6 +73,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   index: 0,
   isPlaying: false,
   isBuffering: false,
+  isExpanded: false,
   currentTime: 0,
   duration: 0,
   volume: 1,
@@ -211,6 +214,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     set({ index: index - 1, currentTime: 0, duration: 0, isPlaying: true, isBuffering: true });
   },
   setPlaying: (p) => set({ isPlaying: p }),
+  setExpanded: (expanded) => set({ isExpanded: expanded }),
   togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),
   setTime: (t) => set({ currentTime: t }),
   setDuration: (d) => set({ duration: d }),
