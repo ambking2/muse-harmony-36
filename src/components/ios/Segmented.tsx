@@ -21,7 +21,7 @@ export function Segmented<T extends string>({
     <SegmentedControl
       value={value}
       onValueChange={(next) => onChange(next as T)}
-      items={options.map((option) => ({
+      items={[...options].reverse().map((option) => ({
         value: option.value,
         label: option.label,
       }))}
