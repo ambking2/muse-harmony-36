@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { Button as GlisseButton } from "glisse";
 import { useState } from "react";
 
 import {
@@ -36,9 +37,12 @@ export function NewPlaylistDialog() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <button type="button" className="glass-btn dock-hero press text-ios-tint" aria-label="پلی‌لیست جدید">
-          <Plus className="size-6" strokeWidth={2.2} />
-        </button>
+        <GlisseButton
+          type="button"
+          className="muis-glisse-create"
+          icon={<Plus strokeWidth={2.2} />}
+          aria-label="پلی‌لیست جدید"
+        />
       </AlertDialogTrigger>
 
       <AlertDialogContent className="material-thick max-w-sm gap-4 rounded-sheet border-ios-separator p-5">
