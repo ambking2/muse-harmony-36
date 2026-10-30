@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { Button as GlisseButton } from "glisse";
 import { toast } from "sonner";
 import { Link2 as LinkIcon, Loader2, Play, Pause, Search, Copy, Music2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -29,8 +29,8 @@ export const Route = createFileRoute("/t/$key")({
 });
 
 /**
- * Landing page for a shared track link. It resolves the track, starts playing
- * it, and gets out of the way — the point of the link is the music, not a form.
+ * Landing page for a shared track link. It presents the song and waits for
+ * an explicit play action; opening a link must never start audio by itself.
  */
 function SharedTrackPage() {
   const navigate = useNavigate();
@@ -43,18 +43,6 @@ function SharedTrackPage() {
   const active = usePlayer((s) => s.queue[s.index]);
   const togglePlay = usePlayer((s) => s.togglePlay);
   const playTrack = usePlayer((s) => s.playTrack);
-  const autoPlayedKey = useRef("");
-
-  useEffect(() => {
-    if (!resolved) return;
-    const resolvedKey = trackKey(resolved);
-    // React StrictMode can run mount effects twice in development. Do not
-    // reset playback to 0 on the duplicate pass for the same shared track.
-    if (autoPlayedKey.current === resolvedKey) return;
-    autoPlayedKey.current = resolvedKey;
-    playTrack(resolved, [resolved]);
-  }, [resolved, playTrack]);
-
   const shown = libraryTrack ?? resolved;
 
   if (!resolved) {
@@ -162,10 +150,10 @@ function SharedTrackPage() {
               </div>
 
               <div className="mx-auto mt-7 grid max-w-md grid-cols-[1fr_1.35fr] gap-3">
-                <button
+                <GlisseButton
                   type="button"
                   onClick={() => (isCurrent ? togglePlay() : playTrack(shown, [shown]))}
-                  className="press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-4 font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-transform"
+                  className="muis-glisse-button press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-4 font-semibold text-primary-foreground shadow-lg shadow-primary/20"
                   aria-label={isCurrent && isPlaying ? "توقف" : "پخش"}
                 >
                   {isCurrent && isPlaying ? (
@@ -174,18 +162,18 @@ function SharedTrackPage() {
                     <Play className="size-5 translate-x-px fill-current" strokeWidth={0} />
                   )}
                   {isCurrent && isPlaying ? "در حال پخش" : "پخش آهنگ"}
-                </button>
-                <button
+                </GlisseButton>
+                <GlisseButton
                   type="button"
                   onClick={() => navigate({ to: "/now-playing" })}
-                  className="press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 font-medium transition-colors hover:bg-white/[0.08]"
+                  className="muis-glisse-button press inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 font-medium"
                 >
                   صفحه‌ی پخش
                   <span aria-hidden="true" className="text-muted-foreground">↗</span>
-                </button>
+                </GlisseButton>
               </div>
 
-              <button
+              <GlisseButton
                 type="button"
                 onClick={() => {
                   void shareTrack(shown)
@@ -195,11 +183,11 @@ function SharedTrackPage() {
                     })
                     .catch(() => toast.error("کپی لینک انجام نشد"));
                 }}
-                className="press mx-auto mt-3 flex min-h-12 w-full max-w-md items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+                className="muis-glisse-button press mx-auto mt-3 flex min-h-12 w-full max-w-md items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 text-sm text-muted-foreground"
               >
                 <Copy className="size-4" strokeWidth={1.8} />
                 کپی لینک این آهنگ
-              </button>
+              </GlisseButton>
             </div>
 
             <div className="border-t border-white/10 px-5 py-4 sm:px-7">
