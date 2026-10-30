@@ -156,8 +156,12 @@ export function Screen({
 function BackButton({ to }: { to?: string }) {
   const router = useRouter();
   const go = () => {
+    if (to) {
+      void router.navigate({ to });
+      return;
+    }
     if (window.history.length > 1) router.history.back();
-    else void router.navigate({ to: to ?? "/" });
+    else void router.navigate({ to: "/" });
   };
 
   const face = <ChevronRight className="size-5 rotate-180 rtl:rotate-0" strokeWidth={2.2} />;
