@@ -205,7 +205,7 @@ export function NowPlayingOverlay() {
           />
         </div>
 
-        <div className="now-playing-layout mx-auto flex h-full min-h-0 max-w-lg flex-col px-6 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
+        <div className="now-playing-layout mx-auto flex h-full min-h-0 max-w-lg flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(env(safe-area-inset-top),0.4rem)]">
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
@@ -266,18 +266,18 @@ export function NowPlayingOverlay() {
             </button>
           </header>
 
-          <div className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col justify-start gap-0 overflow-hidden pt-3">
             {/* Cover */}
             <motion.div
               key={key}
               initial={{ scale: 0.92, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 220, damping: 26 }}
-              className="mx-auto w-full max-w-sm min-h-0 shrink"
+              className="mx-auto w-full max-w-sm min-h-0 shrink-0"
             >
               <motion.div
                 layoutId={`artwork-${key}`}
-                className="relative aspect-square max-h-[min(32dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
+                className="relative aspect-square max-h-[min(30dvh,calc(100vw-3rem))] w-full overflow-hidden rounded-sheet shadow-2xl shadow-black/60"
               >
                 {art ? (
                   <img
@@ -333,7 +333,7 @@ export function NowPlayingOverlay() {
             </div>
 
             {/* Progress */}
-            <div className="mt-3">
+            <div className="mt-2">
               <Waveform current={currentTime} duration={duration} />
               <Slider
                 value={[Math.min(currentTime, duration || 0)]}
@@ -351,7 +351,7 @@ export function NowPlayingOverlay() {
           </div>
 
           {/* Transport — one row on every width, play at the centre and larger. */}
-          <div className="now-playing-transport mx-auto -mt-16 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
+          <div className="now-playing-transport mx-auto mt-4 flex w-full max-w-md shrink-0 flex-nowrap items-center justify-between">
             <button
               type="button"
               onClick={toggleShuffle}
