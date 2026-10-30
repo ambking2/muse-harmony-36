@@ -1684,3 +1684,92 @@ button:disabled,
 }
 :root[data-glass="off"] .dock-tab-lens { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklch, var(--color-ios-tint) 10%, var(--color-ios-surface)); }
 @media (prefers-reduced-motion: reduce) { .dock-tab-lens { transition: none !important; } }
+
+
+/* ─── Glisse: the actual Liquid Glass engine ───────────────────────────────
+   The library owns the refraction, chromatic split, lens rim and spring
+   interaction. Keep the old controls mounted only as the glass-off fallback. */
+:root:not([data-glass="off"]) .muis-legacy-dock,
+:root:not([data-glass="off"]) .muis-legacy-back {
+  display: none !important;
+}
+:root[data-glass="off"] .muis-glisse-dock,
+:root[data-glass="off"] .muis-glisse-back {
+  display: none !important;
+}
+
+.muis-glisse-dock-inner {
+  direction: ltr;
+}
+.muis-glisse-tabbar {
+  --lg-tab-height: 52px;
+  --lg-tab-width: 72px;
+  --lg-tab-selected: var(--ios-tint);
+  flex: 0 0 auto;
+}
+.muis-glisse-tabbar .lg-tab,
+.muis-glisse-tabbar .lg-tab-copy {
+  font-family: var(--font-sans);
+}
+.muis-glisse-tabbar .lg-tab-icon > svg {
+  width: 24px;
+  height: 24px;
+}
+.muis-glisse-tabbar .lg-tab-label {
+  font-size: 10px;
+  line-height: 1.25;
+}
+.muis-glisse-search {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--lg-foreground);
+}
+.muis-glisse-search > svg {
+  width: 24px;
+  height: 24px;
+}
+.muis-glisse-back {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--lg-foreground);
+}
+.muis-glisse-back > svg {
+  width: 21px;
+  height: 21px;
+}
+
+/* Glisse ships with its own light/dark tokens; map the app's existing .dark
+   switch onto those tokens so no second appearance setting is introduced. */
+.dark {
+  --lg-foreground: rgb(255 255 255);
+  --lg-muted: rgb(235 235 245 / 0.6);
+  --lg-glass: rgb(40 40 40 / 0.62);
+  --lg-glass-active: rgb(70 70 70 / 0.62);
+  --lg-edge: rgb(255 255 255 / 0.08);
+  --lg-drop: transparent;
+  --lg-selection: rgb(255 255 255 / 0.145);
+  --lg-lens: rgb(255 255 255 / 0.055);
+  --lg-lens-drop: transparent;
+  --lg-segment-track: transparent;
+  --lg-segment-thumb: rgb(235 235 245 / 0.3);
+  --lg-segment-label: rgb(255 255 255);
+  --lg-segment-lens: transparent;
+  --lg-surface: rgb(28 28 31 / 0.86);
+  --lg-surface-edge: rgb(255 255 255 / 0.13);
+  --lg-shadow: rgb(0 0 0 / 0.38);
+  --lg-highlight: rgb(235 235 245 / 0.13);
+  --lg-separator: rgb(235 235 245 / 0.16);
+  --lg-destructive: #ff4245;
+  --lg-track: rgb(235 235 245 / 0.3);
+  --lg-rail: rgb(255 255 255 / 0.1);
+  --lg-on: #30d158;
+  --lg-fill: var(--ios-tint);
+  --lg-ring: rgb(255 255 255 / 0.5);
+  --lg-lens-shine: 1;
+  --lg-rim-shine: 0.13;
+}
