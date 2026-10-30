@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 
 import { DOCK_ITEMS, SEARCH_ITEM, tabForPath } from "@/lib/design/tabs";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,7 @@ export function TabBar() {
   const current = tabForPath(pathname);
 
   const glassRing = cn(
-    "material lens specular dock-hero pointer-events-auto relative overflow-hidden",
+    "material lens specular spotlight dock-hero pointer-events-auto relative isolate overflow-hidden",
     "border border-ios-separator shadow-[var(--floating-shadow)]",
   );
 
@@ -36,6 +37,8 @@ export function TabBar() {
             "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[2.25rem] px-2 py-1.5",
           )}
         >
+          <span className="lens-bend" aria-hidden="true" />
+          <span className="refract" aria-hidden="true" />
           {DOCK_ITEMS.map((item) => (
             <TabLink key={item.tab} item={item} active={current === item.tab} />
           ))}
@@ -47,9 +50,11 @@ export function TabBar() {
           className={cn(
             glassRing,
             "grid size-14 shrink-0 place-items-center rounded-full text-ios-label-secondary",
-            "transition-colors duration-200 hover:text-ios-tint",
+            "isolate overflow-hidden spotlight transition-colors duration-200 hover:text-ios-tint",
           )}
         >
+          <span className="lens-bend" aria-hidden="true" />
+          <span className="refract" aria-hidden="true" />
           <SEARCH_ITEM.icon className="size-6" strokeWidth={1.8} />
         </Link>
       </div>
@@ -63,13 +68,14 @@ function TabLink({ item, active }: { item: (typeof DOCK_ITEMS)[number]; active: 
       to={item.to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "press relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[1.75rem] px-3.5",
+        "press relative isolate flex min-h-12 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[1.75rem] px-3.5",
         "transition-colors duration-200",
         active ? "text-ios-tint" : "text-ios-label-secondary",
       )}
     >
-      <item.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} />
-      <span className="type-caption leading-none" style={{ opacity: active ? 1 : 0.72 }}>
+      {active && <motion.span layoutId="muis-dock-lens" aria-hidden="true" className="dock-tab-lens absolute inset-0 rounded-[1.75rem]" transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.7 }} />}
+      <item.icon className="relative z-10 size-6" strokeWidth={active ? 2.2 : 1.8} />
+      <span className="type-caption relative z-10 leading-none" style={{ opacity: active ? 1 : 0.72 }}>
         {item.label}
       </span>
     </Link>
