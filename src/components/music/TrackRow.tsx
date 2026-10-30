@@ -30,6 +30,7 @@ export function TrackRow({
   index,
   showIndex = false,
   compact = false,
+  playlistId,
 }: {
   track: Track;
   /** The full queue to hand the player, so next/prev work from this list. */
@@ -38,6 +39,8 @@ export function TrackRow({
   /** Replace the artwork with a position number until the row is current. */
   showIndex?: boolean;
   compact?: boolean;
+  /** When rendered inside a playlist, expose a direct remove action in its menu. */
+  playlistId?: string;
 }) {
   const current = usePlayer((state) => state.queue[state.index]);
   const isPlaying = usePlayer((state) => state.isPlaying);
@@ -132,7 +135,7 @@ export function TrackRow({
         )}
       </button>
 
-      <TrackMenuLazy track={track}>
+      <TrackMenuLazy track={track} playlistId={playlistId}>
         <button
           type="button"
           className="press grid size-11 shrink-0 place-items-center rounded-card text-ios-label-secondary hover:bg-ios-fill-soft"
