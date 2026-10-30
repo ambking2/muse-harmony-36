@@ -407,7 +407,7 @@ export function NowPlayingOverlay() {
       </div>
 
       <Dialog open={playlistOpen} onOpenChange={setPlaylistOpen}>
-        <DialogContent className="muis-player-playlist-dialog material-thick z-[100] max-h-[80svh] gap-3 overflow-y-auto rounded-sheet p-5" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
+        <DialogContent className="muis-player-playlist-dialog material-thick z-[100] max-h-[80svh] gap-3 overflow-y-auto rounded-sheet p-5">
           <DialogHeader><DialogTitle className="type-title-3">افزودن به پلی‌لیست</DialogTitle></DialogHeader>
           <div className="max-h-64 space-y-1 overflow-y-auto">
             {playlists.map((playlist) => {
