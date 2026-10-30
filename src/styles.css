@@ -245,7 +245,7 @@
   --track-accent: oklch(0.55 0.17 280);
   /* Room the fixed bottom chrome needs: the mini player, the floating tab bar
      and the home-indicator inset. Pages pad by this so content never hides
-     under it. Keep in sync with the tab bar (56px) + its own margin (12px) +
+     under it. Keep in sync with the tab bar (56px) + its bottom clearance (24px) +
      the mini player (60px). */
   --tabbar-inset: calc(3.5rem + 1.5rem + env(safe-area-inset-bottom, 0px));
   --chrome-inset: calc(var(--tabbar-inset) + 4.75rem);
