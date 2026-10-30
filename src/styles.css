@@ -2010,3 +2010,113 @@ button:disabled,
   opacity: 0 !important;
   background-image: none !important;
 }
+
+/* ─── Performance-first rendering profile ──────────────────────────────────
+   Keep the visual language, but stop spending GPU time on effects that do not
+   help the actual music experience. The background remains a static gradient;
+   live blur, displacement and perpetual motion are removed from scrolling
+   surfaces, especially on touch devices and mid-range hardware. */
+:root {
+  transition: none;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+.mesh,
+.mesh-accent {
+  animation: none !important;
+}
+
+/* Large fixed blurred layers repaint/composite across the whole viewport.
+   They are decorative only, so use a cheap static treatment instead. */
+.mesh {
+  filter: blur(28px) saturate(125%);
+}
+
+.mesh-accent {
+  filter: blur(30px);
+}
+
+.ambient-art {
+  filter: blur(30px) saturate(125%);
+  transition: none;
+}
+
+/* A single small frost on the persistent player/navigation is enough.
+   Content cards should never re-sample the moving page while scrolling. */
+.card,
+.panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  :root {
+    --material-blur: 7px;
+    --panel-blur: 0px;
+    --lens-blur: 0px;
+    --glass-sat: 115%;
+  }
+
+  .mesh,
+  .mesh-accent,
+  .ambient-art {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .card,
+  .panel {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: color-mix(in oklch, var(--color-ios-surface) 94%, transparent);
+    box-shadow: none;
+  }
+
+  /* SVG displacement is one of the most expensive operations during scroll.
+     Keep Glisse's shape, rim, highlight and interaction; remove only the
+     live scene-warp on constrained devices. */
+  .lens > .lens-bend,
+  .dock-hero > .lens-bend,
+  .screen-back-button > .lens-bend {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .refract,
+  .dock-hero > .refract,
+  .screen-back-button > .refract {
+    filter: none !important;
+  }
+
+  .dock-hero {
+    --lens-blur: 7px !important;
+    --material-blur: 7px !important;
+    --glass-sat: 115% !important;
+  }
+
+  .screen-top-frost {
+    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  /* Avoid layout/paint work from decorative transitions during rapid taps. */
+  .muis-install-card,
+  .muis-install-overlay {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh,
+  .mesh-accent,
+  .ambient-art {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
