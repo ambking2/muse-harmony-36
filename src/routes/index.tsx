@@ -4,7 +4,6 @@ import { useMemo } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Screen } from "@/components/ios/Screen";
-import { Section } from "@/components/ios/Section";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { ResumeCard } from "@/components/home/ResumeCard";
 import { PlaylistCard } from "@/components/music/PlaylistCard";
