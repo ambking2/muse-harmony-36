@@ -181,7 +181,7 @@ function BackButton({ to }: { to?: string }) {
       onClick={go}
       data-back
       aria-label="بازگشت"
-      className="glass-btn screen-back-button press text-ios-tint"
+      className="glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
     >
       <span className="lens-bend" aria-hidden="true" />
       <span className="refract" aria-hidden="true" />
