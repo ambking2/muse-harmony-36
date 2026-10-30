@@ -59,10 +59,18 @@ import { floatUp, iconPop } from "@/lib/design/motion-gsap";
 
 export const Route = createFileRoute("/now-playing")({
   head: () => ({ meta: [{ title: "در حال پخش — muis" }] }),
-  component: NowPlaying,
+  component: NowPlayingRoute,
 });
 
-function NowPlaying() {
+function NowPlayingRoute() {
+  return (
+    <AppShell>
+      <NowPlayingOverlay />
+    </AppShell>
+  );
+}
+
+export function NowPlayingOverlay() {
   const router = useRouter();
   const track = usePlayer((s) => s.queue[s.index]);
   const isPlaying = usePlayer((s) => s.isPlaying);
@@ -79,6 +87,7 @@ function NowPlaying() {
   const cycleRepeat = usePlayer((s) => s.cycleRepeat);
   const quality = usePlayer((s) => s.quality);
   const setQuality = usePlayer((s) => s.setQuality);
+  const setExpanded = usePlayer((s) => s.setExpanded);
 
   const favorites = useLibrary((s) => s.favorites);
   const toggleFav = useLibrary((s) => s.toggleFavorite);
@@ -93,19 +102,7 @@ function NowPlaying() {
   // secondary.
   const [menuOpen, setMenuOpen] = useState(false);
   const [lyricsOpen, setLyricsOpen] = useState(false);
-  const minimize = () => {
-    // Return to the last app screen, not the browser's previous history entry.
-    let destination = "/";
-    try {
-      const remembered = window.sessionStorage.getItem("muse:last-app-route");
-      if (remembered && remembered !== "/now-playing" && !remembered.startsWith("/now-playing?")) {
-        destination = remembered;
-      }
-    } catch {
-      // Fall back to the home screen if storage is unavailable.
-    }
-    void router.navigate({ to: destination as "/", replace: true });
-  };
+  const minimize = () => setExpanded(false);
 
   const pic = useQuery({
     queryKey: picKey(track?.source ?? "", track?.pic_id ?? "", 800),
@@ -158,7 +155,7 @@ function NowPlaying() {
 
   if (!track) {
     return (
-      <AppShell>
+      <div className="fixed inset-0 z-[80] grid h-dvh place-items-center bg-background px-6">
         <EmptyState
           icon={Music}
           title="در حال حاضر چیزی پخش نمی‌شود"
@@ -174,7 +171,7 @@ function NowPlaying() {
             </button>
           }
         />
-      </AppShell>
+      </div>
     );
   }
 
@@ -190,7 +187,13 @@ function NowPlaying() {
   };
 
   return (
-    <AppShell>
+    <motion.div
+      className="fixed inset-0 z-[80] isolate h-dvh overflow-hidden bg-background"
+      initial={{ y: "100%", opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: "100%", opacity: 0 }}
+      transition={{ type: "spring", stiffness: 280, damping: 30, mass: 0.85 }}
+    >
       <div className="now-playing-screen relative h-full min-h-0 overflow-hidden text-foreground">
         {/* Blurred background from the artwork, tinted by the extracted accent. */}
         <div className="pointer-events-none fixed inset-0 -z-10">
