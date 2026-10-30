@@ -1907,7 +1907,9 @@ button:disabled,
 }
 
 .muis-glisse-segmented .lg-tab-labels {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  width: auto;
 }
 
 .muis-glisse-segmented .lg-tab {
