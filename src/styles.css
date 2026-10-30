@@ -1945,3 +1945,67 @@ button:disabled,
   backdrop-filter: none !important;
   background-image: none !important;
 }
+
+
+/* Glisse's real refraction input, shared by search and library filters. */
+.muis-glisse-input.lg-input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 56px;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--ios-separator);
+  border-radius: 18px;
+  color: var(--ios-label);
+  --lg-glass-bend: 0.58;
+  --lg-glass-dispersion: 0.5;
+  --lg-rim-shine: 0.38;
+  --lg-blur: 2px;
+}
+
+.dark .muis-glisse-input.lg-input {
+  --lg-rim-shine: 0.2;
+}
+
+.muis-glisse-input.lg-input:focus-within {
+  border-color: var(--ios-tint);
+  background-color: var(--lg-glass-active);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ios-tint) 12%, transparent);
+}
+
+.muis-glisse-input.lg-input input {
+  min-width: 0;
+  color: var(--ios-label);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  text-align: start;
+}
+
+.muis-glisse-input.lg-input input::placeholder {
+  color: var(--ios-label-tertiary);
+  opacity: 1;
+}
+
+.muis-glisse-input.lg-input .lg-input-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--ios-label-secondary);
+}
+
+:root[data-glass="off"] .muis-glisse-input.lg-input {
+  --lg-glass: var(--ios-surface);
+  --lg-glass-active: var(--ios-surface-raised);
+  --lg-lens-shine: 0;
+  --lg-rim-shine: 0;
+  background: var(--ios-surface) !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-glass="off"] .muis-glisse-input.lg-input::before,
+:root[data-glass="off"] .muis-glisse-input.lg-input::after {
+  opacity: 0 !important;
+  background-image: none !important;
+}
