@@ -1651,3 +1651,36 @@ button:disabled,
     background: color-mix(in oklch, var(--color-ios-surface) 88%, transparent);
   }
 }
+
+/* --- Glisse-inspired optical chrome ------------------------------------
+   Decorative layers only: dock geometry, route destinations and tap targets
+   remain unchanged. */
+.dock-hero, .screen-back-button { isolation: isolate; }
+.dock-hero > .lens-bend, .screen-back-button > .lens-bend,
+.dock-hero > .refract, .screen-back-button > .refract { z-index: 0; }
+.dock-hero > :not(.lens-bend):not(.refract),
+.screen-back-button > :not(.lens-bend):not(.refract) { position: relative; z-index: 1; }
+@supports (backdrop-filter: url(#muis-lens)) {
+  .dock-hero > .refract, .screen-back-button > .refract { display: none; }
+}
+.dock-hero::after, .screen-back-button::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(70% 55% at var(--mx, 50%) var(--my, 0%), oklch(1 0 0 / 0.20), transparent 72%),
+    linear-gradient(155deg, oklch(1 0 0 / 0.12), transparent 42%, oklch(0.45 0.08 250 / 0.035));
+  opacity: 0.82;
+}
+.screen-back-button::after { opacity: 0.58; }
+.dock-tab-lens {
+  background: radial-gradient(100% 130% at 50% 0%, oklch(1 0 0 / 0.32), transparent 72%),
+    color-mix(in oklch, var(--color-ios-tint) 12%, var(--color-ios-surface) 38%);
+  border: 1px solid color-mix(in oklch, var(--color-ios-tint) 22%, var(--color-ios-separator));
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.48), inset 0 -1px 0 oklch(0.35 0.04 255 / 0.10), 0 2px 8px oklch(0.2 0.03 255 / 0.08);
+  backdrop-filter: blur(10px) saturate(175%); -webkit-backdrop-filter: blur(10px) saturate(175%); pointer-events: none;
+}
+.dark .dock-tab-lens {
+  background: radial-gradient(100% 130% at 50% 0%, oklch(1 0 0 / 0.14), transparent 72%),
+    color-mix(in oklch, var(--color-ios-tint) 18%, var(--color-ios-surface) 48%);
+  border-color: color-mix(in oklch, var(--color-ios-tint) 28%, var(--color-ios-separator));
+}
+:root[data-glass="off"] .dock-tab-lens { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklch, var(--color-ios-tint) 10%, var(--color-ios-surface)); }
+@media (prefers-reduced-motion: reduce) { .dock-tab-lens { transition: none !important; } }
