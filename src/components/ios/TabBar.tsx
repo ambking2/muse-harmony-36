@@ -30,7 +30,12 @@ export function TabBar() {
         className="muis-legacy-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.5rem)]"
       >
         <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
-          <div className={cn(glassRing, "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[2.25rem] px-2 py-1.5")}>
+          <div
+            className={cn(
+              glassRing,
+              "flex w-[min(100%-3.75rem,19rem)] items-center justify-around rounded-[2.25rem] px-2 py-1.5",
+            )}
+          >
             <span className="lens-bend" aria-hidden="true" />
             <span className="refract" aria-hidden="true" />
             {DOCK_ITEMS.map((item) => (
@@ -45,8 +50,14 @@ export function TabBar() {
                   current === item.tab ? "text-ios-tint" : "text-ios-label-secondary",
                 )}
               >
-                <item.icon className="relative z-10 size-6" strokeWidth={current === item.tab ? 2.2 : 1.8} />
-                <span className="type-caption relative z-10 leading-none" style={{ opacity: current === item.tab ? 1 : 0.72 }}>
+                <item.icon
+                  className="relative z-10 size-6"
+                  strokeWidth={current === item.tab ? 2.2 : 1.8}
+                />
+                <span
+                  className="type-caption relative z-10 leading-none"
+                  style={{ opacity: current === item.tab ? 1 : 0.72 }}
+                >
                   {item.label}
                 </span>
               </Link>
