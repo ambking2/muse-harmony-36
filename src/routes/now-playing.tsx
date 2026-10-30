@@ -22,7 +22,7 @@ import { trackKey } from "@/lib/types";
 import type { LyricLine, Quality } from "@/lib/types";
 import {
   Check, ChevronDown, Disc3, Download, Ellipsis, Heart, Library, ListMusic,
-  ListPlus, Mic2, Pause, Play, Plus, Repeat, Repeat1, Share2, Shuffle,
+  ListPlus, Mic2, Pause, Play, Plus, Repeat, Repeat1, Share2, Shuffle, Trash2,
   SkipBack, SkipForward, SlidersHorizontal, Timer, Music, Type,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
