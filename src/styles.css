@@ -1859,7 +1859,6 @@ button:disabled,
 }
 
 :root[data-glass="off"] .muis-glisse-mini-player,
-:root[data-glass="off"] .muis-glisse-mini-player,
 :root[data-glass="off"] .muis-glisse-tabbar,
 :root[data-glass="off"] .muis-glisse-search,
 :root[data-glass="off"] .muis-glisse-back,
@@ -1880,6 +1879,7 @@ button:disabled,
   backdrop-filter: none !important;
 }
 
+:root[data-glass="off"] .muis-glisse-mini-player,
 :root[data-glass="off"] .muis-glisse-tabbar,
 :root[data-glass="off"] .muis-glisse-search,
 :root[data-glass="off"] .muis-glisse-back,
