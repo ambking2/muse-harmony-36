@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Loader2, Play, Search, Shuffle, WifiOff } from "lucide-react";
@@ -53,7 +52,6 @@ function Explore() {
   const navigate = useNavigate({ from: "/explore" });
   const [query, setQuery] = useState(initialQ ?? "");
   const [debounced, setDebounced] = useState(initialQ ?? "");
-  const [searchHeaderCompact, setSearchHeaderCompact] = useState(false);
   const playQueue = usePlayer((state) => state.playQueue);
   const toggleShuffle = usePlayer((state) => state.toggleShuffle);
   const pushSearch = useLibrary((state) => state.pushSearch);
@@ -67,14 +65,6 @@ function Explore() {
   }, [query]);
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Compact the search control into the back-button row after a short scroll.
-  useEffect(() => {
-    const update = () => setSearchHeaderCompact(window.scrollY > 64);
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(query), 320);
@@ -148,25 +138,15 @@ function Explore() {
   return (
     <AppShell>
       <Screen title="جستجو" subtitle="نام فارسی، لاتین یا بخشی از ترانه">
-        {/* The field follows the user down the page. Results are long, and the
-            one control worth having in the hand while reading them is the one
-            that changes them — so it rides above the list on a frosted bar
-            that lets rows pass under it, rather than scrolling away. */}
-        <div className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-50 -mx-4 px-4">
-          <motion.div
-            className="w-full max-w-xl"
-            animate={{ width: searchHeaderCompact ? "calc(100% - 72px)" : "100%" }}
-            transition={{ type: "spring", stiffness: 360, damping: 32, mass: 0.7 }}
-            style={{ marginLeft: 0, marginRight: "auto" }}
-          >
-            <SearchField
-              value={query}
-              onChange={setQuery}
-              inputRef={inputRef}
-              placeholder="نام آهنگ، خواننده یا آلبوم"
-              className={searchHeaderCompact ? "search-field-compact" : undefined}
-            />
-          </motion.div>
+        {/* Centered, full-width search field; no sticky or scroll animation. */}
+        <div className="mx-auto w-full max-w-none">
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            inputRef={inputRef}
+            placeholder="نام آهنگ، خواننده یا آلبوم"
+            className="w-full"
+          />
         </div>
 
         <RecognizeSearchCard />
