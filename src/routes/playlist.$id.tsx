@@ -8,6 +8,7 @@ import { Music, Pencil, Play, Shuffle, Trash2, ArrowUp, ArrowDown } from "lucide
 import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { trackKey } from "@/lib/types";
 import { SharePlaylist } from "@/components/music/SharePlaylist";
 
 export const Route = createFileRoute("/playlist/$id")({ component: PlaylistPage });
@@ -149,7 +150,7 @@ function PlaylistPage() {
                   dragIdx === i && "opacity-40",
                 )}
               >
-                <TrackRow track={t} list={tracks} index={i} showIndex />
+                <TrackRow track={t} list={tracks} index={i} showIndex playlistId={playlist.id} />
                 {/* Drag works on desktop; these buttons are the touch equivalent. */}
                 <div className="absolute left-2 top-1/2 flex -translate-y-1/2 flex-col gap-0.5 opacity-0 transition group-hover:opacity-100 max-md:opacity-100">
                   <button
@@ -171,10 +172,10 @@ function PlaylistPage() {
                 </div>
                 <button
                   onClick={() => {
-                    remove(playlist.id, playlist.trackKeys[i]);
+                    remove(playlist.id, trackKey(t));
                     toast.success("آهنگ حذف شد");
                   }}
-                  className="absolute left-12 top-1/2 hidden -translate-y-1/2 rounded-full p-2 text-muted-foreground transition hover:text-destructive group-hover:block"
+                  className="absolute left-12 top-1/2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-ios-surface/90 p-2 text-muted-foreground opacity-80 shadow-sm transition hover:text-destructive hover:opacity-100"
                   aria-label="حذف از پلی‌لیست"
                 >
                   <Trash2 className="size-4" />
