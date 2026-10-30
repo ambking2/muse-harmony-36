@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Loader2 } from "lucide-react";
+import { Button as GlisseButton } from "glisse";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -142,9 +143,7 @@ export function LoadingButton({
   const label = status === "loading" ? loadingText : status === "success" ? successText : children;
 
   return (
-    <motion.button
-      layout={!prefersReducedMotion}
-      transition={{ type: "spring", stiffness: 320, damping: 30 }}
+    <GlisseButton
       onClick={handleClick}
       /*
        * Busy is `aria-disabled`, not `disabled`. A real `disabled` attribute
@@ -158,6 +157,7 @@ export function LoadingButton({
       aria-busy={status === "loading"}
       data-status={status}
       className={cn(
+        "muis-glisse-button",
         loadingButtonVariants({ variant }),
         // The confirmation is the app's own tint, not the system green: one
         // accent for "it worked", so a finished action never reads as a
@@ -181,6 +181,6 @@ export function LoadingButton({
           {label}
         </motion.span>
       </AnimatePresence>
-    </motion.button>
+    </GlisseButton>
   );
 }
