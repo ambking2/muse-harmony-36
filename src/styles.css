@@ -2229,3 +2229,75 @@ button.press:active {
 .screen-top-frost-idle {
   opacity: 0;
 }
+
+/* Toasts: quiet, compact glass notifications with clear hierarchy. */
+.toaster [data-sonner-toast] {
+  direction: rtl;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 12px 15px;
+  border: 1px solid color-mix(in oklch, var(--ios-separator) 72%, transparent) !important;
+  border-radius: 18px !important;
+  background: color-mix(in oklch, var(--ios-surface-raised) 88%, transparent) !important;
+  color: var(--ios-label) !important;
+  box-shadow: 0 12px 34px color-mix(in oklch, black 16%, transparent), inset 0 1px 0 color-mix(in oklch, white 22%, transparent) !important;
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  font-family: inherit;
+  text-align: right;
+}
+.toaster [data-sonner-toast] [data-title] {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.toaster [data-sonner-toast] [data-description] {
+  margin-top: 2px;
+  color: var(--ios-label-secondary) !important;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.toaster [data-sonner-toast] [data-icon] {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--ios-tint) 12%, transparent);
+}
+.toaster [data-sonner-toast][data-type="success"] [data-icon] {
+  color: #22a06b;
+  background: color-mix(in oklch, #22a06b 13%, transparent);
+}
+.toaster [data-sonner-toast][data-type="error"] [data-icon] {
+  color: #e05252;
+  background: color-mix(in oklch, #e05252 12%, transparent);
+}
+.toaster [data-sonner-toast] [data-close-button] {
+  left: 8px;
+  right: auto;
+  top: 8px;
+  border-radius: 9px;
+  border-color: color-mix(in oklch, var(--ios-separator) 70%, transparent);
+  background: color-mix(in oklch, var(--ios-fill) 70%, transparent);
+  color: var(--ios-label-secondary);
+}
+@media (max-width: 640px) {
+  .toaster [data-sonner-toast] {
+    width: calc(100vw - 28px);
+    max-width: 420px;
+    min-height: 54px;
+    padding: 10px 13px;
+    border-radius: 16px !important;
+  }
+}
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  .toaster [data-sonner-toast] {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
