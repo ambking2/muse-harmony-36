@@ -1692,6 +1692,18 @@ button:disabled,
 /* The Glisse dock is the single navigation dock in every app appearance mode.
    Its own optical material remains enabled even when page-wide glass is off. */
 
+.muis-glisse-mini-player {
+  /* Use the same Glisse optical recipe as the navigation dock. */
+  --lg-glass-bend: 0.58;
+  --lg-glass-dispersion: 0.5;
+  --lg-rim-shine: 0.38;
+  --lg-blur: 2px;
+}
+
+.dark .muis-glisse-mini-player {
+  --lg-rim-shine: 0.2;
+}
+
 .muis-glisse-dock-inner {
   direction: rtl;
   /* Stronger optical response on the dock: a more pronounced bend,
@@ -1831,6 +1843,7 @@ button:disabled,
 /* Glass-off appearance for the Glisse dock: keep the Glisse layout and
    interaction, but remove its frosted lens, refraction and translucent
    materials when the app-wide glass setting is disabled. */
+:root[data-glass="off"] .muis-glisse-mini-player,
 :root[data-glass="off"] .muis-glisse-dock-inner {
   --lg-glass: var(--ios-surface);
   --lg-glass-active: var(--ios-surface-raised);
@@ -1845,6 +1858,8 @@ button:disabled,
   --lg-rim-shine: 0;
 }
 
+:root[data-glass="off"] .muis-glisse-mini-player,
+:root[data-glass="off"] .muis-glisse-mini-player,
 :root[data-glass="off"] .muis-glisse-tabbar,
 :root[data-glass="off"] .muis-glisse-search,
 :root[data-glass="off"] .muis-glisse-back,
