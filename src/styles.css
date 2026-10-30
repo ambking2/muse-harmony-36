@@ -2157,6 +2157,7 @@ button.press:active {
 }
 .muis-glisse-player-favorite.is-favorite { color: var(--ios-tint); }
 .dark .muis-glisse-player-favorite { --lg-rim-shine: 0.2; }
+.dark .muis-glisse-player-share { --lg-rim-shine: 0.2; }
 
 @media (prefers-reduced-motion: reduce) {
   button.press { transition: none; }
