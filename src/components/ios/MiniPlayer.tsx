@@ -40,8 +40,6 @@ export function MiniPlayer() {
   const track = usePlayer((state) => state.queue[state.index]);
   const isPlaying = usePlayer((state) => state.isPlaying);
   const isBuffering = usePlayer((state) => state.isBuffering);
-  const currentTime = usePlayer((state) => state.currentTime);
-  const duration = usePlayer((state) => state.duration);
   const togglePlay = usePlayer((state) => state.togglePlay);
   const favorites = useLibrary((state) => state.favorites);
   const toggleFavorite = useLibrary((state) => state.toggleFavorite);
@@ -57,7 +55,6 @@ export function MiniPlayer() {
     queryFn: () => getPicUrl(track!.source, track!.pic_id, 128),
   });
 
-  const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;
   const art = track?.picUrl ?? pic.data;
 
   return (
@@ -195,11 +192,28 @@ export function MiniPlayer() {
                 the bottom edge of the bar, filling from the reading edge.
                 `scaleX` from the inline start, so it costs no layout. */}
             <div aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-ios-label/25">
-              <motion.div className="h-full origin-left bg-ios-tint" style={{ scaleX: progress }} />
+              <MiniPlayerProgress />
             </div>
           </Glass>
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+
+/* The audio clock updates several times per second. Keep that subscription in
+   this tiny leaf so the artwork, buttons, query and animated labels do not
+   re-render on every progress tick. */
+function MiniPlayerProgress() {
+  const currentTime = usePlayer((state) => state.currentTime);
+  const duration = usePlayer((state) => state.duration);
+  const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;
+
+  return (
+    <motion.div
+      className="h-full origin-left bg-ios-tint"
+      style={{ scaleX: progress }}
+    />
   );
 }
