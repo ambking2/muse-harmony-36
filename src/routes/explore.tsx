@@ -138,8 +138,8 @@ function Explore() {
   return (
     <AppShell>
       <Screen title="جستجو" subtitle="نام فارسی، لاتین یا بخشی از ترانه">
-        {/* Keep the search field centered and comfortably sized on desktop. */}
-        <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
+        {/* Stay below the fixed page controls while scrolling. */}
+        <div className="sticky top-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem+0.5rem)] z-30 mx-auto w-full max-w-2xl px-4 py-2 sm:px-6">
           <SearchField
             value={query}
             onChange={setQuery}
