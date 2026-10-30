@@ -89,16 +89,16 @@ function LibraryPage() {
         }
         actions={<NewPlaylistDialog />}
       >
-        <Segmented value={tab} onChange={setTab} options={TABS} className="mt-4" />
-
-        {(tab === "songs" || tab === "history") && (
-          <SearchField
-            value={filter}
-            onChange={setFilter}
-            placeholder={tab === "songs" ? "فیلتر در کتابخانه" : "فیلتر در تاریخچه"}
-            className="mt-4"
-          />
-        )}
+        <div className="sticky top-[calc(max(env(safe-area-inset-top),0.75rem)+3.75rem)] z-30 -mx-4 mt-4 space-y-3 border-b border-ios-separator/60 bg-background/80 px-4 py-3 backdrop-blur-xl">
+          <Segmented value={tab} onChange={setTab} options={TABS} />
+          {(tab === "songs" || tab === "history") && (
+            <SearchField
+              value={filter}
+              onChange={setFilter}
+              placeholder={tab === "songs" ? "فیلتر در کتابخانه" : "فیلتر در تاریخچه"}
+            />
+          )}
+        </div>
 
         <div className="mt-4">
           {tab === "songs" && <SongsTab songs={songs} filtering={filtering} />}
