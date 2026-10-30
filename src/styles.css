@@ -2185,3 +2185,17 @@ button.press:active {
     backdrop-filter: none;
   }
 }
+/* Search field tucks into the fixed back-button row while scrolling. */
+.search-field-compact .muis-glisse-input.lg-input {
+  height: 40px;
+  min-height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.search-field-compact .muis-glisse-input .lg-input-icon {
+  width: 18px;
+  height: 18px;
+}
+.search-field-compact .muis-glisse-input input {
+  font-size: 14px;
+}
