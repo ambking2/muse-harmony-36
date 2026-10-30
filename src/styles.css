@@ -1694,13 +1694,20 @@ button:disabled,
 
 .muis-glisse-dock-inner {
   direction: rtl;
-  /* Keep the dock's optical treatment independent from the global glass switch. */
-  --lg-lens-shine: 1.35;
-  --lg-rim-shine: 0.32;
+  /* Stronger optical response on the dock: a more pronounced bend,
+     subtle chromatic dispersion and a brighter, tightly focused rim. */
+  --lg-glass-bend: 0.58;
+  --lg-glass-dispersion: 0.5;
+  --lg-rim-shine: 0.38;
+}
+
+.dark .muis-glisse-dock-inner {
+  --lg-rim-shine: 0.2;
 }
 .muis-glisse-tabbar {
   direction: ltr;
   --lg-tab-height: 52px;
+  --lg-blur: 2px;
   --lg-tab-width: 72px;
   --lg-tab-selected: var(--ios-tint);
   flex: 0 0 auto;
@@ -1768,8 +1775,10 @@ button:disabled,
   --lg-on: #30a46c;
   --lg-fill: var(--ios-tint);
   --lg-ring: rgb(0 0 0 / 0.2);
-  --lg-lens-shine: 1;
-  --lg-rim-shine: 0.2;
+  /* Negative sign tells Glisse this is a light surface: use its brighter
+     refracted rim and light-page lens treatment. */
+  --lg-lens-shine: -1.5;
+  --lg-rim-shine: 0.3;
 }
 
 /* Glisse ships with its own light/dark tokens; map the app's existing .dark
@@ -1800,7 +1809,7 @@ button:disabled,
   --lg-fill: var(--ios-tint);
   --lg-ring: rgb(255 255 255 / 0.5);
   --lg-lens-shine: 1;
-  --lg-rim-shine: 0.13;
+  --lg-rim-shine: 0.18;
 }
 
 /* Glass-off appearance for the Glisse dock: keep the Glisse layout and
