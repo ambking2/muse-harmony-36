@@ -44,7 +44,6 @@ export function TrackMenu({ track, playlistId, children }: { track: Track; playl
   const playlists = useLibrary((s) => s.playlists);
   const createPlaylist = useLibrary((s) => s.createPlaylist);
   const addToPlaylist = useLibrary((s) => s.addToPlaylist);
-  const removeFromPlaylist = useLibrary((s) => s.removeFromPlaylist);
   const library = useLibrary((s) => s.library);
 
   const k = trackKey(track);
