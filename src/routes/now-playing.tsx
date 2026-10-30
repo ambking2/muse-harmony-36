@@ -478,11 +478,6 @@ export function NowPlayingOverlay() {
   );
 }
 
-/** Keeps the picker's call sites honest without dragging types around. */
-function onChangeQuality(set: (q: Quality) => void, br: Quality) {
-  set(br);
-}
-
 /** Static pseudo-random bars, scaled by playback progress. */
 function Waveform({ current, duration }: { current: number; duration: number }) {
   const bars = useMemo(
