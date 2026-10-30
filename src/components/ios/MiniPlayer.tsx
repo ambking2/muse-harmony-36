@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Pause, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { Glass } from "glisse";
 
 import { getPicUrl, picKey } from "@/lib/gdmusic";
@@ -41,6 +40,7 @@ export function MiniPlayer() {
   const isPlaying = usePlayer((state) => state.isPlaying);
   const isBuffering = usePlayer((state) => state.isBuffering);
   const togglePlay = usePlayer((state) => state.togglePlay);
+  const setExpanded = usePlayer((state) => state.setExpanded);
   const favorites = useLibrary((state) => state.favorites);
   const toggleFavorite = useLibrary((state) => state.toggleFavorite);
 
@@ -68,10 +68,11 @@ export function MiniPlayer() {
           className="fixed inset-x-0 bottom-[calc(var(--tabbar-inset)+0.5rem)] z-40 px-3"
         >
           <Glass className="muis-glisse-mini-player material lens specular dock-hero relative mx-auto flex w-[min(100%,30rem)] items-center gap-1 overflow-hidden rounded-[2.25rem] border border-ios-separator p-1.5 shadow-[var(--floating-shadow)]">
-            <Link
-              to="/now-playing"
-              className="press relative flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-tile ps-1 pe-2"
-              aria-label={`در حال پخش: ${track.name}`}
+            <motion.button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="press relative flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-tile ps-1 pe-2 text-start"
+              aria-label={`باز کردن پلیر: ${track.name}`}
             >
               {/* Shared with the full player: the same album, the same object,
                   carried from here into the large artwork rather than cut. */}
@@ -129,7 +130,7 @@ export function MiniPlayer() {
                   </motion.span>
                 </AnimatePresence>
               </span>
-            </Link>
+            </motion.button>
 
             <motion.button
               type="button"
