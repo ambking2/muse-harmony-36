@@ -169,7 +169,10 @@ export function NowPlayingOverlay() {
   // path or the button would confirm a copy that never happened.
   const share = async () => {
     if (!(await shareTrack(track))) throw new Error("clipboard refused");
-    toast.success("لینک کپی شد");
+    toast.success("لینک آهنگ کپی شد", {
+      description: `${track.title} · ${track.artist.join("، ")}`,
+      duration: 2600,
+    });
   };
 
   return (
@@ -233,7 +236,10 @@ export function NowPlayingOverlay() {
                   { label: "کیفیت صدا · " + (quality === 999 ? "FLAC" : quality), icon: <SlidersHorizontal />, onSelect: () => setQualityOpen(true) },
                   { label: "تایمر خواب", icon: <Timer />, onSelect: () => setSleepOpen(true) },
                   "separator",
-                  { label: "اشتراک‌گذاری آهنگ", icon: <Share2 />, onSelect: () => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد")) },
+                  { label: "اشتراک‌گذاری آهنگ", icon: <Share2 />, onSelect: () => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد", {
+                    description: "دوباره تلاش کن یا دسترسی کپی لینک را بررسی کن.",
+                    duration: 3200,
+                  })) },
                 ]}
               />
               <button
