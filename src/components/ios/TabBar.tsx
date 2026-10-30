@@ -27,7 +27,7 @@ export function TabBar() {
       {/* Original navigation is retained as the glass-off fallback. */}
       <nav
         aria-label="ناوبری اصلی"
-        className="muis-legacy-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.5rem)]"
+        className="muis-legacy-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(max(env(safe-area-inset-bottom,0px),0.5rem)+4px)]"
       >
         <div className="pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
           <div
@@ -82,7 +82,7 @@ export function TabBar() {
       {/* The real Glisse Liquid Glass navigation, enabled by the glass setting. */}
       <nav
         aria-label="ناوبری اصلی"
-        className="muis-glisse-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(env(safe-area-inset-bottom),0.5rem)]"
+        className="muis-glisse-dock pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(max(env(safe-area-inset-bottom,0px),0.5rem)+4px)]"
       >
         <div className="muis-glisse-dock-inner pointer-events-auto flex w-full items-center justify-center gap-2.5 px-5">
           <GlisseTabBar
