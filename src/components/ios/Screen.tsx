@@ -167,9 +167,11 @@ function BackButton({ to }: { to?: string }) {
         to={to}
         data-back
         aria-label="بازگشت"
-        className="glass-btn screen-back-button press text-ios-tint"
+        className="glass-btn lens specular spotlight screen-back-button press isolate overflow-hidden text-ios-tint"
       >
-        {face}
+        <span className="lens-bend" aria-hidden="true" />
+        <span className="refract" aria-hidden="true" />
+        <span className="relative z-10">{face}</span>
       </Link>
     );
   }
@@ -181,7 +183,9 @@ function BackButton({ to }: { to?: string }) {
       aria-label="بازگشت"
       className="glass-btn screen-back-button press text-ios-tint"
     >
-      {face}
+      <span className="lens-bend" aria-hidden="true" />
+      <span className="refract" aria-hidden="true" />
+      <span className="relative z-10">{face}</span>
     </button>
   );
 }
