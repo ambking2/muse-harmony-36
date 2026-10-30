@@ -26,11 +26,7 @@ import {
   SkipBack, SkipForward, SlidersHorizontal, Timer, Music, Type,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadTrack } from "@/lib/download";
 import { queueRegistry } from "@/lib/ui-control";
@@ -76,7 +72,6 @@ export function NowPlayingOverlay() {
   const downloads = useLibrary((s) => s.downloads);
   const key = track ? trackKey(track) : "";
   const isFav = favorites.includes(key);
-  const isOffline = !!track?.srcUrl;
   const downloaded = downloads.some((d) => d.id.startsWith(`${key}:`) && d.status === "done");
   const library = useLibrary((s) => s.library);
   const playlists = useLibrary((s) => s.playlists);
@@ -210,119 +205,37 @@ export function NowPlayingOverlay() {
           {/* Two independent controls: the song menu on the reading edge, the
               collapse chevron at the other end. */}
           <header className="flex items-center justify-between">
-            <div className="material specular flex items-center gap-0 overflow-hidden rounded-2xl border border-ios-separator">
-              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="glass-btn press !rounded-none !border-0 !bg-transparent !shadow-none text-ios-label-secondary"
-                    aria-label="امکانات آهنگ"
-                  >
-                    <Ellipsis className="size-5" strokeWidth={2} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  sideOffset={10}
-                  className="material-thick max-h-[72svh] w-[min(17rem,calc(100vw-2rem))] origin-top overflow-y-auto rounded-3xl border-ios-separator p-1.5 shadow-2xl"
-                >
-                  <div className="inset-divided">
-                    <SheetRow
-                      icon={<Type className="size-5" strokeWidth={2} />}
-                      label="متن ترانه"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setLyricsOpen(true);
-                      }}
-                    />
-                    <SheetRow
-                      icon={<ListMusic className="size-5" strokeWidth={2} />}
-                      label="صف پخش"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        queueRegistry.openAll();
-                      }}
-                    />
-                    {track.album && (
-                      <SheetRow
-                        icon={<Disc3 className="size-5" strokeWidth={2} />}
-                        label={`آلبوم ${track.album}`}
-                        to={`/album/$name`}
-                        params={{ name: track.album }}
-                        onNavigate={() => setMenuOpen(false)}
-                      />
-                    )}
-                    <TrackMenu track={track}>
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-3 px-2 py-2 text-start"
-                      >
-                        <SheetIcon>
-                          <Plus className="size-5" strokeWidth={2} />
-                        </SheetIcon>
-                        <span className="flex-1 truncate text-sm font-medium">
-                          افزودن به پلی‌لیست و بیشتر
-                        </span>
-                      </button>
-                    </TrackMenu>
-                    <div className="py-1.5">
-                      <LoadingButton
-                        variant="glass"
-                        onAction={() => downloadTrack(track, quality)}
-                        loadingText="در حال دانلود…"
-                        successText="دانلود شد"
-                        disabled={downloaded}
-                        className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
-                      >
-                        <SheetIcon>
-                          {isOffline || downloaded ? (
-                            <WifiOff className="size-5" strokeWidth={2} />
-                          ) : (
-                            <Download className="size-5" strokeWidth={2} />
-                          )}
-                        </SheetIcon>
-                        {downloaded ? "دانلود شد — آفلاین گوش بدهید" : "دانلود برای پخش آفلاین"}
-                      </LoadingButton>
-                    </div>
-                    <div className="py-1.5">
-                      <LoadingButton
-                        variant="glass"
-                        onAction={share}
-                        loadingText="در حال کپی…"
-                        successText="کپی شد"
-                        className="w-full justify-start gap-3 rounded-xl px-2.5 py-2 text-start text-sm font-medium"
-                      >
-                        <SheetIcon>
-                          <Share2 className="size-5" strokeWidth={2} />
-                        </SheetIcon>
-                        اشتراک‌گذاری آهنگ
-                      </LoadingButton>
-                    </div>
-                  </div>
-
-                  <div className="px-1 pt-1">
-                    <p className="type-footnote mb-2 text-ios-label-secondary">کیفیت صدا</p>
-                    <div className="glass grid grid-cols-4 gap-1.5 rounded-2xl p-1.5">
-                      {QUALITIES.map((q) => (
-                        <button
-                          key={q.br}
-                          onClick={() => onChangeQuality(setQuality, q.br as Quality)}
-                          className={cn(
-                            "rounded-xl py-2.5 text-xs font-semibold transition ltr-nums",
-                            quality === q.br
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground",
-                          )}
-                        >
-                          {q.br === 999 ? "FLAC" : q.br}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <SleepSection />
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="relative flex items-center gap-1">
+              <GlisseMenu
+                aria-label="امکانات آهنگ"
+                align="end"
+                className="muis-player-glisse-menu"
+                icon={<Ellipsis className="size-5" strokeWidth={2} />}
+                items={[
+                  { label: "متن ترانه", icon: <Type />, onSelect: () => setLyricsOpen(true) },
+                  { label: "صف پخش", icon: <ListMusic />, onSelect: () => queueRegistry.openAll() },
+                  ...(track.album ? [{ label: "رفتن به آلبوم", icon: <Disc3 />, onSelect: () => void router.navigate({ to: "/album/$name", params: { name: track.album! } }) }] : []),
+                  ...(track.artist[0] ? [{ label: "صفحه خواننده", icon: <Mic2 />, onSelect: () => void router.navigate({ to: "/artist/$name", params: { name: track.artist[0] } }) }] : []),
+                  "separator",
+                  { label: "پخش بعدی", icon: <ListPlus />, onSelect: () => playNext(track) },
+                  { label: "افزودن به صف", icon: <ListMusic />, onSelect: () => addToQueue(track) },
+                  { label: "افزودن به پلی‌لیست", icon: <Plus />, onSelect: () => setPlaylistOpen(true) },
+                  {
+                    label: inLibrary ? "حذف از کتابخانه" : "افزودن به کتابخانه",
+                    icon: <Library /> ,
+                    onSelect: () => {
+                      if (inLibrary) removeFromLibrary(key);
+                      else { addToLibrary(track); toast.success("به کتابخانه اضافه شد"); }
+                    },
+                  },
+                  "separator",
+                  { label: downloaded ? "دانلود شده" : "دانلود برای پخش آفلاین", icon: <Download />, disabled: downloaded, onSelect: () => void downloadTrack(track, quality) },
+                  { label: "کیفیت صدا · " + (quality === 999 ? "FLAC" : quality), icon: <SlidersHorizontal />, onSelect: () => setQualityOpen(true) },
+                  { label: "تایمر خواب", icon: <Timer />, onSelect: () => setSleepOpen(true) },
+                  "separator",
+                  { label: "اشتراک‌گذاری آهنگ", icon: <Share2 />, onSelect: () => void share().catch(() => toast.error("اشتراک‌گذاری انجام نشد")) },
+                ]}
+              />/DropdownMenu>
               <button
                 type="button"
                 onClick={minimize}
