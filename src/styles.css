@@ -1802,3 +1802,38 @@ button:disabled,
   --lg-lens-shine: 1;
   --lg-rim-shine: 0.13;
 }
+
+/* Glass-off appearance for the Glisse dock: keep the Glisse layout and
+   interaction, but remove its frosted lens, refraction and translucent
+   materials when the app-wide glass setting is disabled. */
+:root[data-glass="off"] .muis-glisse-dock-inner {
+  --lg-glass: var(--ios-surface);
+  --lg-glass-active: var(--ios-surface-raised);
+  --lg-lens: transparent;
+  --lg-lens-drop: transparent;
+  --lg-highlight: transparent;
+  --lg-edge: var(--ios-separator);
+  --lg-surface: var(--ios-surface);
+  --lg-surface-edge: var(--ios-separator);
+  --lg-shadow: transparent;
+  --lg-lens-shine: 0;
+  --lg-rim-shine: 0;
+}
+
+:root[data-glass="off"] .muis-glisse-tabbar,
+:root[data-glass="off"] .muis-glisse-search,
+:root[data-glass="off"] .muis-glisse-tabbar *,
+:root[data-glass="off"] .muis-glisse-search *,
+:root[data-glass="off"] .muis-glisse-tabbar *::before,
+:root[data-glass="off"] .muis-glisse-tabbar *::after,
+:root[data-glass="off"] .muis-glisse-search::before,
+:root[data-glass="off"] .muis-glisse-search::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-glass="off"] .muis-glisse-tabbar,
+:root[data-glass="off"] .muis-glisse-search {
+  background: var(--ios-surface) !important;
+  box-shadow: 0 5px 16px oklch(0.3 0.02 268 / 0.09) !important;
+}
