@@ -11,6 +11,7 @@ export interface FeaturedPlaylist {
   blurb: string;
   emoji: string;
   group: Exclude<PlaylistGroup, "همه">;
+  query?: string;
 }
 
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
@@ -118,6 +119,86 @@ export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
     blurb: "ترانه‌ها و قطعه‌های محبوب از دنیای سینما",
     emoji: "🎬",
     group: "سبک",
+  },
+  {
+    id: "ir-nostalgia",
+    title: "نوستالژی فارسی",
+    blurb: "آهنگ‌های خاطره‌انگیز و ماندگار ایرانی",
+    emoji: "📻",
+    group: "ایرانی",
+    query: "آهنگ نوستالژی ایرانی قدیمی",
+  },
+  {
+    id: "ir-sad",
+    title: "غمگین و دلتنگی",
+    blurb: "ترانه‌های فارسی برای وقت‌های دلتنگی",
+    emoji: "🌧️",
+    group: "ایرانی",
+    query: "آهنگ غمگین ایرانی",
+  },
+  {
+    id: "ir-romantic",
+    title: "عاشقانه‌های فارسی",
+    blurb: "ترانه‌های عاشقانه از خواننده‌های ایرانی",
+    emoji: "❤️",
+    group: "ایرانی",
+    query: "آهنگ عاشقانه ایرانی",
+  },
+  {
+    id: "ir-party",
+    title: "شاد و مهمونی",
+    blurb: "آهنگ‌های شاد ایرانی برای دورهمی و جشن",
+    emoji: "🎉",
+    group: "ایرانی",
+    query: "آهنگ شاد ایرانی",
+  },
+  {
+    id: "ir-new-pop",
+    title: "پاپ ایرانی جدید",
+    blurb: "ترانه‌های پاپ فارسی از خواننده‌های جدیدتر",
+    emoji: "✨",
+    group: "ایرانی",
+    query: "آهنگ جدید پاپ ایرانی",
+  },
+  {
+    id: "ir-rap",
+    title: "رپ فارسی",
+    blurb: "منتخب رپ و هیپ‌هاپ فارسی",
+    emoji: "🎤",
+    group: "ایرانی",
+    query: "رپ فارسی",
+  },
+  {
+    id: "ir-remix",
+    title: "ریمیکس و دی‌جی ایرانی",
+    blurb: "ریمیکس‌ها و میکس‌های پرانرژی فارسی",
+    emoji: "🎛️",
+    group: "ایرانی",
+    query: "ریمیکس ایرانی",
+  },
+  {
+    id: "ir-traditional",
+    title: "سنتی و اصیل ایرانی",
+    blurb: "آوازها و نغمه‌های موسیقی سنتی ایران",
+    emoji: "🪕",
+    group: "ایرانی",
+    query: "موسیقی سنتی ایرانی",
+  },
+  {
+    id: "ir-80s-90s",
+    title: "خاطرات دهه ۶۰ و ۷۰",
+    blurb: "ترانه‌های قدیمی و خاطره‌انگیز چند نسل",
+    emoji: "📼",
+    group: "ایرانی",
+    query: "آهنگ قدیمی دهه شصت هفتاد ایرانی",
+  },
+  {
+    id: "ir-driving",
+    title: "جاده و رانندگی",
+    blurb: "موسیقی فارسی برای مسیرهای طولانی",
+    emoji: "🚗",
+    group: "ایرانی",
+    query: "آهنگ ایرانی برای رانندگی",
   },
   {
     id: "2860790063",
