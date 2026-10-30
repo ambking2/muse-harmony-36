@@ -1957,7 +1957,7 @@ button:disabled,
   min-height: 48px;
   padding: 0 14px 0 44px;
   border: 1px solid var(--ios-separator);
-  border-radius: 16px;
+  border-radius: 9999px;
   color: var(--ios-label);
   --lg-glass-bend: 0.58;
   --lg-glass-dispersion: 0.5;
