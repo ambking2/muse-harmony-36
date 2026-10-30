@@ -1887,3 +1887,59 @@ button:disabled,
   background: var(--ios-surface) !important;
   box-shadow: 0 5px 16px oklch(0.3 0.02 268 / 0.09) !important;
 }
+
+
+/* App-wide Glisse segmented controls (library, settings and other screens). */
+.muis-glisse-segmented.lg-segmented {
+  direction: ltr;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  --lg-tab-height: 40px;
+  --lg-tab-width: calc(100% / var(--lg-tabs));
+  --lg-tab-inset: 0px;
+  --lg-thumb-inset: 2px;
+  --lg-lens-grow-x: 16px;
+  --lg-lens-grow-y: 10px;
+  --lg-segment-bend: 0.3;
+  --lg-tab-selected: var(--lg-segment-label);
+  font-family: var(--font-sans);
+}
+
+.muis-glisse-segmented .lg-tab-labels {
+  width: 100%;
+}
+
+.muis-glisse-segmented .lg-tab {
+  min-width: 0;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+.muis-glisse-segmented .lg-tab-text {
+  direction: rtl;
+  padding-inline: 4px;
+}
+
+.muis-glisse-segmented .lg-segmented-thumb {
+  background: var(--lg-segment-thumb);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+/* Glass-off keeps the same Glisse control and moving thumb, but makes its
+   track and selection fully opaque and removes the optical blur. */
+:root[data-glass="off"] .muis-glisse-segmented {
+  --lg-segment-track: var(--ios-fill);
+  --lg-segment-thumb: var(--ios-surface-raised);
+  --lg-segment-lens: transparent;
+  --lg-rim-shine: 0;
+  --lg-lens-shine: 0;
+}
+
+:root[data-glass="off"] .muis-glisse-segmented .lg-tab-bar-glass,
+:root[data-glass="off"] .muis-glisse-segmented .lg-tab-lens {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background-image: none !important;
+}
