@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { currentUser, SESSION_COOKIE } from "@/lib/server/auth";
-import { listUsers, listAllPlaylists, findPlaylist, updatePlaylist, deletePlaylist, setUserDisabled, deleteUser } from "@/lib/server/db";
+import { listUsers, listAllPlaylists, findPlaylist, updatePlaylist, deletePlaylist, setUserDisabled, deleteUser, storageMode } from "@/lib/server/db";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -23,7 +23,7 @@ async function handle(request: Request) {
   if (!(await admin(request))) return json({ error: "دسترسی مدیر لازم است" }, 403);
 
   if (request.method === "GET") {
-    const [users, playlists] = await Promise.all([listUsers(), listAllPlaylists()]);
+    const [users, playlists, storage] = await Promise.all([listUsers(), listAllPlaylists(), storageMode()]);
     const safeUsers = users.map((user) => ({
       username: user.username,
       createdAt: user.createdAt,
@@ -42,10 +42,13 @@ async function handle(request: Request) {
         users: safeUsers.length,
         playlists: safePlaylists.length,
         publicPlaylists: safePlaylists.filter((p) => p.isPublic).length,
+        disabledUsers: safeUsers.filter((u) => u.disabled).length,
         tracks: safePlaylists.reduce((sum, p) => sum + p.count, 0),
       },
       users: safeUsers,
       playlists: safePlaylists,
+      storage,
+      generatedAt: Date.now(),
     });
   }
 
