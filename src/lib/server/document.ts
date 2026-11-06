@@ -123,39 +123,6 @@ export function documentStore(backend: DocumentBackend): Store {
       return true;
     },
 
-    async listUsers() {
-      return Object.values((await load()).users).sort((a, b) => b.createdAt - a.createdAt);
-    },
-
-    async setUserDisabled(username, disabled) {
-      const db = await load();
-      const existing = db.users[username];
-      if (!existing) return false;
-      const sessions = { ...db.sessions };
-      if (disabled) {
-        for (const [sid, session] of Object.entries(sessions)) {
-          if (session.username === username) delete sessions[sid];
-        }
-      }
-      await save({ ...db, sessions, users: { ...db.users, [username]: { ...existing, disabled } } });
-      return true;
-    },
-
-    async deleteUser(username) {
-      const db = await load();
-      if (!db.users[username]) return false;
-      const users = { ...db.users };
-      const sessions = { ...db.sessions };
-      const libraries = { ...db.libraries };
-      const playlists = { ...db.playlists };
-      delete users[username];
-      delete libraries[username];
-      for (const [sid, session] of Object.entries(sessions)) if (session.username === username) delete sessions[sid];
-      for (const [id, playlist] of Object.entries(playlists)) if (playlist.owner === username) delete playlists[id];
-      await save({ ...db, users, sessions, libraries, playlists });
-      return true;
-    },
-
     async createUser(user) {
       const db = await load();
       if (db.users[user.username]) return false;
@@ -216,10 +183,6 @@ export function documentStore(backend: DocumentBackend): Store {
       return Object.values((await load()).playlists)
         .filter((p) => p.owner === owner)
         .sort((a, b) => b.updatedAt - a.updatedAt);
-    },
-
-    async listAllPlaylists() {
-      return Object.values((await load()).playlists).sort((a, b) => b.updatedAt - a.updatedAt);
     },
 
     async listAllPlaylists() {
