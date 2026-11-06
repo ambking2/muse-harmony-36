@@ -1,6 +1,7 @@
 import type { Store } from "./store";
 import type { LibraryDocument } from "../types";
 import type { StoredPlaylist, UserRecord } from "./types";
+import type { FeaturedPlaylist } from "../featured";
 
 /**
  * The account database, as one JSON object.
@@ -21,6 +22,7 @@ export interface Snapshot {
   playlists: Record<string, StoredPlaylist>;
   /** Per account: playlists, favourites, history. See `LibraryDocument`. */
   libraries: Record<string, LibraryDocument>;
+  featuredPlaylists?: FeaturedPlaylist[];
 }
 
 export const EMPTY: Snapshot = { users: {}, sessions: {}, playlists: {}, libraries: {} };
@@ -66,6 +68,7 @@ export function documentStore(backend: DocumentBackend): Store {
       // A database written before accounts carried a library has none, which
       // is not a problem: the first sign-in sends one.
       libraries: stored?.libraries ?? {},
+      featuredPlaylists: stored?.featuredPlaylists,
     };
   };
 
@@ -187,6 +190,15 @@ export function documentStore(backend: DocumentBackend): Store {
 
     async listAllPlaylists() {
       return Object.values((await load()).playlists).sort((a, b) => b.updatedAt - a.updatedAt);
+    },
+
+    async getFeaturedPlaylists() {
+      return (await load()).featuredPlaylists ?? null;
+    },
+
+    async saveFeaturedPlaylists(featuredPlaylists) {
+      const db = await load();
+      await save({ ...db, featuredPlaylists });
     },
 
     async insertPlaylist(playlist) {
