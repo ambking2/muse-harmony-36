@@ -30,6 +30,7 @@ async function handle(request: Request) {
       username: user.username,
       createdAt: user.createdAt,
       disabled: Boolean(user.disabled),
+      playlistCount: playlists.filter((playlist) => playlist.owner === user.username).length,
     }));
     const safePlaylists = playlists.map((playlist) => ({
       id: playlist.id,
