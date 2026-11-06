@@ -505,6 +505,51 @@
   border: 1px solid var(--color-border);
 }
 
+/* Native scrollbar styled to match muis' soft Liquid Glass/iOS palette. */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--ios-label-tertiary) 58%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--ios-label-tertiary) 52%, transparent);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--ios-tint) 72%, transparent);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  :root {
+    scrollbar-width: thin;
+  }
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  *::-webkit-scrollbar-thumb {
+    border-width: 1px;
+  }
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
