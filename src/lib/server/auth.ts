@@ -143,7 +143,7 @@ export async function login(rawUsername: string, password: string): Promise<Auth
     ? await verifyPassword(password, user.salt, user.passwordHash)
     : { ok: false, iterations: 0 };
 
-  if (!user || !checked.ok) {
+  if (!user || !checked.ok || user.disabled) {
     noteFailure(username);
     return { ok: false, error: "نام کاربری یا رمز اشتباه است." };
   }
