@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp, Loader2, Plus, Search, Trash2 } from "lucide-react";
-import { searchSmart } from "@/lib/gdmusic";
+import { getPlaylist, searchSmart } from "@/lib/gdmusic";
 import { trackKey, type Track } from "@/lib/types";
 import type { FeaturedPlaylist } from "@/lib/featured";
 
@@ -16,7 +16,8 @@ export function FeaturedTrackEditor({ item }: { item: FeaturedPlaylist }) {
   const loadCurrent = async () => {
     setBusy(true);
     try {
-      const found = await searchSmart(item.query || item.title, { count: 30, iranianFirst: item.group === "ایرانی" });
+      const provider = /^\\d+$/.test(item.id) ? await getPlaylist("netease", item.id) : null;
+      const found = provider?.tracks?.length ? provider.tracks : await searchSmart(item.query || item.title, { count: 30, iranianFirst: item.group === "ایرانی" });
       setTracks(found);
       setLoaded(true);
       setDirty(true);
