@@ -10,7 +10,13 @@ export function SmoothScroll() {
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Let Lenis own programmatic scrolling too; avoid the browser CSS smooth-scroll\n    // rule and Lenis easing competing with one another.\n    const root = document.documentElement;\n    const previousScrollBehavior = root.style.scrollBehavior;\n    root.style.scrollBehavior = "auto";\n\n    const lenis = new Lenis({
+    // Let Lenis own programmatic scrolling too; avoid the browser CSS smooth-scroll
+    // rule and Lenis easing competing with one another.
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+
+    const lenis = new Lenis({
       duration: 1.1,
       easing: (t) => 1 - Math.pow(1 - t, 3),
       smoothWheel: !isTouch && !prefersReducedMotion,
@@ -47,7 +53,8 @@ export function SmoothScroll() {
     return () => {
       cancelAnimationFrame(rafId);
       document.removeEventListener("click", onClick);
-      lenis.destroy();\n      root.style.scrollBehavior = previousScrollBehavior;
+      lenis.destroy();
+      root.style.scrollBehavior = previousScrollBehavior;
     };
   }, []);
 
