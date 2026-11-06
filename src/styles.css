@@ -436,8 +436,17 @@
     }
   }
 
-  html, body, #root {
-    height: 100%;
+  /* Keep the document as the scroll container. A fixed 100% height on
+     body/#root can clip the page's growing content, especially with Lenis
+     driving wheel input on long admin screens. */
+  html {
+    min-height: 100%;
+    height: auto;
+  }
+
+  body, #root {
+    min-height: 100%;
+    height: auto;
   }
 
   body {
