@@ -324,6 +324,77 @@ function RootComponent() {
   useEffect(initGlassMode, []);
   useEffect(initTheme, []);
 
+  // Smooth desktop mouse-wheel scrolling without taking over touch scrolling.
+  // Nested scroll panels (menus, dialogs, horizontal/vertical lists) retain
+  // their own native behavior; reduced-motion users keep the browser default.
+  useEffect(() => {
+    if (
+      !window.matchMedia("(pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    let targetY = window.scrollY;
+    let frame = 0;
+    let running = false;
+
+    const canScrollNested = (target: EventTarget | null, deltaY: number) => {
+      let node = target instanceof HTMLElement ? target : null;
+      while (node && node !== document.body && node !== document.documentElement) {
+        const overflowY = window.getComputedStyle(node).overflowY;
+        if (
+          (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
+          node.scrollHeight > node.clientHeight + 1
+        ) {
+          const atTop = node.scrollTop <= 0;
+          const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+          if ((deltaY < 0 && !atTop) || (deltaY > 0 && !atBottom)) return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    };
+
+    const animate = () => {
+      const currentY = window.scrollY;
+      const distance = targetY - currentY;
+      if (Math.abs(distance) < 0.6) {
+        window.scrollTo(0, targetY);
+        frame = 0;
+        running = false;
+        return;
+      }
+      window.scrollTo(0, currentY + distance * 0.14);
+      frame = window.requestAnimationFrame(animate);
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      if (canScrollNested(event.target, event.deltaY)) return;
+
+      const multiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      const delta = event.deltaY * multiplier;
+      if (!delta) return;
+
+      const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (!running) targetY = window.scrollY;
+      targetY = Math.max(0, Math.min(maxY, targetY + delta));
+      event.preventDefault();
+
+      if (!running) {
+        running = true;
+        frame = window.requestAnimationFrame(animate);
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   // Rebuild offline object URLs from IndexedDB once, on first paint.
   useEffect(() => {
     void hydrateDownloads();
