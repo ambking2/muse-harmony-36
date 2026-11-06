@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { currentUser, SESSION_COOKIE } from "@/lib/server/auth";
-import { listUsers, listAllPlaylists, findPlaylist, updatePlaylist, deletePlaylist } from "@/lib/server/db";
+import { listUsers, listAllPlaylists, findPlaylist, updatePlaylist, deletePlaylist, setUserDisabled, deleteUser } from "@/lib/server/db";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -51,6 +51,21 @@ async function handle(request: Request) {
 
   const url = new URL(request.url);
   const id = url.searchParams.get("id");
+  const username = url.searchParams.get("username");
+  if (request.method === "PATCH" && username) {
+    if (username === "amb") return json({ error: "حساب مدیر اصلی قابل تعلیق نیست" }, 400);
+    const body = (await request.json().catch(() => ({}))) as { disabled?: unknown };
+    if (typeof body.disabled !== "boolean") return json({ error: "disabled باید بولی باشد" }, 400);
+    const changed = await setUserDisabled(username, body.disabled);
+    return changed ? json({ ok: true }) : json({ error: "کاربر پیدا نشد" }, 404);
+  }
+
+  if (request.method === "DELETE" && username) {
+    if (username === "amb") return json({ error: "حساب مدیر اصلی قابل حذف نیست" }, 400);
+    const removed = await deleteUser(username);
+    return removed ? json({ ok: true }) : json({ error: "کاربر پیدا نشد" }, 404);
+  }
+
   if (request.method === "PATCH" && id) {
     const body = (await request.json().catch(() => ({}))) as { isPublic?: unknown };
     if (typeof body.isPublic !== "boolean") return json({ error: "isPublic باید بولی باشد" }, 400);
