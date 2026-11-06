@@ -20,6 +20,8 @@ export interface Store {
   ): Promise<void>;
 
   listUsers(): Promise<UserRecord[]>;
+  setUserDisabled(username: string, disabled: boolean): Promise<boolean>;
+  deleteUser(username: string): Promise<boolean>;
 
   /* sessions */
   getSession(sid: string): Promise<{ username: string; at: number } | null>;
