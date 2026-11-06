@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { currentUser, SESSION_COOKIE } from "@/lib/server/auth";
 import { listUsers, listAllPlaylists, findPlaylist, updatePlaylist, deletePlaylist, setUserDisabled, deleteUser, storageMode, getFeaturedPlaylists, saveFeaturedPlaylists } from "@/lib/server/db";
 import { FEATURED_PLAYLISTS, type FeaturedPlaylist } from "@/lib/featured";
+import type { Track } from "@/lib/types";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -72,6 +73,15 @@ async function handle(request: Request) {
       ...(typeof body.blurb === "string" ? { blurb: body.blurb.trim().slice(0, 180) } : {}),
       ...(typeof body.emoji === "string" ? { emoji: body.emoji.trim().slice(0, 8) } : {}),
       ...(typeof body.query === "string" ? { query: body.query.trim().slice(0, 160) } : {}),
+      ...(Array.isArray(body.tracks) ? { tracks: body.tracks.slice(0, 300).filter((track): track is Track => {
+        if (!track || typeof track !== "object") return false;
+        const t = track as Partial<Track>;
+        return typeof t.id === "string" && typeof t.name === "string" &&
+          Array.isArray(t.artist) && t.artist.every((a) => typeof a === "string") &&
+          typeof t.album === "string" && typeof t.pic_id === "string" &&
+          typeof t.url_id === "string" && typeof t.lyric_id === "string" &&
+          (t.source === "netease" || t.source === "joox" || t.source === "kuwo");
+      }) } : {}),
       ...(typeof body.enabled === "boolean" ? { enabled: body.enabled } : {}),
       ...(typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder) ? { sortOrder: body.sortOrder } : {}),
       ...(body.group === "ایرانی" || body.group === "سبک" || body.group === "بین‌المللی" ? { group: body.group } : {}),
