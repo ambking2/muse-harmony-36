@@ -5,6 +5,8 @@
 export type PlaylistGroup = "همه" | "ایرانی" | "سبک" | "بین‌المللی";
 // Persian-themed collections are added in this branch.
 
+import type { Track } from "./types";
+
 export interface FeaturedPlaylist {
   id: string;
   title: string;
@@ -12,6 +14,8 @@ export interface FeaturedPlaylist {
   emoji: string;
   group: Exclude<PlaylistGroup, "همه">;
   query?: string;
+  /** A manually curated, fixed track list overrides provider/search results. */
+  tracks?: Track[];
   enabled?: boolean;
   sortOrder?: number;
 }
