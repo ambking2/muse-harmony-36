@@ -16,7 +16,7 @@ export function FeaturedTrackEditor({ item }: { item: FeaturedPlaylist }) {
   const loadCurrent = async () => {
     setBusy(true);
     try {
-      const provider = /^\\d+$/.test(item.id) ? await getPlaylist("netease", item.id) : null;
+      const provider = /^\d+$/.test(item.id) ? await getPlaylist("netease", item.id) : null;
       const found = provider?.tracks?.length ? provider.tracks : await searchSmart(item.query || item.title, { count: 30, iranianFirst: item.group === "ایرانی" });
       setTracks(found);
       setLoaded(true);
