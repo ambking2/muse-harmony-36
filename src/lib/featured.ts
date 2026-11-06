@@ -12,6 +12,8 @@ export interface FeaturedPlaylist {
   emoji: string;
   group: Exclude<PlaylistGroup, "همه">;
   query?: string;
+  enabled?: boolean;
+  sortOrder?: number;
 }
 
 export const FEATURED_PLAYLISTS: FeaturedPlaylist[] = [
