@@ -7,6 +7,7 @@ import { Screen } from "@/components/ios/Screen";
 import { Section } from "@/components/ios/Section";
 import { useSession } from "@/lib/account";
 import type { FeaturedPlaylist } from "@/lib/featured";
+import { FeaturedTrackEditor } from "@/components/admin/FeaturedTrackEditor";
 
 type AdminData = {
   stats: { users: number; disabledUsers: number; playlists: number; publicPlaylists: number; tracks: number };
@@ -89,6 +90,7 @@ function AdminPage() {
                 <select className="min-h-10 rounded-xl bg-ios-fill px-3" value={draft.group} onChange={e=>patch({group:e.target.value as FeaturedPlaylist["group"]})}><option>ایرانی</option><option>سبک</option><option>بین‌المللی</option></select>
                 <input className="min-h-10 rounded-xl bg-ios-fill px-3" aria-label="ترتیب نمایش" type="number" value={draft.sortOrder??0} onChange={e=>patch({sortOrder:Number(e.target.value)})}/>
               </div>
+              <FeaturedTrackEditor item={item} />
               <div className="flex flex-wrap justify-between gap-2 border-t border-ios-separator pt-2"><a className="btn btn-gray h-9 min-h-9 px-3" href={"/mix/"+encodeURIComponent(item.id)} target="_blank" rel="noreferrer"><Eye className="size-4"/> باز کردن</a><div className="flex gap-2"><button className="btn btn-gray h-9 min-h-9 px-3 text-ios-red" onClick={()=>{if(confirm("مجموعه "+item.title+" از سایت حذف شود؟"))void act("/api/admin?featured="+encodeURIComponent(item.id),"DELETE").then(()=>setFeaturedDrafts(old=>{const n={...old};delete n[item.id];return n;})).catch(e=>alert(e.message));}}><Trash2 className="size-4"/> حذف</button><button className="btn btn-filled h-9 min-h-9 px-4" onClick={()=>void act("/api/admin?featured="+encodeURIComponent(item.id),"PATCH",draft).then(()=>setFeaturedDrafts(old=>{const n={...old};delete n[item.id];return n;})).catch(e=>alert(e.message))}>ذخیره تغییرات</button></div></div>
             </div>;
           })}
