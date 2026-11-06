@@ -56,6 +56,7 @@ function failover(primary: Store, spare: Store, onFail: (error: unknown) => void
 
   return {
     findUser: (username) => attempt((s) => s.findUser(username)),
+    listUsers: () => attempt((s) => s.listUsers()),
     createUser: (user) => attempt((s) => s.createUser(user)),
     updateUser: (username, patch) => attempt((s) => s.updateUser(username, patch)),
     getSession: (sid) => attempt((s) => s.getSession(sid)),
@@ -66,6 +67,7 @@ function failover(primary: Store, spare: Store, onFail: (error: unknown) => void
     saveLibrary: (username, document) => attempt((s) => s.saveLibrary(username, document)),
     findPlaylist: (id) => attempt((s) => s.findPlaylist(id)),
     listPlaylistsByOwner: (owner) => attempt((s) => s.listPlaylistsByOwner(owner)),
+    listAllPlaylists: () => attempt((s) => s.listAllPlaylists()),
     insertPlaylist: (playlist) => attempt((s) => s.insertPlaylist(playlist)),
     updatePlaylist: (playlist) => attempt((s) => s.updatePlaylist(playlist)),
     deletePlaylist: (id, owner) => attempt((s) => s.deletePlaylist(id, owner)),
@@ -144,6 +146,10 @@ export async function findUser(username: string): Promise<UserRecord | null> {
   return (await open()).store.findUser(username);
 }
 
+export async function listUsers(): Promise<UserRecord[]> {
+  return (await open()).store.listUsers();
+}
+
 /** False when the name is already taken. */
 export async function createUser(user: UserRecord): Promise<boolean> {
   return (await open()).store.createUser(user);
@@ -192,6 +198,10 @@ export async function findPlaylist(id: string): Promise<StoredPlaylist | null> {
 
 export async function listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]> {
   return (await open()).store.listPlaylistsByOwner(owner);
+}
+
+export async function listAllPlaylists(): Promise<StoredPlaylist[]> {
+  return (await open()).store.listAllPlaylists();
 }
 
 export async function insertPlaylist(playlist: StoredPlaylist): Promise<void> {
