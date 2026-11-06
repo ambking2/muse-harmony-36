@@ -27,6 +27,7 @@ import { setTheme, useTheme } from "@/lib/theme";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import type { Quality } from "@/lib/types";
+import { useSession } from "@/lib/account";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/settings")({ component: SettingsPage });
  * needs a second page to say it.
  */
 function SettingsPage() {
+  const session = useSession();
   const glass = useGlassMode();
   const theme = useTheme();
   const quality = usePlayer((state) => state.quality);
@@ -249,6 +251,8 @@ function SettingsPage() {
               }}
             />
           </Section>
+
+          {session.data?.username === "amb" ? <Section title="مدیریت سایت"><Row icon={Database} tone="violet" label="پنل مدیریت" detail="کاربران و پلی‌لیست‌های سایت" to="/admin" /></Section> : null}
 
           <p className="type-footnote pb-2 text-center text-ios-label-tertiary">
             muis · ساخته‌شده برای گوش دادن بی‌دردسر
