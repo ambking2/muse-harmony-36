@@ -26,6 +26,8 @@ export interface UserRecord {
   /** Base64. */
   salt: string;
   createdAt: number;
+  /** Whether the account is suspended by an administrator. */
+  disabled?: boolean;
   /**
    * SHA-256 of each recovery code. The codes themselves are shown once at
    * registration and never stored — there is nowhere to send them, since the
