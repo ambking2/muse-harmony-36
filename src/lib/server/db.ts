@@ -4,6 +4,7 @@ import type { KVNamespace } from "./kv";
 import type { Store } from "./store";
 
 import type { StoredPlaylist, UserRecord } from "./types";
+import type { FeaturedPlaylist } from "../featured";
 
 /**
  * The account database: one JSON object, kept somewhere that lasts.
@@ -70,6 +71,8 @@ function failover(primary: Store, spare: Store, onFail: (error: unknown) => void
     findPlaylist: (id) => attempt((s) => s.findPlaylist(id)),
     listPlaylistsByOwner: (owner) => attempt((s) => s.listPlaylistsByOwner(owner)),
     listAllPlaylists: () => attempt((s) => s.listAllPlaylists()),
+    getFeaturedPlaylists: () => attempt((s) => s.getFeaturedPlaylists()),
+    saveFeaturedPlaylists: (playlists) => attempt((s) => s.saveFeaturedPlaylists(playlists)),
     insertPlaylist: (playlist) => attempt((s) => s.insertPlaylist(playlist)),
     updatePlaylist: (playlist) => attempt((s) => s.updatePlaylist(playlist)),
     deletePlaylist: (id, owner) => attempt((s) => s.deletePlaylist(id, owner)),
@@ -212,6 +215,14 @@ export async function listPlaylistsByOwner(owner: string): Promise<StoredPlaylis
 
 export async function listAllPlaylists(): Promise<StoredPlaylist[]> {
   return (await open()).store.listAllPlaylists();
+}
+
+export async function getFeaturedPlaylists(): Promise<FeaturedPlaylist[] | null> {
+  return (await open()).store.getFeaturedPlaylists();
+}
+
+export async function saveFeaturedPlaylists(playlists: FeaturedPlaylist[]): Promise<void> {
+  return (await open()).store.saveFeaturedPlaylists(playlists);
 }
 
 export async function insertPlaylist(playlist: StoredPlaylist): Promise<void> {
