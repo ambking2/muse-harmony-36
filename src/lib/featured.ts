@@ -7,6 +7,8 @@ export type PlaylistGroup = "همه" | "ایرانی" | "سبک" | "بین‌ا�
 
 import type { Track } from "./types";
 
+import type { Track } from "./types";
+
 export interface FeaturedPlaylist {
   id: string;
   title: string;
@@ -14,6 +16,8 @@ export interface FeaturedPlaylist {
   emoji: string;
   group: Exclude<PlaylistGroup, "همه">;
   query?: string;
+  /** Fixed manual track list; when present it overrides provider/search results. */
+  tracks?: Track[];
   /** A manually curated, fixed track list overrides provider/search results. */
   tracks?: Track[];
   enabled?: boolean;
