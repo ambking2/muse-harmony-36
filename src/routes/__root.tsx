@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { MotionConfig } from "framer-motion";
+import { SmoothScroll } from "@/components/SmoothScroll";
 
 import appCss from "../styles.css?url";
 // Imported through Vite so the content hash lands in the URL. Preloading the
@@ -337,6 +338,7 @@ function RootComponent() {
           shared-element morphs. Doing it here rather than per component means
           no screen can forget. */}
       <MotionConfig reducedMotion="user">
+        <SmoothScroll />
         {/* The refraction filter every glass surface points at. Mounted once. */}
         <GlassDefs />
         <WebAppInstallPrompt />
