@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ListMusic } from "lucide-react";
 
 import { PlaylistCard } from "@/components/music/PlaylistCard";
@@ -14,10 +15,9 @@ const GROUPS: PlaylistGroup[] = [
 /** Each card opens a provider playlist and loads its actual track list. */
 export function PlaylistDiscovery() {
   const [activeGroup, setActiveGroup] = useState<PlaylistGroup>("همه");
-  const visiblePlaylists =
-    activeGroup === "همه"
-      ? FEATURED_PLAYLISTS
-      : FEATURED_PLAYLISTS.filter((playlist) => playlist.group === activeGroup);
+  const { data } = useQuery({ queryKey: ["featured-playlists"], queryFn: async () => { const response = await fetch("/api/featured-playlists"); if (!response.ok) throw new Error("featured playlists unavailable"); return (await response.json() as { playlists: typeof FEATURED_PLAYLISTS }).playlists; }, staleTime: 60_000 });
+  const playlists = data ?? FEATURED_PLAYLISTS;
+  const visiblePlaylists = activeGroup === "همه" ? playlists : playlists.filter((playlist) => playlist.group === activeGroup);
 
   return (
     <section className="mt-7">
