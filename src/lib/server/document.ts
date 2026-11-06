@@ -86,6 +86,10 @@ export function documentStore(backend: DocumentBackend): Store {
       return Object.values((await load()).users).sort((a, b) => b.createdAt - a.createdAt);
     },
 
+    async listUsers() {
+      return Object.values((await load()).users).sort((a, b) => b.createdAt - a.createdAt);
+    },
+
     async setUserDisabled(username, disabled) {
       const db = await load();
       const existing = db.users[username];
@@ -175,6 +179,10 @@ export function documentStore(backend: DocumentBackend): Store {
       return Object.values((await load()).playlists)
         .filter((p) => p.owner === owner)
         .sort((a, b) => b.updatedAt - a.updatedAt);
+    },
+
+    async listAllPlaylists() {
+      return Object.values((await load()).playlists).sort((a, b) => b.updatedAt - a.updatedAt);
     },
 
     async listAllPlaylists() {
