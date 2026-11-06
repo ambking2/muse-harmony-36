@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ShieldCheck, Users, ListMusic, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Screen } from "@/components/ios/Screen";
@@ -26,7 +27,14 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const session = useSession();
+  const [search, setSearch] = useState("");
   const query = useQuery({ queryKey: ["admin"], queryFn: loadAdmin, enabled: session.data?.username === "amb" });
+  const act = async (url: string, method: string, body?: unknown) => {
+    const response = await fetch(url, { method, credentials: "include", headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "عملیات ناموفق بود");
+    await query.refetch();
+  };
   if (session.isPending) return <AppShell><Screen title="مدیریت"><p className="p-8 text-center">در حال بررسی نشست…</p></Screen></AppShell>;
   if (session.data?.username !== "amb") return <AppShell><Screen title="دسترسی محدود"><div className="mx-auto max-w-md py-16 text-center"><ShieldCheck className="mx-auto size-12 text-ios-label-tertiary"/><h2 className="type-title-2 mt-4">دسترسی مدیر لازم است</h2><p className="type-subheadline mt-2 text-ios-label-secondary">برای ورود به این بخش باید با حساب مدیر وارد شوید.</p></div></Screen></AppShell>;
   return <AppShell><Screen title="مدیریت muis" back={{ to: "/settings" }} actions={<button className="btn btn-gray h-9 min-h-9 px-3" onClick={() => void query.refetch()}><RefreshCw className="size-4"/> بروزرسانی</button>}>
