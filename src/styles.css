@@ -2009,7 +2009,14 @@ button:disabled,
 }
 
 html {
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Preserve native momentum on touch devices and make nested scroll areas
+   behave consistently across mobile browsers. */
+:where(*, *::before, *::after) {
+  -webkit-overflow-scrolling: touch;
 }
 
 .mesh,
