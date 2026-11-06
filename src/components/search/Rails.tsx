@@ -187,9 +187,11 @@ function LaneCard({
  * the user did not have to think to ask for.
  */
 export function CollectionRail() {
+  const { data } = useQuery({ queryKey: ["featured-playlists"], queryFn: async () => { const response = await fetch("/api/featured-playlists"); if (!response.ok) throw new Error("featured playlists unavailable"); return (await response.json() as { playlists: typeof FEATURED_PLAYLISTS }).playlists; }, staleTime: 60_000 });
+  const playlists = data ?? FEATURED_PLAYLISTS;
   return (
     <Rail title="پلی‌لیست‌های ایرانی" icon={ListMusic}>
-      {FEATURED_PLAYLISTS.map((playlist) => (
+      {playlists.filter((playlist) => playlist.group === "ایرانی").map((playlist) => (
         <PlaylistCard key={playlist.id} playlist={playlist} className="w-52 shrink-0" />
       ))}
     </Rail>
