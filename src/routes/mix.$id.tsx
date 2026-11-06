@@ -20,10 +20,13 @@ export const Route = createFileRoute("/mix/$id")({
 function MixPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const curated = FEATURED_PLAYLISTS.find((p) => p.id === id);
+  const featuredQuery = useQuery({ queryKey: ["featured-playlists"], queryFn: async () => { const response = await fetch("/api/featured-playlists"); if (!response.ok) throw new Error("featured playlists unavailable"); return (await response.json() as { playlists: typeof FEATURED_PLAYLISTS }).playlists; }, staleTime: 60_000 });
+  const curatedList = featuredQuery.data ?? (featuredQuery.isError ? FEATURED_PLAYLISTS : []);
+  const curated = curatedList.find((p) => p.id === id);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["mix", id],
+    queryKey: ["mix", id, curated?.query, curated?.title],
+    enabled: featuredQuery.isFetched,
     staleTime: 60 * 60_000,
     queryFn: async () => {
       if (curated?.query) {
