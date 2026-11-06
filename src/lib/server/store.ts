@@ -19,6 +19,8 @@ export interface Store {
     patch: { passwordHash: string; salt: string; recoveryHashes: string[] },
   ): Promise<void>;
 
+  listUsers(): Promise<UserRecord[]>;
+
   /* sessions */
   getSession(sid: string): Promise<{ username: string; at: number } | null>;
   putSession(sid: string, username: string, at: number): Promise<void>;
@@ -33,6 +35,7 @@ export interface Store {
   /* playlists */
   findPlaylist(id: string): Promise<StoredPlaylist | null>;
   listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]>;
+  listAllPlaylists(): Promise<StoredPlaylist[]>;
   insertPlaylist(playlist: StoredPlaylist): Promise<void>;
   updatePlaylist(playlist: StoredPlaylist): Promise<void>;
   /** False when the playlist is not there, or belongs to someone else. */
