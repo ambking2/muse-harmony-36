@@ -57,6 +57,8 @@ function failover(primary: Store, spare: Store, onFail: (error: unknown) => void
   return {
     findUser: (username) => attempt((s) => s.findUser(username)),
     listUsers: () => attempt((s) => s.listUsers()),
+    setUserDisabled: (username, disabled) => attempt((s) => s.setUserDisabled(username, disabled)),
+    deleteUser: (username) => attempt((s) => s.deleteUser(username)),
     createUser: (user) => attempt((s) => s.createUser(user)),
     updateUser: (username, patch) => attempt((s) => s.updateUser(username, patch)),
     getSession: (sid) => attempt((s) => s.getSession(sid)),
@@ -148,6 +150,14 @@ export async function findUser(username: string): Promise<UserRecord | null> {
 
 export async function listUsers(): Promise<UserRecord[]> {
   return (await open()).store.listUsers();
+}
+
+export async function setUserDisabled(username: string, disabled: boolean): Promise<boolean> {
+  return (await open()).store.setUserDisabled(username, disabled);
+}
+
+export async function deleteUser(username: string): Promise<boolean> {
+  return (await open()).store.deleteUser(username);
 }
 
 /** False when the name is already taken. */
