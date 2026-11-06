@@ -1,5 +1,6 @@
 import type { LibraryDocument } from "../types";
 import type { StoredPlaylist, UserRecord } from "./types";
+import type { FeaturedPlaylist } from "../featured";
 
 /**
  * What the account store has to offer, whichever backend is behind it.
@@ -38,6 +39,8 @@ export interface Store {
   findPlaylist(id: string): Promise<StoredPlaylist | null>;
   listPlaylistsByOwner(owner: string): Promise<StoredPlaylist[]>;
   listAllPlaylists(): Promise<StoredPlaylist[]>;
+  getFeaturedPlaylists(): Promise<FeaturedPlaylist[] | null>;
+  saveFeaturedPlaylists(playlists: FeaturedPlaylist[]): Promise<void>;
   insertPlaylist(playlist: StoredPlaylist): Promise<void>;
   updatePlaylist(playlist: StoredPlaylist): Promise<void>;
   /** False when the playlist is not there, or belongs to someone else. */
