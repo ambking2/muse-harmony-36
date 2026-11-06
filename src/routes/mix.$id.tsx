@@ -25,10 +25,13 @@ function MixPage() {
   const curated = curatedList.find((p) => p.id === id);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["mix", id, curated?.query, curated?.title],
+    queryKey: ["mix", id, curated?.query, curated?.title, curated?.tracks],
     enabled: featuredQuery.isFetched,
     staleTime: 60 * 60_000,
     queryFn: async () => {
+      if (curated && Array.isArray(curated.tracks)) {
+        return { id, name: curated.title, cover: curated.tracks[0]?.pic_id ?? "", tracks: curated.tracks };
+      }
       if (curated?.query) {
         const tracks = await searchSmart(curated.query, { count: 30, iranianFirst: true });
         if (!tracks.length) return null;
