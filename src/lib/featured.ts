@@ -7,8 +7,6 @@ export type PlaylistGroup = "همه" | "ایرانی" | "سبک" | "بین‌ا�
 
 import type { Track } from "./types";
 
-import type { Track } from "./types";
-
 export interface FeaturedPlaylist {
   id: string;
   title: string;
