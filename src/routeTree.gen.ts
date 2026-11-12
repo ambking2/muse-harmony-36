@@ -9,77 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StudioRouteImport } from './routes/studio'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SearchHistoryRouteImport } from './routes/search-history'
-import { Route as RecognizeRouteImport } from './routes/recognize'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as NowPlayingRouteImport } from './routes/now-playing'
-import { Route as LibraryRouteImport } from './routes/library'
-import { Route as FavoritesRouteImport } from './routes/favorites'
-import { Route as ExploreRouteImport } from './routes/explore'
-import { Route as DownloadsRouteImport } from './routes/downloads'
-import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TKeyRouteImport } from './routes/t.$key'
-import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
-import { Route as PIdRouteImport } from './routes/p.$id'
-import { Route as MixIdRouteImport } from './routes/mix.$id'
-import { Route as ArtistNameRouteImport } from './routes/artist.$name'
-import { Route as ApiPlaylistsRouteImport } from './routes/api/playlists'
-import { Route as ApiLibraryRouteImport } from './routes/api/library'
-import { Route as ApiAuthRouteImport } from './routes/api/auth'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as NowPlayingRouteImport } from './routes/now-playing'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RecognizeRouteImport } from './routes/recognize'
+import { Route as SearchHistoryRouteImport } from './routes/search-history'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as AlbumNameRouteImport } from './routes/album.$name'
+import { Route as ApiAdminRouteImport } from './routes/api/admin'
+import { Route as ApiAuthRouteImport } from './routes/api/auth'
+import { Route as ApiFeaturedPlaylistsRouteImport } from './routes/api/featured-playlists'
+import { Route as ApiLibraryRouteImport } from './routes/api/library'
+import { Route as ApiPlaylistsRouteImport } from './routes/api/playlists'
+import { Route as ArtistNameRouteImport } from './routes/artist.$name'
+import { Route as MixIdRouteImport } from './routes/mix.$id'
+import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
+import { Route as TKeyRouteImport } from './routes/t.$key'
 import { Route as ApiGdSplatRouteImport } from './routes/api/gd.$'
 
-const StudioRoute = StudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchHistoryRoute = SearchHistoryRouteImport.update({
-  id: '/search-history',
-  path: '/search-history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecognizeRoute = RecognizeRouteImport.update({
-  id: '/recognize',
-  path: '/recognize',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NowPlayingRoute = NowPlayingRouteImport.update({
-  id: '/now-playing',
-  path: '/now-playing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LibraryRoute = LibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FavoritesRoute = FavoritesRouteImport.update({
-  id: '/favorites',
-  path: '/favorites',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DownloadsRoute = DownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -87,44 +45,69 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TKeyRoute = TKeyRouteImport.update({
-  id: '/t/$key',
-  path: '/t/$key',
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlaylistIdRoute = PlaylistIdRouteImport.update({
-  id: '/playlist/$id',
-  path: '/playlist/$id',
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PIdRoute = PIdRouteImport.update({
-  id: '/p/$id',
-  path: '/p/$id',
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MixIdRoute = MixIdRouteImport.update({
-  id: '/mix/$id',
-  path: '/mix/$id',
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ArtistNameRoute = ArtistNameRouteImport.update({
-  id: '/artist/$name',
-  path: '/artist/$name',
+const NowPlayingRoute = NowPlayingRouteImport.update({
+  id: '/now-playing',
+  path: '/now-playing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPlaylistsRoute = ApiPlaylistsRouteImport.update({
-  id: '/api/playlists',
-  path: '/api/playlists',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiLibraryRoute = ApiLibraryRouteImport.update({
-  id: '/api/library',
-  path: '/api/library',
+const RecognizeRoute = RecognizeRouteImport.update({
+  id: '/recognize',
+  path: '/recognize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchHistoryRoute = SearchHistoryRouteImport.update({
+  id: '/search-history',
+  path: '/search-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlbumNameRoute = AlbumNameRouteImport.update({
+  id: '/album/$name',
+  path: '/album/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminRoute = ApiAdminRouteImport.update({
+  id: '/api/admin',
+  path: '/api/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthRoute = ApiAuthRouteImport.update({
@@ -132,9 +115,44 @@ const ApiAuthRoute = ApiAuthRouteImport.update({
   path: '/api/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AlbumNameRoute = AlbumNameRouteImport.update({
-  id: '/album/$name',
-  path: '/album/$name',
+const ApiFeaturedPlaylistsRoute = ApiFeaturedPlaylistsRouteImport.update({
+  id: '/api/featured-playlists',
+  path: '/api/featured-playlists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLibraryRoute = ApiLibraryRouteImport.update({
+  id: '/api/library',
+  path: '/api/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPlaylistsRoute = ApiPlaylistsRouteImport.update({
+  id: '/api/playlists',
+  path: '/api/playlists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistNameRoute = ArtistNameRouteImport.update({
+  id: '/artist/$name',
+  path: '/artist/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MixIdRoute = MixIdRouteImport.update({
+  id: '/mix/$id',
+  path: '/mix/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PIdRoute = PIdRouteImport.update({
+  id: '/p/$id',
+  path: '/p/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistIdRoute = PlaylistIdRouteImport.update({
+  id: '/playlist/$id',
+  path: '/playlist/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TKeyRoute = TKeyRouteImport.update({
+  id: '/t/$key',
+  path: '/t/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGdSplatRoute = ApiGdSplatRouteImport.update({
@@ -146,6 +164,7 @@ const ApiGdSplatRoute = ApiGdSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -157,7 +176,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/featured-playlists': typeof ApiFeaturedPlaylistsRoute
   '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
@@ -170,6 +191,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -181,7 +203,9 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/featured-playlists': typeof ApiFeaturedPlaylistsRoute
   '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
@@ -195,6 +219,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/downloads': typeof DownloadsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -206,7 +231,9 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/studio': typeof StudioRoute
   '/album/$name': typeof AlbumNameRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth': typeof ApiAuthRoute
+  '/api/featured-playlists': typeof ApiFeaturedPlaylistsRoute
   '/api/library': typeof ApiLibraryRoute
   '/api/playlists': typeof ApiPlaylistsRoute
   '/artist/$name': typeof ArtistNameRoute
@@ -221,6 +248,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/admin'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -232,7 +260,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/album/$name'
+    | '/api/admin'
     | '/api/auth'
+    | '/api/featured-playlists'
     | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
@@ -245,6 +275,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/admin'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -256,7 +287,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/album/$name'
+    | '/api/admin'
     | '/api/auth'
+    | '/api/featured-playlists'
     | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
@@ -269,6 +302,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/admin'
     | '/downloads'
     | '/explore'
     | '/favorites'
@@ -280,7 +314,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/album/$name'
+    | '/api/admin'
     | '/api/auth'
+    | '/api/featured-playlists'
     | '/api/library'
     | '/api/playlists'
     | '/artist/$name'
@@ -294,6 +330,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  AdminRoute: typeof AdminRoute
   DownloadsRoute: typeof DownloadsRoute
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
@@ -305,7 +342,9 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StudioRoute: typeof StudioRoute
   AlbumNameRoute: typeof AlbumNameRoute
+  ApiAdminRoute: typeof ApiAdminRoute
   ApiAuthRoute: typeof ApiAuthRoute
+  ApiFeaturedPlaylistsRoute: typeof ApiFeaturedPlaylistsRoute
   ApiLibraryRoute: typeof ApiLibraryRoute
   ApiPlaylistsRoute: typeof ApiPlaylistsRoute
   ArtistNameRoute: typeof ArtistNameRoute
@@ -318,74 +357,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/studio': {
-      id: '/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof StudioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search-history': {
-      id: '/search-history'
-      path: '/search-history'
-      fullPath: '/search-history'
-      preLoaderRoute: typeof SearchHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recognize': {
-      id: '/recognize'
-      path: '/recognize'
-      fullPath: '/recognize'
-      preLoaderRoute: typeof RecognizeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/now-playing': {
-      id: '/now-playing'
-      path: '/now-playing'
-      fullPath: '/now-playing'
-      preLoaderRoute: typeof NowPlayingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/library': {
-      id: '/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof LibraryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/favorites': {
-      id: '/favorites'
-      path: '/favorites'
-      fullPath: '/favorites'
-      preLoaderRoute: typeof FavoritesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/downloads': {
-      id: '/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof DownloadsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -395,60 +371,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/t/$key': {
-      id: '/t/$key'
-      path: '/t/$key'
-      fullPath: '/t/$key'
-      preLoaderRoute: typeof TKeyRouteImport
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/playlist/$id': {
-      id: '/playlist/$id'
-      path: '/playlist/$id'
-      fullPath: '/playlist/$id'
-      preLoaderRoute: typeof PlaylistIdRouteImport
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/p/$id': {
-      id: '/p/$id'
-      path: '/p/$id'
-      fullPath: '/p/$id'
-      preLoaderRoute: typeof PIdRouteImport
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mix/$id': {
-      id: '/mix/$id'
-      path: '/mix/$id'
-      fullPath: '/mix/$id'
-      preLoaderRoute: typeof MixIdRouteImport
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/artist/$name': {
-      id: '/artist/$name'
-      path: '/artist/$name'
-      fullPath: '/artist/$name'
-      preLoaderRoute: typeof ArtistNameRouteImport
+    '/now-playing': {
+      id: '/now-playing'
+      path: '/now-playing'
+      fullPath: '/now-playing'
+      preLoaderRoute: typeof NowPlayingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/playlists': {
-      id: '/api/playlists'
-      path: '/api/playlists'
-      fullPath: '/api/playlists'
-      preLoaderRoute: typeof ApiPlaylistsRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/library': {
-      id: '/api/library'
-      path: '/api/library'
-      fullPath: '/api/library'
-      preLoaderRoute: typeof ApiLibraryRouteImport
+    '/recognize': {
+      id: '/recognize'
+      path: '/recognize'
+      fullPath: '/recognize'
+      preLoaderRoute: typeof RecognizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search-history': {
+      id: '/search-history'
+      path: '/search-history'
+      fullPath: '/search-history'
+      preLoaderRoute: typeof SearchHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/album/$name': {
+      id: '/album/$name'
+      path: '/album/$name'
+      fullPath: '/album/$name'
+      preLoaderRoute: typeof AlbumNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin': {
+      id: '/api/admin'
+      path: '/api/admin'
+      fullPath: '/api/admin'
+      preLoaderRoute: typeof ApiAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth': {
@@ -458,11 +469,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/album/$name': {
-      id: '/album/$name'
-      path: '/album/$name'
-      fullPath: '/album/$name'
-      preLoaderRoute: typeof AlbumNameRouteImport
+    '/api/featured-playlists': {
+      id: '/api/featured-playlists'
+      path: '/api/featured-playlists'
+      fullPath: '/api/featured-playlists'
+      preLoaderRoute: typeof ApiFeaturedPlaylistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/library': {
+      id: '/api/library'
+      path: '/api/library'
+      fullPath: '/api/library'
+      preLoaderRoute: typeof ApiLibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/playlists': {
+      id: '/api/playlists'
+      path: '/api/playlists'
+      fullPath: '/api/playlists'
+      preLoaderRoute: typeof ApiPlaylistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artist/$name': {
+      id: '/artist/$name'
+      path: '/artist/$name'
+      fullPath: '/artist/$name'
+      preLoaderRoute: typeof ArtistNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mix/$id': {
+      id: '/mix/$id'
+      path: '/mix/$id'
+      fullPath: '/mix/$id'
+      preLoaderRoute: typeof MixIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$id': {
+      id: '/p/$id'
+      path: '/p/$id'
+      fullPath: '/p/$id'
+      preLoaderRoute: typeof PIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlist/$id': {
+      id: '/playlist/$id'
+      path: '/playlist/$id'
+      fullPath: '/playlist/$id'
+      preLoaderRoute: typeof PlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$key': {
+      id: '/t/$key'
+      path: '/t/$key'
+      fullPath: '/t/$key'
+      preLoaderRoute: typeof TKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/gd/$': {
@@ -478,6 +538,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  AdminRoute: AdminRoute,
   DownloadsRoute: DownloadsRoute,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
@@ -489,7 +550,9 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StudioRoute: StudioRoute,
   AlbumNameRoute: AlbumNameRoute,
+  ApiAdminRoute: ApiAdminRoute,
   ApiAuthRoute: ApiAuthRoute,
+  ApiFeaturedPlaylistsRoute: ApiFeaturedPlaylistsRoute,
   ApiLibraryRoute: ApiLibraryRoute,
   ApiPlaylistsRoute: ApiPlaylistsRoute,
   ArtistNameRoute: ArtistNameRoute,
