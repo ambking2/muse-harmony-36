@@ -45,7 +45,7 @@ function Home() {
  * Scroll-reactive, homepage-only ice-glass intro.
  */
 function HomeMotionStage() {
-  const stage = useRef<HTMLElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const current = usePlayer((state) => state.queue[state.index]);
   const playing = usePlayer((state) => state.isPlaying);
   const { scrollYProgress } = useScroll({ target: stage, offset: ["start start", "end start"] });
@@ -55,7 +55,7 @@ function HomeMotionStage() {
   const copyOpacity = useTransform(scrollYProgress, [0, 0.72, 1], [1, 1, 0.15]);
 
   return (
-    <section ref={stage} className="home-motion-stage" aria-label="معرفی موسی">
+    <div ref={stage} className="home-motion-scroll-track">\n    <section className="home-motion-stage" aria-label="معرفی موسی">
       <div className="home-stage-copy">
         <span className="home-stage-kicker"><span className="home-stage-dot" /> MUSE HARMONY · YOUR SOUNDSPACE</span>
         <motion.div style={{ y: copyY, opacity: copyOpacity }}>
