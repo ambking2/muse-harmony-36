@@ -1,18 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, Play } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ArrowLeft, ArrowUp, ChevronDown, Play } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
 import "@/home-motion.css";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { CrystalScene } from "@/components/home/CrystalScene";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { ResumeCard } from "@/components/home/ResumeCard";
 import { PlaylistCard } from "@/components/music/PlaylistCard";
-import { Artwork } from "@/components/music/Artwork";
 import { TrackThumb } from "@/components/search/Rails";
 import { useMounted } from "@/hooks/use-mounted";
 import { FEATURED_PLAYLISTS } from "@/lib/featured";
+import { HOME_CONFIG as C } from "@/lib/home-config";
 import { useLibrary } from "@/stores/library";
 import { usePlayer } from "@/stores/player";
 import { trackKey } from "@/lib/types";
@@ -21,11 +22,11 @@ import type { Track } from "@/lib/types";
 export const Route = createFileRoute("/")({ component: Home });
 
 /**
- * Home: one scroll-driven story. A pale ice-glass hero with a suspended ring,
- * then the same shelves the old home had — continue, recent, favourites,
- * playlists, library — each as a numbered chapter whose rule, title and shelf
- * are bound to scroll position (so reverse scrolling plays them backwards).
- * No long copy: every chapter is just its heading and the real content.
+ * Home as one scroll-driven story: a hero with two glass crystals and a
+ * suspended ring, an overview index, then the real shelves of the app —
+ * continue, recent, favourites, playlists, library — as numbered chapters.
+ * The 3D stage is one pinned layer; every movement is a function of scroll.
+ * All copy and colours come from `@/lib/home-config`.
  */
 function Home() {
   return (
@@ -35,8 +36,7 @@ function Home() {
   );
 }
 
-type ChapterId = "resume" | "recent" | "favorites" | "playlists" | "library";
-type Chapter = { id: ChapterId; en: string; title: string };
+type ChapterId = keyof typeof C.chapters;
 
 function scrollToId(id: string, reduce: boolean) {
   document
@@ -44,15 +44,17 @@ function scrollToId(id: string, reduce: boolean) {
     ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 }
 
+const fa = (n: number) => n.toLocaleString("fa-IR");
+
 function HomeExperience() {
   const reduce = !!useReducedMotion();
   const mounted = useMounted();
   const current = usePlayer((state) => state.queue[state.index]);
   const history = useLibrary((state) => state.history);
   const favorites = useLibrary((state) => state.favorites);
+  const library = useLibrary((state) => state.library);
   const tracksById = useLibrary((state) => state.tracksById);
 
-  // Newest first, deduplicated, enough to fill a shelf.
   const recent = useMemo(() => {
     const seen = new Set<string>();
     const out: Track[] = [];
@@ -72,37 +74,70 @@ function HomeExperience() {
     [favorites, tracksById],
   );
 
-  const hasResume = Boolean(current) || history.some((entry) => tracksById[entry.key]);
+  const resumeTrack: Track | undefined =
+    current ?? (() => {
+      const latest = history.find((entry) => tracksById[entry.key]);
+      return latest ? tracksById[latest.key] : undefined;
+    })();
 
   // Library state is client-only; before mount only the always-present chapters
   // render, so server and client markup agree.
-  const chapters = useMemo<Chapter[]>(() => {
-    const list: Chapter[] = [];
-    if (mounted && hasResume) list.push({ id: "resume", en: "CONTINUE", title: "ادامه‌ی پخش" });
-    if (mounted && recent.length) list.push({ id: "recent", en: "RECENT", title: "پخش‌های اخیر" });
-    if (mounted && liked.length)
-      list.push({ id: "favorites", en: "FAVORITES", title: "علاقه‌مندی‌ها" });
-    list.push({ id: "playlists", en: "PLAYLISTS", title: "پلی‌لیست‌ها" });
-    list.push({ id: "library", en: "LIBRARY", title: "کتابخانه" });
+  const chapters = useMemo(() => {
+    const list: { id: ChapterId; meta?: string }[] = [];
+    if (mounted && resumeTrack) list.push({ id: "resume", meta: resumeTrack.name });
+    if (mounted && recent.length) list.push({ id: "recent", meta: `${fa(recent.length)} ${C.units.songs}` });
+    if (mounted && liked.length) list.push({ id: "favorites", meta: `${fa(liked.length)} ${C.units.songs}` });
+    list.push({ id: "playlists", meta: `${fa(FEATURED_PLAYLISTS.length)} ${C.units.playlists}` });
+    list.push({
+      id: "library",
+      meta: mounted ? `${fa(library.length)} ${C.units.songs}` : undefined,
+    });
     return list;
-  }, [mounted, hasResume, recent.length, liked.length]);
+  }, [mounted, resumeTrack, recent.length, liked.length, library.length]);
+
+  const anchorIds = useMemo(
+    () => ["wm-hero", "wm-overview", ...chapters.map((c) => `wm-${c.id}`), "wm-end"],
+    [chapters],
+  );
+
+  const pageStyle = {
+    "--wm-lime": C.accents.lime,
+    "--wm-lav-l": C.accents.lavender,
+    "--wm-lav-d": C.accents.lavenderDark,
+  } as CSSProperties;
 
   return (
-    <div className={`wm-page${reduce ? " wm-reduced" : ""}`}>
-      <RingLayer reduce={reduce} track={mounted ? current : undefined} />
-      <ChapterNav chapters={chapters} reduce={reduce} />
-      <Hero
-        reduce={reduce}
-        onStart={() => scrollToId(`wm-${chapters[0].id}`, reduce)}
-      />
+    <div className={`wm-page${reduce ? " wm-reduced" : ""}`} style={pageStyle}>
+      <CrystalScene anchorIds={anchorIds} reduce={reduce} />
+      <EdgeRail chapters={chapters} reduce={reduce} />
+      <Hero reduce={reduce} onOverview={() => scrollToId("wm-overview", reduce)} />
+
+      <ChapterSection id="wm-overview" no="—" en={C.overview.en} title={C.overview.title} reduce={reduce}>
+        <ol className="wm-ov">
+          {chapters.map((chapter, index) => (
+            <li key={chapter.id}>
+              <button
+                type="button"
+                className="wm-ov-row"
+                onClick={() => scrollToId(`wm-${chapter.id}`, reduce)}
+              >
+                <span className="wm-ov-no">{String(index + 1).padStart(2, "0")}</span>
+                <span className="wm-ov-title">{C.chapters[chapter.id].title}</span>
+                <span className="wm-ov-meta">{chapter.meta}</span>
+                <ArrowLeft className="size-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ol>
+      </ChapterSection>
 
       {chapters.map((chapter, index) => (
         <ChapterSection
           key={chapter.id}
           id={`wm-${chapter.id}`}
           no={String(index + 1).padStart(2, "0")}
-          en={chapter.en}
-          title={chapter.title}
+          en={C.chapters[chapter.id].en}
+          title={C.chapters[chapter.id].title}
           reduce={reduce}
           action={
             chapter.id === "favorites" ? (
@@ -133,13 +168,20 @@ function HomeExperience() {
           )}
         </ChapterSection>
       ))}
+
+      <section id="wm-end" className="wm-end" aria-label={C.ending.title}>
+        <p className="wm-end-title">{C.ending.title}</p>
+        <button type="button" className="wm-cta" onClick={() => scrollToId("wm-hero", reduce)}>
+          {C.nav.top} <ArrowUp className="size-4" aria-hidden />
+        </button>
+      </section>
     </div>
   );
 }
 
 /* ── Hero ─────────────────────────────────────────────────────────────── */
 
-function Hero({ reduce, onStart }: { reduce: boolean; onStart: () => void }) {
+function Hero({ reduce, onOverview }: { reduce: boolean; onOverview: () => void }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 70]);
@@ -152,96 +194,77 @@ function Hero({ reduce, onStart }: { reduce: boolean; onStart: () => void }) {
           animate: { y: 0 },
           transition: { duration: 0.9, delay, ease: [0.2, 0.8, 0.2, 1] as const },
         };
+  const words = [...C.title.line1, ...C.title.line2];
+  const lastWord = words[words.length - 1];
 
   return (
-    <section id="wm-hero" ref={ref} className="wm-hero" aria-label="معرفی موسی">
-      <span className="wm-kicker">
-        <i className="wm-dot" /> MUSE HARMONY · YOUR SOUNDSPACE
-      </span>
+    <section id="wm-hero" ref={ref} className="wm-hero" aria-label={C.brand}>
+      <div className="wm-topbar">
+        <span className="wm-brand">
+          <i className="wm-dot" /> {C.brand}
+        </span>
+        <span className="wm-topbar-actions">
+          <button type="button" className="wm-pill" onClick={onOverview}>
+            {C.nav.overview}
+          </button>
+          <Link to="/account" className="wm-pill">
+            {C.nav.account}
+          </Link>
+        </span>
+      </div>
 
-      <motion.div style={reduce ? undefined : { y, opacity }}>
+      <motion.div className="wm-hero-main" style={reduce ? undefined : { y, opacity }}>
+        <span className="wm-kicker">{C.kicker}</span>
         <h1 className="wm-title">
-          <span className="wm-line">
-            <span className="word">
-              <motion.span className="word-in" {...rise(0.05)}>
-                موسیقی،
-              </motion.span>
+          {[C.title.line1, C.title.line2].map((line, li) => (
+            <span className="wm-line" key={li}>
+              {line.map((word, wi) => {
+                const delay = 0.05 + (li * 2 + wi) * 0.12;
+                return (
+                  <span key={word}>
+                    <span className="word">
+                      <motion.span
+                        className={`word-in${word === lastWord ? " wm-hl" : ""}`}
+                        {...rise(delay)}
+                      >
+                        {word}
+                      </motion.span>
+                    </span>{" "}
+                  </span>
+                );
+              })}
             </span>
-          </span>
-          <span className="wm-line">
-            <span className="word">
-              <motion.span className="word-in" {...rise(0.18)}>
-                در
-              </motion.span>
-            </span>{" "}
-            <span className="word">
-              <motion.span className="word-in wm-hl" {...rise(0.3)}>
-                جریان.
-              </motion.span>
-            </span>
-          </span>
+          ))}
         </h1>
+        {reduce && <p className="wm-note">{C.reducedMotionNote}</p>}
       </motion.div>
 
       <div className="wm-hero-foot">
         <span className="wm-index">
           <b>00</b> LISTEN / REPEAT
         </span>
-        <button type="button" className="wm-cue" onClick={onStart}>
-          اسکرول کن <ChevronDown className="size-4" aria-hidden />
+        <button type="button" className="wm-cue" onClick={onOverview}>
+          {C.nav.scroll} <ChevronDown className="size-4" aria-hidden />
         </button>
       </div>
     </section>
   );
 }
 
-/* ── The suspended ring: fixed behind the page, driven by scroll ─────── */
+/* ── Edge: vertical badge, scroll progress line and numbered rail ─────── */
 
-function RingLayer({ reduce, track }: { reduce: boolean; track: Track | undefined }) {
-  const playing = usePlayer((state) => state.isPlaying);
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 900], ["0vh", "-24vh"]);
-  const x = useTransform(scrollY, [0, 900], ["0vw", "-16vw"]);
-  const scale = useTransform(scrollY, [0, 900], [1, 0.46]);
-  const rotate = useTransform(scrollY, [0, 2600], [-8, 170]);
-  const opacity = useTransform(scrollY, [0, 500, 1300], [1, 0.8, 0.3]);
-
-  return (
-    <div className="wm-ring-layer" aria-hidden="true">
-      <div className="wm-ring-stage">
-        <motion.div
-          className="wm-orbit"
-          style={reduce ? undefined : { y, x, scale, rotate, opacity }}
-        >
-          <div className="wm-ring wm-ring-a" />
-          <div className="wm-ring wm-ring-b" />
-          <div className="wm-ring wm-ring-c" />
-          <div className="wm-glow" />
-          <div className={`wm-core${playing ? " is-playing" : ""}`}>
-            {track ? (
-              <Artwork track={track} size={480} className="wm-cover" rounded="rounded-full" />
-            ) : (
-              <div className="wm-core-empty">
-                <span>♪</span>
-              </div>
-            )}
-          </div>
-          <span className="wm-node wm-node-1" />
-          <span className="wm-node wm-node-2" />
-          <span className="wm-node wm-node-3" />
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Edge navigation: small numbered rail, wide screens only ─────────── */
-
-function ChapterNav({ chapters, reduce }: { chapters: Chapter[]; reduce: boolean }) {
+function EdgeRail({
+  chapters,
+  reduce,
+}: {
+  chapters: { id: ChapterId }[];
+  reduce: boolean;
+}) {
   const [active, setActive] = useState("wm-hero");
+  const { scrollYProgress } = useScroll();
 
   useEffect(() => {
-    const ids = ["wm-hero", ...chapters.map((c) => `wm-${c.id}`)];
+    const ids = ["wm-hero", "wm-overview", ...chapters.map((c) => `wm-${c.id}`)];
     const els = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
       (entries) => {
@@ -254,28 +277,42 @@ function ChapterNav({ chapters, reduce }: { chapters: Chapter[]; reduce: boolean
   }, [chapters]);
 
   return (
-    <nav className="wm-edge-layer" aria-label="بخش‌های صفحه اصلی">
-      <ol className="wm-edge">
-        {chapters.map((chapter, index) => {
-          const id = `wm-${chapter.id}`;
-          return (
-            <li key={chapter.id}>
-              <button
-                type="button"
-                className="wm-edge-item"
-                data-active={active === id}
-                aria-label={chapter.title}
-                aria-current={active === id ? "true" : undefined}
-                onClick={() => scrollToId(id, reduce)}
-              >
-                <span className="wm-edge-no">{String(index + 1).padStart(2, "0")}</span>
-                <span className="wm-edge-label">{chapter.title}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+    <div className="wm-edge-layer">
+      <div className="wm-edge-stage">
+        <span className="wm-badge" aria-hidden>
+          {C.badge}
+        </span>
+        <span className="wm-edge-line" aria-hidden>
+          <motion.span
+            className="wm-edge-fill"
+            style={reduce ? { transform: "scaleY(0)" } : { scaleY: scrollYProgress }}
+          />
+        </span>
+        <nav aria-label={C.nav.railLabel}>
+          <ol className="wm-edge">
+            {chapters.map((chapter, index) => {
+              const id = `wm-${chapter.id}`;
+              const title = C.chapters[chapter.id].title;
+              return (
+                <li key={chapter.id}>
+                  <button
+                    type="button"
+                    className="wm-edge-item"
+                    data-active={active === id}
+                    aria-label={title}
+                    aria-current={active === id ? "true" : undefined}
+                    onClick={() => scrollToId(id, reduce)}
+                  >
+                    <span className="wm-edge-no">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="wm-edge-label">{title}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+      </div>
+    </div>
   );
 }
 
