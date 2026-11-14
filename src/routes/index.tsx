@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, ListMusic, Play } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Screen } from "@/components/ios/Screen";
@@ -35,6 +36,7 @@ function Home() {
   return (
     <AppShell>
       <Screen title="خانه" subtitle={today}>
+        <HomeMotionStage />
         <ResumeCard />
         <RecentRail />
         <FavoritesRail />
