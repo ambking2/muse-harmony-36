@@ -2514,7 +2514,7 @@ body:has(.muis-player-playlist-dialog[data-state="open"]) [data-radix-dialog-ove
   box-shadow: 0 20px 55px hsl(215 55% 55% / .22), inset 0 0 0 1px hsl(215 30% 65% / .25);
   transform: translateZ(45px);
 }
-.home-orbit-cover { width: 100% !important; height: 100% !important; border-radius: 50% !important; object-fit: cover; }
+.home-orbit-cover { width: 100% !important; height: 100% !important; border-radius: 50% !important; }\n.home-orbit-cover img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .home-orbit-core.is-playing .home-orbit-cover { animation: home-cover-spin 28s linear infinite; }
 .home-orbit-placeholder { display: grid; width: 100%; height: 100%; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #fff, #b9d9e8 65%, #8aa7c4); color: hsl(220 20% 35%); font-size: 5rem; }
 .home-orbit-node { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #c9ff35; border: 3px solid hsl(0 0% 100% / .9); box-shadow: 0 0 22px hsl(78 100% 55% / .7); }
