@@ -8,6 +8,7 @@ import { Screen } from "@/components/ios/Screen";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { ResumeCard } from "@/components/home/ResumeCard";
 import { PlaylistCard } from "@/components/music/PlaylistCard";
+import { Artwork } from "@/components/music/Artwork";
 import { Rail, TrackThumb } from "@/components/search/Rails";
 import { FEATURED_PLAYLISTS } from "@/lib/featured";
 import { useLibrary } from "@/stores/library";
@@ -54,6 +55,46 @@ function Home() {
  * you actually played belongs nearest the top, and each tile starts the music
  * on the tap itself — no detour through a detail screen first.
  */
+/**
+ * Scroll-reactive, homepage-only ice-glass intro.
+ */
+function HomeMotionStage() {
+  const stage = useRef<HTMLElement>(null);
+  const current = usePlayer((state) => state.queue[state.index]);
+  const playing = usePlayer((state) => state.isPlaying);
+  const { scrollYProgress } = useScroll({ target: stage, offset: ["start start", "end start"] });
+  const ringY = useTransform(scrollYProgress, [0, 1], [0, -105]);
+  const ringRotate = useTransform(scrollYProgress, [0, 1], [-8, 42]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, 55]);
+  const copyOpacity = useTransform(scrollYProgress, [0, 0.72, 1], [1, 1, 0.15]);
+
+  return (
+    <section ref={stage} className="home-motion-stage" aria-label="معرفی موسی">
+      <div className="home-stage-copy">
+        <span className="home-stage-kicker"><span className="home-stage-dot" /> MUSE HARMONY · YOUR SOUNDSPACE</span>
+        <motion.div style={{ y: copyY, opacity: copyOpacity }}>
+          <h2 className="home-stage-title">موسیقی،<br /><em>در جریان.</em></h2>
+          <p className="home-stage-description">از جایی که رها کردی، ادامه بده.</p>
+        </motion.div>
+      </div>
+      <motion.div className="home-stage-orbit" style={{ y: ringY, rotate: ringRotate }} aria-hidden="true">
+        <div className="home-orbit-ring home-orbit-ring-a" />
+        <div className="home-orbit-ring home-orbit-ring-b" />
+        <div className="home-orbit-ring home-orbit-ring-c" />
+        <div className="home-orbit-glow" />
+        <div className={`home-orbit-core ${playing ? "is-playing" : ""}`}>
+          {current ? <Artwork track={current} size={480} className="home-orbit-cover" rounded="rounded-full" /> : <div className="home-orbit-placeholder"><span>♪</span></div>}
+        </div>
+        <span className="home-orbit-node home-orbit-node-one" />
+        <span className="home-orbit-node home-orbit-node-two" />
+        <span className="home-orbit-node home-orbit-node-three" />
+      </motion.div>
+      <div className="home-stage-index"><span>01</span><span>LISTEN / REPEAT</span></div>
+      <div className="home-stage-scroll"><span /> اسکرول کن</div>
+    </section>
+  );
+}
+
 function RecentRail() {
   const history = useLibrary((state) => state.history);
   const tracksById = useLibrary((state) => state.tracksById);
