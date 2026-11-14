@@ -27,23 +27,9 @@ export const Route = createFileRoute("/")({ component: Home });
  * beside the dock, where the finger already is.
  */
 function Home() {
-  // «شنبه ۲۷ مهر» — the long Persian date.
-  const today = useMemo(
-    () =>
-      new Date().toLocaleDateString("fa-IR", { weekday: "long", day: "numeric", month: "long" }),
-    [],
-  );
-
   return (
     <AppShell>
-      <Screen title="خانه" subtitle={today}>
-        <HomeMotionStage />
-        <ResumeCard />
-        <RecentRail />
-        <FavoritesRail />
-        <Collections />
-        <QuickLinks />
-      </Screen>
+      <HomeMotionStage />
     </AppShell>
   );
 }
