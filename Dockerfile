@@ -1,5 +1,5 @@
-# Cloudzyro: run TanStack Start as a Node.js server (not static Nginx).
-FROM oven/bun:1.2 AS build
+# Cloudzyro must build this repository with its Dockerfile (Node server), not static Nginx mode.
+FROM oven/bun:1.4.4 AS build
 WORKDIR /app
 
 COPY package.json bun.lock ./
@@ -9,7 +9,7 @@ COPY . .
 ENV NITRO_PRESET=node-server
 RUN bun run build
 
-FROM node:22-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
